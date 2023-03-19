@@ -16,5 +16,4 @@
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
 
-
 extern void DrawBackgroundBlur(ImDrawList* drawList, IDirect3DDevice9* device, float alpha = 1.f);

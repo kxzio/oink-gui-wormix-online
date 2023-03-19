@@ -3,7 +3,8 @@
 #include "imgui/imgui.h"
 #include <d3dx9.h>
 
-class cc_menu : public singleton <cc_menu> {
+class cc_menu : public singleton <cc_menu>
+{
 public:
 	float dpi_scale = 1.f;
 	bool dpi_changed;
@@ -12,11 +13,11 @@ public:
 	int theme_g = int(theme_col[1] * 255);
 	int theme_b = int(theme_col[2] * 255);
 	int theme_a = int(theme_col[3] * 255);
-	void draw_menu();
+	void draw_menu( );
 	bool g_menu_opened;
 	ImFont* giant_font;
 	ImFont* default_font;
-	ImFont* middle_font; 
+	ImFont* middle_font;
 	ImFont* small_font;
 	IDirect3DTexture9* stars_data;
 	IDirect3DTexture9* syb;

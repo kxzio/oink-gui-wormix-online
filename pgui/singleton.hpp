@@ -4,19 +4,23 @@ template<typename T>
 class singleton
 {
 protected:
-    singleton() {}
-    ~singleton() {}
+	singleton( )
+	{
+	}
+	~singleton( )
+	{
+	}
 
-    singleton(const singleton&) = delete;
-    singleton& operator=(const singleton&) = delete;
+	singleton(const singleton&) = delete;
+	singleton& operator=(const singleton&) = delete;
 
-    singleton(singleton&&) = delete;
-    singleton& operator=(singleton&&) = delete;
+	singleton(singleton&&) = delete;
+	singleton& operator=(singleton&&) = delete;
 
 public:
-    static T& get()
-    {
-        static T inst{};
-        return inst;
-    }
+	static T& get( )
+	{
+		static T inst{};
+		return inst;
+	}
 };
