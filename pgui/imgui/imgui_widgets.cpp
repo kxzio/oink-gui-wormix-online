@@ -698,51 +698,6 @@ struct CUSTOMVERTEX2
 	FLOAT rhw;
 	DWORD color;
 };
-void draw_circe(float x, float y, float radius, int resolution, DWORD color, DWORD color2, LPDIRECT3DDEVICE9 device)
-{
-	LPDIRECT3DVERTEXBUFFER9 g_pVB2 = nullptr;
-	std::vector <CUSTOMVERTEX2> circle(resolution + 2);
-
-	circle[0].x = x;
-	circle[0].y = y;
-	circle[0].z = 0.0f;
-
-	circle[0].rhw = 1.0f;
-	circle[0].color = color2;
-
-	for (auto i = 1; i < resolution + 2; i++)
-	{
-		circle[i].x = (float) (x - radius * cos(D3DX_PI * ((i - 1) / (resolution / 2.0f))));
-		circle[i].y = (float) (y - radius * sin(D3DX_PI * ((i - 1) / (resolution / 2.0f))));
-		circle[i].z = 0.0f;
-
-		circle[i].rhw = 1.0f;
-		circle[i].color = color;
-	}
-
-	device->CreateVertexBuffer((resolution + 2) * sizeof(CUSTOMVERTEX2), D3DUSAGE_WRITEONLY, D3DFVF_XYZRHW | D3DFVF_DIFFUSE, D3DPOOL_DEFAULT, &g_pVB2, nullptr); //-V107
-
-	if (!g_pVB2)
-		return;
-
-	void* pVertices;
-
-	g_pVB2->Lock(0, (resolution + 2) * sizeof(CUSTOMVERTEX2), (void**) &pVertices, 0); //-V107
-	memcpy(pVertices, &circle[0], (resolution + 2) * sizeof(CUSTOMVERTEX2));
-	g_pVB2->Unlock( );
-
-	device->SetTexture(0, nullptr);
-	device->SetPixelShader(nullptr);
-	device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-
-	device->SetStreamSource(0, g_pVB2, 0, sizeof(CUSTOMVERTEX2));
-	device->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
-	device->DrawPrimitive(D3DPT_TRIANGLEFAN, 0, resolution);
-
-	g_pVB2->Release( );
-}
 enum anim_state
 {
 	_default,
@@ -788,9 +743,9 @@ bool ImGui::ButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags
 	if (!ItemAdd(bb, id))
 		return false;
 
-	int auto_red = cc_menu::get( ).theme_col[0] * 255;
-	int auto_green = cc_menu::get( ).theme_col[1] * 255;
-	int auto_blue = cc_menu::get( ).theme_col[2] * 255;
+	int auto_red = c_oink_ui::get( ).theme_col[0] * 255;
+	int auto_green = c_oink_ui::get( ).theme_col[1] * 255;
+	int auto_blue = c_oink_ui::get( ).theme_col[2] * 255;
 
 	float theme_col[4] = { 47 / 255.f, 70 / 255.f, 154 / 255.f };
 	ImVec4 theme = ImVec4(ImColor(int(theme_col[0] * 255), int(theme_col[1] * 255), int(theme_col[2] * 255), int(theme_col[3] * 255)));
@@ -889,17 +844,17 @@ bool ImGui::SubButton(const char* label, const ImVec2& size_arg, ImGuiButtonFlag
 
 	int anim_active = Animate("active", label, this_tab == opened_tab, 200, 0.15, STATIC);
 
-	int r1 = int((cc_menu::get( ).theme_col[0] * 255));
-	int g1 = int((cc_menu::get( ).theme_col[1] * 255));
-	int b1 = int((cc_menu::get( ).theme_col[2] * 255));
+	int r1 = int((c_oink_ui::get( ).theme_col[0] * 255));
+	int g1 = int((c_oink_ui::get( ).theme_col[1] * 255));
+	int b1 = int((c_oink_ui::get( ).theme_col[2] * 255));
 
 	float hovered1 = Animate("button_hover", label, hovered, 200, 0.07, DYNAMIC);
 	float alpha = Animate("button", label, this_tab == opened_tab, 200, 0.05, DYNAMIC);
 	float hovered_alpha = Animate("button_hovered", label, this_tab == opened_tab, bb.GetSize( ).y, 0.05, DYNAMIC);
 
-	int auto_red = cc_menu::get( ).theme_col[0] * 255;
-	int auto_green = cc_menu::get( ).theme_col[1] * 255;
-	int auto_blue = cc_menu::get( ).theme_col[2] * 255;
+	int auto_red = c_oink_ui::get( ).theme_col[0] * 255;
+	int auto_green = c_oink_ui::get( ).theme_col[1] * 255;
+	int auto_blue = c_oink_ui::get( ).theme_col[2] * 255;
 
 	float theme_col[4] = { 47 / 255.f, 70 / 255.f, 154 / 255.f };
 	ImVec4 theme = ImVec4(ImColor(int(theme_col[0] * 255), int(theme_col[1] * 255), int(theme_col[2] * 255), int(theme_col[3] * 255)));
@@ -1090,15 +1045,14 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
 }
 float ImGui::Animate(const char* label, const char* second_label, bool if_, float Maximal_, float Speed_, int type)
 {
-	auto ID = ImHashStr(label) + ImHashStr(second_label);
-
 	static std::unordered_map <ImGuiID, float> pValue;
+
+	auto ID = ImHashStr(label) ^ ImHashStr(second_label);
+
 	auto ItPLibrary = pValue.find(ID);
+
 	if (ItPLibrary == pValue.end( ))
-	{
-		pValue.insert({ ID, 0.f });
-		ItPLibrary = pValue.find(ID);
-	}
+		ItPLibrary = pValue.insert({ ID, 0.f }).first;
 
 	const float FrameRateBasedSpeed = Speed_ / GetIO( ).DeltaTime;
 
@@ -1107,33 +1061,29 @@ float ImGui::Animate(const char* label, const char* second_label, bool if_, floa
 		case DYNAMIC:
 		{
 			if (if_) //do
-				ItPLibrary->second += abs(Maximal_ - ItPLibrary->second) / FrameRateBasedSpeed;
+				ItPLibrary->second += ImAbs(Maximal_ - ItPLibrary->second) / FrameRateBasedSpeed;
 			else
 				ItPLibrary->second -= (0 + ItPLibrary->second) / FrameRateBasedSpeed;
+			break;
 		}
-		break;
 		case INTERP:
 		{
 			ItPLibrary->second += (Maximal_ - ItPLibrary->second) / FrameRateBasedSpeed;
+			break;
 		}
-		break;
 		case STATIC:
 		{
 			if (if_) //do
 				ItPLibrary->second += FrameRateBasedSpeed;
 			else
 				ItPLibrary->second -= FrameRateBasedSpeed;
+			break;
 		}
-		break;
 	}
+
 	if (type != INTERP)
-	{
-		//clamp
-		if (ItPLibrary->second > Maximal_)
-			ItPLibrary->second = Maximal_;
-		else if (ItPLibrary->second < 0)
-			ItPLibrary->second = 0;
-	}
+		ImClamp(ItPLibrary->second, 0.f, Maximal_);
+
 	return ItPLibrary->second;
 }
 bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
@@ -1345,7 +1295,7 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
 
 	// Render
 	const ImU32 bg_col = GetColorU32(ImGuiCol_ScrollbarBg);
-	const ImU32 grab_col = ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255));
+	const ImU32 grab_col = ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255));
 	window->DrawList->AddRectFilled(bb_frame.Min, bb_frame.Max, bg_col, window->WindowRounding, flags);
 	ImRect grab_rect;
 	if (axis == ImGuiAxis_X)
@@ -1471,15 +1421,15 @@ int ImGui::Checkbox(const char* label, bool* v)
 	float alpha = Animate("button", label, *v, 200, 0.05, DYNAMIC);
 	float hovered_alpha = Animate("button_hovered", label, *v, check_bb.GetSize( ).y, 0.05, DYNAMIC);
 
-	int auto_red = cc_menu::get( ).theme_col[0] * 255;
-	int auto_green = cc_menu::get( ).theme_col[1] * 255;
-	int auto_blue = cc_menu::get( ).theme_col[2] * 255;
+	int auto_red = c_oink_ui::get( ).theme_col[0] * 255;
+	int auto_green = c_oink_ui::get( ).theme_col[1] * 255;
+	int auto_blue = c_oink_ui::get( ).theme_col[2] * 255;
 
 	window->DrawList->AddRect(pos, pos + check_bb.GetSize( ),
 							  ImColor(auto_red, auto_green, auto_blue, int(50 + hovered1)), 0, 0, 1);
 
 	window->DrawList->AddRectFilledMultiColor(ImVec2(check_bb.Min.x, check_bb.Min.y), ImVec2(check_bb.Max.x, check_bb.Max.y),
-											  ImColor(auto_red, auto_green, auto_blue, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)));
+											  ImColor(auto_red, auto_green, auto_blue, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)));
 
 	for (int i = 0; i < 5; i++)
 	{
@@ -1960,7 +1910,7 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
 
 	auto backuppos = GetCursorPosX( );
 	auto backup = GetStyle( ).Colors[ImGuiCol_Text];
-	GetStyle( ).Colors[ImGuiCol_Text] = ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255));
+	GetStyle( ).Colors[ImGuiCol_Text] = ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255));
 	Text(label);
 	GetStyle( ).Colors[ImGuiCol_Text] = backup;
 
@@ -2007,18 +1957,18 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
 	}
 
 	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max,
-											  ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20));
+											  ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20));
 
 	float hovered1 = Animate("button_hover", label, hovered || g.ActiveId == id, 200, 0.07, DYNAMIC);
 
-	int auto_red = cc_menu::get( ).theme_col[0] * 255;
-	int auto_green = cc_menu::get( ).theme_col[1] * 255;
-	int auto_blue = cc_menu::get( ).theme_col[2] * 255;
+	int auto_red = c_oink_ui::get( ).theme_col[0] * 255;
+	int auto_green = c_oink_ui::get( ).theme_col[1] * 255;
+	int auto_blue = c_oink_ui::get( ).theme_col[2] * 255;
 
 	window->DrawList->AddRectFilled(bb.Min, bb.Max,
 									ImColor(auto_red, auto_green, auto_blue, int(hovered1 / 5)));
 
-	window->DrawList->AddRect(bb.Min, bb.Max, ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 255));
+	window->DrawList->AddRect(bb.Min, bb.Max, ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 255));
 
 	// Custom preview
 	if (flags & ImGuiComboFlags_CustomPreview)
@@ -2450,9 +2400,9 @@ void ImGui::DataTypeApplyOp(ImGuiDataType data_type, int op, void* output, const
 			}
 			return;
 		case ImGuiDataType_COUNT: break;
-	}
+			}
 	IM_ASSERT(0);
-}
+	}
 
 // User can input math operators (e.g. +100) to edit a numerical values.
 // NB: This is _not_ a full expression evaluator. We should probably add one and replace this dumb mess..
@@ -3466,9 +3416,9 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
 	//RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 
 	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max,
-											  ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20));
+											  ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20));
 
-	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 255));
+	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 255));
 
 	// Slider behavior
 	ImRect grab_bb;
@@ -3483,11 +3433,11 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
 	float diff = grab_bb.Max.x - frame_bb.Min.x;
 	float anim_diff = Animate("slider_grab", label, true, diff, 0.07, INTERP);
 	window->DrawList->AddRectFilledMultiColor(frame_bb.Min - ImVec2(1, 0), ImVec2(frame_bb.Min.x + anim_diff, grab_bb.Max.y) + ImVec2(2, 2),
-											  ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)));
+											  ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)));
 
-	int auto_red = cc_menu::get( ).theme_col[0] * 255;
-	int auto_green = cc_menu::get( ).theme_col[1] * 255;
-	int auto_blue = cc_menu::get( ).theme_col[2] * 255;
+	int auto_red = c_oink_ui::get( ).theme_col[0] * 255;
+	int auto_green = c_oink_ui::get( ).theme_col[1] * 255;
+	int auto_blue = c_oink_ui::get( ).theme_col[2] * 255;
 
 	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max,
 									ImColor(auto_red, auto_green, auto_blue, int(hovered1 / 5)));
@@ -3508,9 +3458,9 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
 	{
 		window->DrawList->AddRectFilled(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0), ImColor(0, 0, 0, 255));
 		window->DrawList->AddRectFilledMultiColor(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0),
-												  ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20));
+												  ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20));
 
-		window->DrawList->AddRect(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 255));
+		window->DrawList->AddRect(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 255));
 
 		RenderTextClipped(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2, grab_bb.Min.y - 8) - ImVec2(7, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2, grab_bb.Max.y + 8) - ImVec2(7, 0), value_buf, value_buf_end, NULL, ImVec2(0.5f, 0.5f));
 	}
@@ -4493,7 +4443,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 {
 	auto backuppos = GetCursorPosX( );
 	auto backup = GetStyle( ).Colors[ImGuiCol_Text];
-	GetStyle( ).Colors[ImGuiCol_Text] = ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255));
+	GetStyle( ).Colors[ImGuiCol_Text] = ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255));
 	Text(label);
 	GetStyle( ).Colors[ImGuiCol_Text] = backup;
 
@@ -4531,20 +4481,20 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
 	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max,
-											  ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 0), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20), ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 20));
+											  ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 0), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20), ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 20));
 
 	const bool hovered = ItemHoverable(frame_bb, id);
 
 	float hovered1 = Animate("button_hover", label, hovered || g.ActiveId == id, 200, 0.07, DYNAMIC);
 
-	int auto_red = cc_menu::get( ).theme_col[0] * 255;
-	int auto_green = cc_menu::get( ).theme_col[1] * 255;
-	int auto_blue = cc_menu::get( ).theme_col[2] * 255;
+	int auto_red = c_oink_ui::get( ).theme_col[0] * 255;
+	int auto_green = c_oink_ui::get( ).theme_col[1] * 255;
+	int auto_blue = c_oink_ui::get( ).theme_col[2] * 255;
 
 	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max,
 									ImColor(auto_red, auto_green, auto_blue, int(hovered1 / 5)));
 
-	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, ImColor(int((cc_menu::get( ).theme_col[0] * 255)), int((cc_menu::get( ).theme_col[1] * 255)), int((cc_menu::get( ).theme_col[2] * 255)), 255));
+	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, ImColor(int((c_oink_ui::get( ).theme_col[0] * 255)), int((c_oink_ui::get( ).theme_col[1] * 255)), int((c_oink_ui::get( ).theme_col[2] * 255)), 255));
 
 	const ImVec2 frame_size = frame_bb.GetSize( ); // Arbitrary default of 8 lines high for multi-line
 	const ImVec2 total_size = total_bb.GetSize( );
@@ -6910,13 +6860,13 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 	int alpha = ImGui::Animate(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), "alpha", hovered && (!selected), 200, 0.15, DYNAMIC);
 	int alpha_selected = ImGui::Animate(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), "alpha_selected", selected, 255, 0.15, DYNAMIC);
 	const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
-	ImColor base_col = ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255), alpha_selected / 10);
-	ImColor null_col = ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255), 0);
+	ImColor base_col = ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255), alpha_selected / 10);
+	ImColor null_col = ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255), 0);
 
 	RenderFrame(bb.Min, bb.Max, ImColor(0, 0, 0, 100), false, 0.0f);
 
-	RenderFrame(bb.Min, bb.Min + ImVec2(1, bb.GetSize( ).y), ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255), alpha_selected), false, 0.0f);
-	RenderFrame(bb.Max, bb.Max - ImVec2(1, bb.GetSize( ).y), ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255), alpha_selected), false, 0.0f);
+	RenderFrame(bb.Min, bb.Min + ImVec2(1, bb.GetSize( ).y), ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255), alpha_selected), false, 0.0f);
+	RenderFrame(bb.Max, bb.Max - ImVec2(1, bb.GetSize( ).y), ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255), alpha_selected), false, 0.0f);
 	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
 	window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
 	RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
@@ -6930,7 +6880,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 	RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 	PopStyleColor( );
 
-	PushStyleColor(ImGuiCol_Text, ImVec4(ImColor(int(cc_menu::get( ).theme_col[0] * 255), int(cc_menu::get( ).theme_col[1] * 255), int(cc_menu::get( ).theme_col[2] * 255), 0 + alpha_selected)));
+	PushStyleColor(ImGuiCol_Text, ImVec4(ImColor(int(c_oink_ui::get( ).theme_col[0] * 255), int(c_oink_ui::get( ).theme_col[1] * 255), int(c_oink_ui::get( ).theme_col[2] * 255), 0 + alpha_selected)));
 	RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 	PopStyleColor( );
 

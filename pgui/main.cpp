@@ -87,16 +87,6 @@ int main( )
 	ImGui::CreateContext( );
 	ImGuiIO& io = ImGui::GetIO( ); (void) io;
 
-	static bool gui_init = false;
-
-	if (!gui_init)
-	{
-		cc_menu::get( ).init_fonts( );
-		D3DXCreateTextureFromFileInMemoryEx(g_pd3dDevice, pigstars, sizeof(pigstars), 1000, 1000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &cc_menu::get( ).stars_data);
-		D3DXCreateTextureFromFileInMemoryEx(g_pd3dDevice, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &cc_menu::get( ).syb);
-		D3DXCreateTextureFromFileInMemoryEx(g_pd3dDevice, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &cc_menu::get( ).pig);
-		gui_init = true;
-	}
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX9_Init(g_pd3dDevice);
 
@@ -113,6 +103,11 @@ int main( )
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 	UpdateWindow(hwnd);
 
+	{
+		g_ui.textures_create(g_pd3dDevice);
+		g_ui.fonts_create( );
+	};
+
 	while (msg.message != WM_QUIT)
 	{
 		if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
@@ -126,7 +121,9 @@ int main( )
 		ImGui_ImplWin32_NewFrame( );
 		ImGui::NewFrame( );
 
-		cc_menu::get( ).draw_menu( );
+		{
+			g_ui.draw_menu( );
+		};
 
 		ImGui::EndFrame( );
 
