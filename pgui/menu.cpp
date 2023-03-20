@@ -16,6 +16,16 @@
 #include <ctime>
 #include <map>
 #include <vector>
+#include <dinput.h>
+#include <tchar.h>
+#include "imgui/Museo.h"
+#include "imgui/Museo900.h"
+#include "imgui/Museo700.h"
+#include <unordered_map>
+
+#define museo1 museo900
+#define museo2 museo700
+#define museo3 museo
 
 #ifndef _DEBUG
 //wtf
@@ -40,6 +50,8 @@ const ImVec2 operator/(const ImVec2& rv, const ImVec2& lv)
 static float theme_col[4];
 static bool first_open = true;
 static bool change_first_open = false;
+static float dpi_scale_slider = 1.f;
+
 inline std::tm localtime_xp(std::time_t timer)
 {
 	std::tm bt{};
@@ -55,10 +67,6 @@ inline std::tm localtime_xp(std::time_t timer)
 	return bt;
 }
 
-enum hover_system
-{
-	HOVERED = 3
-};
 // default = "YYYY-MM-DD HH:MM:SS"
 inline std::string time_stamp(const std::string& fmt = "%F %T")
 {
@@ -79,6 +87,12 @@ const static int child_x_size_const = 206;
 
 int gap = 10;
 
+int get_random_number(int min, int max)
+{
+	int num = min + rand( ) % (max - min + 1);
+	return num;
+}
+
 namespace UGui
 {
 	HDC hDCScreen;
@@ -87,34 +101,34 @@ namespace UGui
 
 	bool Checkbox(const char* label, bool* v)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		return ImGui::Checkbox(label, v);
 	}
 
 	bool SliderInt(const char* label, int* v, int v_min, int v_max)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		ImGui::SliderInt(label, v, v_min, v_max);
 		return true;
 	}
 
 	bool SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		ImGui::SliderFloat(label, v, v_min, v_max, format);
 		return true;
 	}
 
 	bool ComboBox(const char* label, int* current_item, const char* const items[ ], int items_count)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		ImGui::Combo(label, current_item, items, items_count);
 		return true;
 	}
 
 	bool TextColored(const char* text)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(47 / 255.f, 70 / 255.f, 154 / 255.f, 1.f));
 		ImGui::Text(text);
 		ImGui::PopStyleColor( );
@@ -123,26 +137,26 @@ namespace UGui
 
 	bool Text(const char* text)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		ImGui::Text(text);
 		return true;
 	}
 
 	bool BeginChild(const char* label, int number_of_child)
 	{
-		ImGui::SetCursorPos(ImVec2(10 + ((child_x_size_const + 10) * (number_of_child - 1)), 105));
+		ImGui::SetCursorPos(ImVec2(10 * cc_menu::get().dpi_scale + ((child_x_size_const * cc_menu::get().dpi_scale + 10 * cc_menu::get().dpi_scale) * (number_of_child - 1)), 105 * cc_menu::get().dpi_scale));
 
 		ImGuiStyle& style = ImGui::GetStyle( );
 
 		ImGui::BeginChild(label, ImVec2(child_x_size_const, 393));
 
-		style.ItemSpacing = ImVec2(10, 5);
+		style.ItemSpacing = ImVec2(10 * cc_menu::get().dpi_scale, 5 * cc_menu::get().dpi_scale);
 
-		ImGui::SetCursorPos(ImVec2(gap, 10));
+		ImGui::SetCursorPos(ImVec2(gap * cc_menu::get().dpi_scale, 10 * cc_menu::get().dpi_scale));
 		TextColored(label);
 
 		ImGui::Separator( );
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2 * cc_menu::get().dpi_scale);
 
 		return true;
 	}
@@ -150,7 +164,7 @@ namespace UGui
 	bool ColorPickerButton(const char* label, float* col, bool draw_on_same_line = false)
 	{
 		ImGui::SameLine( );
-		ImGui::SetCursorPosX(draw_on_same_line ? 160 : 180);
+		ImGui::SetCursorPosX(draw_on_same_line ? 160 * cc_menu::get().dpi_scale : 180 * cc_menu::get().dpi_scale);
 		ImGui::ColorEdit4(std::string(label + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder | ImGuiColorEditFlags_NoInputs);
 		return true;
 	}
@@ -158,15 +172,15 @@ namespace UGui
 	bool EndChild( )
 	{
 		ImGuiStyle& style = ImGui::GetStyle( );
-		style.ItemSpacing = ImVec2(20, 0);
-		ImGui::Dummy(ImVec2(10, 10));
+		style.ItemSpacing = ImVec2(20 * cc_menu::get().dpi_scale, 0 * cc_menu::get().dpi_scale);
+		ImGui::Dummy(ImVec2(10 * cc_menu::get().dpi_scale, 10 * cc_menu::get().dpi_scale));
 		ImGui::EndChild( );
 		return true;
 	}
 
 	void MultiBox(const char* title, bool selection[ ], const char* text[ ], int size)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 
 		ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, calc_max_popupheight(-1)));
 
@@ -208,16 +222,16 @@ namespace UGui
 
 	void ColorPicker(const char* text, float* col)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		ImGui::Text(text);
 		ImGui::SameLine( );
-		ImGui::SetCursorPosX(180);
+		ImGui::SetCursorPosX(180 * cc_menu::get().dpi_scale);
 		ImGui::ColorEdit4(std::string(text + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
 	}
 
 	bool Button(const char* text, ImVec2 sz)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		return ImGui::Button(text, sz);
 	}
 
@@ -393,8 +407,8 @@ namespace UGui
 	bool Hotkey(const char* label, int* k, bool* controlled_value = NULL)
 	{
 		ImGui::SameLine( );
-		ImGui::SetCursorPosX(140);
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) - 2);
+		ImGui::SetCursorPosX(140 * cc_menu::get().dpi_scale);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) - 2 * cc_menu::get().dpi_scale);
 
 		ImGuiWindow* window = ImGui::GetCurrentWindow( );
 		if (window->SkipItems)
@@ -532,7 +546,7 @@ namespace UGui
 
 			static int m_flags2 = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar;
 
-			ImGui::SetNextWindowPos(ImVec2(stored_cursor_pos.x + 10, stored_cursor_pos.y + 10));
+			ImGui::SetNextWindowPos(ImVec2(stored_cursor_pos.x + 10 * cc_menu::get().dpi_scale, stored_cursor_pos.y + 10 * cc_menu::get().dpi_scale));
 			ImGui::SetNextWindowSize(ImVec2(67, 82));
 
 			ImGui::Begin("bind_settings", NULL, m_flags2);
@@ -665,9 +679,14 @@ namespace UGui
 
 	bool InputText(const char* label, char* buf, size_t buf_size)
 	{
-		ImGui::SetCursorPosX(gap);
+		ImGui::SetCursorPosX(gap * cc_menu::get().dpi_scale);
 		ImGui::InputText(label, buf, buf_size);
 		return true;
+	}
+
+	void ImRotateStart(int* rotation_start_index)
+	{
+		*rotation_start_index = ImGui::GetBackgroundDrawList( )->VtxBuffer.Size;
 	}
 
 	float easeInOutBack(float x)
@@ -680,6 +699,27 @@ namespace UGui
 			: (pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
 	}
 
+	ImVec2 ImRotationCenter(int rotation_start_index)
+	{
+		ImVec2 l(FLT_MAX, FLT_MAX), u(-FLT_MAX, -FLT_MAX); // bounds
+
+		const auto& buf = ImGui::GetBackgroundDrawList( )->VtxBuffer;
+		for (int i = rotation_start_index; i < buf.Size; i++)
+			l = ImMin(l, buf[i].pos), u = ImMax(u, buf[i].pos);
+
+		return ImVec2((l.x + u.x) / 2, (l.y + u.y) / 2); // or use _ClipRectStack?
+	}
+
+	void ImRotateEnd(float rad, int rotation_start_index)
+	{
+		ImVec2 center = ImRotationCenter(rotation_start_index);
+		float s = sin(rad), c = cos(rad);
+		center = ImRotate(center, s, c) - center;
+
+		auto& buf = ImGui::GetBackgroundDrawList( )->VtxBuffer;
+		for (int i = rotation_start_index; i < buf.Size; i++)
+			buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
+	}
 	void DrawCrosshair(ImDrawList* m_background_drawlist)
 	{
 		if (Horres == 0)
@@ -708,7 +748,76 @@ namespace UGui
 
 		if (main)
 		{
-			m_background_drawlist->AddImage(cc_menu::get( ).pig, m_menu_pos, m_menu_pos + m_menu_size, ImVec2(0, 0), ImVec2(1, 1), ImColor(125, 143, 212, 30));
+			//flying pigs
+			{
+				for (int i = 0; i < 10; i++)
+				{
+					static std::unordered_map <int, ImVec2> pValue;
+					auto ItPLibrary = pValue.find(i);
+					if (ItPLibrary == pValue.end( ))
+					{
+						pValue.insert({ i, ImVec2(get_random_number(0, m_menu_size.x), get_random_number(0, 80))});
+						ItPLibrary = pValue.find(i);
+					}
+
+					static std::unordered_map <int, int> pValue2;
+					auto Rotation = pValue2.find(i);
+					if (Rotation == pValue2.end( ))
+					{
+						pValue2.insert({ i, get_random_number(0, 360)});
+						Rotation = pValue2.find(i);
+					}
+
+					static std::unordered_map <int, float> pValue3;
+					auto Rotation_value = pValue3.find(i);
+					if (Rotation_value == pValue3.end( ))
+					{
+						pValue3.insert({ i, get_random_number(-3, 3) });
+						Rotation_value = pValue3.find(i);
+					}
+
+					static std::unordered_map <int, ImVec2> pValue4;
+					auto Move_speed = pValue4.find(i);
+					if (Move_speed == pValue4.end( ))
+					{
+						pValue4.insert({ i, ImVec2(get_random_number(-3, 3), get_random_number(-3, 3)) });
+						Move_speed = pValue4.find(i);
+					}
+
+					ItPLibrary->second.x += Move_speed->second.x / 200;
+					ItPLibrary->second.y += Move_speed->second.y / 200;
+
+					Rotation_value->second += 0.000002 / ImGui::GetIO( ).DeltaTime;
+
+					if (ItPLibrary->second.x + m_menu_pos.x > m_menu_pos.x + m_menu_size.y)
+					{
+						Move_speed->second.x *= -1;
+					}
+
+					if (ItPLibrary->second.y + m_menu_pos.y > m_menu_pos.y + 70)
+					{
+						Move_speed->second.y *= -1;
+					}
+
+					if (ItPLibrary->second.x + m_menu_pos.x < m_menu_pos.x)
+					{
+						Move_speed->second.x *= -1;
+					}
+
+					if (ItPLibrary->second.y + m_menu_pos.y < m_menu_pos.y)
+					{
+						Move_speed->second.y *= -1;
+					}
+
+
+					m_background_drawlist->PushClipRect(ImVec2(m_menu_pos), ImVec2(m_menu_pos + ImVec2(m_menu_size.x, 70)));
+					ImRotateStart(&Rotation->second);
+					m_background_drawlist->AddImage(cc_menu::get( ).pig, m_menu_pos + ItPLibrary->second, m_menu_pos + ItPLibrary->second + ImVec2(35, 35), ImVec2(0, 0), ImVec2(1, 1), ImColor(125, 143, 212, 30));
+					ImRotateEnd(Rotation_value->second, Rotation->second);
+					m_background_drawlist->PopClipRect( );	
+				}
+			}
+
 			m_background_drawlist->AddText(cc_menu::get( ).giant_font, 100, m_menu_pos + ImVec2(100, 1), ImColor(50, 74, 168, 200), "Industries");
 		}
 
@@ -729,9 +838,32 @@ namespace UGui
 }
 
 std::string current_help_tip = "";
+void draw_cursor( )
+{
+	//get general drawlist
+	ImDrawList* m_overlay_drawlist = ImGui::GetForegroundDrawList( );
 
+	ShowCursor(false);
+	POINT p;
+	GetCursorPos(&p);
+
+	m_overlay_drawlist->AddTriangleFilled(ImVec2(p.x - 2, p.y), ImVec2(p.x - 3, p.y + 10), ImVec2(p.x + 5, p.y + 7), ImColor(0, 0, 0));
+	m_overlay_drawlist->AddTriangle(ImVec2(p.x - 2, p.y), ImVec2(p.x - 3, p.y + 10), ImVec2(p.x + 5, p.y + 7), ImColor(255, 255, 255));
+}
+void cc_menu::init_fonts( )
+{
+	ImGuiIO& io = ImGui::GetIO( ); (void) io;
+	io.Fonts->Clear( );
+	cc_menu::get( ).giant_font   = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
+	cc_menu::get( ).default_font = io.Fonts->AddFontFromMemoryTTF(museo2, sizeof(museo2), 50.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
+	cc_menu::get( ).middle_font  = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 13.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
+	cc_menu::get( ).small_font   = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 12.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
+	io.Fonts->Build( );
+	ImGui_ImplDX9_CreateDeviceObjects( );
+}
 void cc_menu::draw_menu( )
 {
+	draw_cursor( );
 	//get general drawlist
 	ImDrawList* m_overlay_drawlist = ImGui::GetForegroundDrawList( );
 	ImDrawList* m_background_drawlist = ImGui::GetBackgroundDrawList( );
@@ -752,15 +884,12 @@ void cc_menu::draw_menu( )
 	{
 		g_menu_opened = false;
 		ImGui::SetNextWindowPos(ImVec2(100, 100));
+
 		g_prepared = true;
 	}
 
 	if (ImGui::IsKeyPressed(ImGuiKey_Insert))
 	{
-		if (g_menu_opened)
-		{
-			first_open = false;
-		}
 		g_menu_opened = !g_menu_opened;
 	}
 
@@ -769,8 +898,6 @@ void cc_menu::draw_menu( )
 	UGui::DrawCrosshair(m_background_drawlist);
 
 	int backgrnd = ImGui::Animate("menu", "bckrg", g_menu_opened, 13, 0.15, ImGui::animation_types::STATIC);
-	//m_background_drawlist->AddRectFilled(ImVec2(0, 0), ImVec2(2000, 2000),
-	//    ImColor(0, 0, 0, backgrnd));
 
 	//window vars
 	ImVec2 m_menu_pos, m_menu_size;
@@ -778,14 +905,18 @@ void cc_menu::draw_menu( )
 	//window flags
 	static int m_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar;
 
+	
+
 	if (!g_menu_opened)
 		return;
 
-	ImGui::SetNextWindowSize(ImVec2(658, 510));
+	ImGui::SetNextWindowSize(ImVec2(658 * dpi_scale, 510 * dpi_scale));
 
 	//menu code
 	if (ImGui::Begin("main window", &g_menu_opened, m_flags))
 	{
+		first_open = false;
+
 		ImGuiStyle& style = ImGui::GetStyle( );
 
 		//load vars
@@ -825,44 +956,44 @@ void cc_menu::draw_menu( )
 				const float button_size_x = m_menu_size.x / 6;
 
 				if (ImGui::TabButton("Aimbot",
-					ImVec2(button_size_x, 25), 0, tab, 1))
+					ImVec2(button_size_x, 25 * dpi_scale), 0, tab, 1))
 					tab = 1;
 
 				ImGui::SameLine( );
 
 				if (ImGui::TabButton("Anti-aim",
-					ImVec2(button_size_x, 25), 0, tab, 2))
+					ImVec2(button_size_x, 25 * dpi_scale), 0, tab, 2))
 					tab = 2;
 
 				ImGui::SameLine( );
 
 				if (ImGui::TabButton("Visuals",
-					ImVec2(button_size_x, 25), 0, tab, 3))
+					ImVec2(button_size_x, 25 * dpi_scale), 0, tab, 3))
 					tab = 3;
 
 				ImGui::SameLine( );
 
 				if (ImGui::TabButton("ESP",
-					ImVec2(button_size_x, 25), 0, tab, 4))
+					ImVec2(button_size_x, 25 * dpi_scale), 0, tab, 4))
 					tab = 4;
 
 				ImGui::SameLine( );
 
 				if (ImGui::TabButton("Misc",
-					ImVec2(button_size_x, 25), 0, tab, 5))
+					ImVec2(button_size_x, 25 * dpi_scale), 0, tab, 5))
 					tab = 5;
 
 				ImGui::SameLine( );
 
 				if (ImGui::TabButton("Configs",
-					ImVec2(button_size_x, 25), 0, tab, 6))
+					ImVec2(button_size_x, 25 * dpi_scale), 0, tab, 6))
 					tab = 6;
 
 				int real_selected_tab_pos_x = button_size_x * (tab - 1);
 				int animated_selected_tab_pos_x = ImGui::Animate("menu", "animated_selected_tab_pos_x", true, real_selected_tab_pos_x, 0.06, ImGui::animation_types::INTERP);
 
-				m_background_drawlist->AddRectFilled(m_menu_pos + ImVec2(animated_selected_tab_pos_x, 95), m_menu_pos + ImVec2(animated_selected_tab_pos_x + button_size_x, 96), ImColor(50, 74, 168), 0);
-				m_background_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(animated_selected_tab_pos_x, 70), m_menu_pos + ImVec2(animated_selected_tab_pos_x + button_size_x, 96), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
+				m_background_drawlist->AddRectFilled(m_menu_pos + ImVec2(animated_selected_tab_pos_x, 95 * dpi_scale), m_menu_pos + ImVec2(animated_selected_tab_pos_x + button_size_x, 96 * dpi_scale), ImColor(50, 74, 168), 0);
+				m_background_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(animated_selected_tab_pos_x, 70 * dpi_scale), m_menu_pos + ImVec2(animated_selected_tab_pos_x + button_size_x, 96 * dpi_scale), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
 			}
 			ImGui::PopStyleVar( );
 
@@ -954,22 +1085,14 @@ void cc_menu::draw_menu( )
 							a << ImGui::GetIO( ).Framerate;
 							UGui::Button(a.str( ).c_str( ), ImVec2(100, 25));
 						}
+
+						UGui::SliderFloat("GUI scale", &dpi_scale_slider, 0.5, 1.5, "%.2f");
 					}
 					UGui::EndChild( );
 
 					UGui::BeginChild("Extra settings", 3);
 					{
-						static bool dsds;
-						UGui::Checkbox("render", &dsds);
-						if (dsds)
-						{
-							for (int i = 0; i < 200; ++i)
-							{
-								std::stringstream a;
-								a << i;
-								UGui::Button(a.str( ).c_str( ), ImVec2(100, 25));
-							}
-						}
+
 					}
 					UGui::EndChild( );
 				}

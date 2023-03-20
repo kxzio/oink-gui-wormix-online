@@ -6,6 +6,8 @@
 class cc_menu : public singleton <cc_menu>
 {
 public:
+	void init_fonts( );
+	void reinit_fonts( );
 	float dpi_scale = 1.f;
 	bool dpi_changed;
 	float theme_col[4] = { 47 / 255.f, 70 / 255.f, 154 / 255.f };

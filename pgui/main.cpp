@@ -8,17 +8,12 @@
 #include "imgui/syb.h"
 #include <dinput.h>
 #include <tchar.h>
-#include "imgui/Museo.h"
-#include "imgui/Museo900.h"
-#include "imgui/Museo700.h"
+
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #include <d3d9.h>
 #include <d3dx9tex.h>
 #pragma comment(lib, "d3dx9.lib")
 #pragma comment(lib, "d3d9.lib")
-#define museo1 museo900
-#define museo2 museo700
-#define museo3 museo
 
 static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
 static D3DPRESENT_PARAMETERS    g_d3dpp;
@@ -96,13 +91,11 @@ int main( )
 
 	if (!gui_init)
 	{
-		cc_menu::get( ).giant_font = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
-		cc_menu::get( ).default_font = io.Fonts->AddFontFromMemoryTTF(museo2, sizeof(museo2), 50.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
-		cc_menu::get( ).middle_font = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 13.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
-		cc_menu::get( ).small_font = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 12.0f * cc_menu::get( ).dpi_scale, NULL, io.Fonts->GetGlyphRangesCyrillic( ));
+		cc_menu::get( ).init_fonts( );
 		D3DXCreateTextureFromFileInMemoryEx(g_pd3dDevice, pigstars, sizeof(pigstars), 1000, 1000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &cc_menu::get( ).stars_data);
 		D3DXCreateTextureFromFileInMemoryEx(g_pd3dDevice, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &cc_menu::get( ).syb);
 		D3DXCreateTextureFromFileInMemoryEx(g_pd3dDevice, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &cc_menu::get( ).pig);
+		gui_init = true;
 	}
 	ImGui_ImplWin32_Init(hwnd);
 	ImGui_ImplDX9_Init(g_pd3dDevice);
