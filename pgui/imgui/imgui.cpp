@@ -90,7 +90,6 @@ CODE
 //-----------------------------------------------------------------------------
 // DOCUMENTATION
 //-----------------------------------------------------------------------------
-#include "../menu.h"
 /*
 
  MISSION STATEMENT
@@ -1660,7 +1659,6 @@ const char* ImStrSkipBlank(const char* str)
 #else
 #include "stb_sprintf.h"
 #endif
-#include "../menu.h"
 #endif
 
 #if defined(_MSC_VER) && !defined(vsnprintf)

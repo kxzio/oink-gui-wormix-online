@@ -173,12 +173,12 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="oinkui\elements\elements.h" />
     <ClInclude Include="singleton.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\blur.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
-    <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_impl_dx9.cpp" />
     <ClCompile Include="imgui\imgui_impl_win32.cpp" />
@@ -186,6 +186,13 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="oinkui\elements\begin.cpp" />
+    <ClCompile Include="oinkui\elements\button.cpp" />
+    <ClCompile Include="oinkui\elements\checkbox.cpp" />
+    <ClCompile Include="oinkui\elements\combo.cpp" />
+    <ClCompile Include="oinkui\elements\input_text.cpp" />
+    <ClCompile Include="oinkui\elements\selectable.cpp" />
+    <ClCompile Include="oinkui\elements\slider.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

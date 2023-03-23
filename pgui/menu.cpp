@@ -1,8 +1,10 @@
 #include "menu.h"
 
-const static int child_x_size_const = 206;
+#include "imgui/Museo.h"
+#include "imgui/Museo900.h"
+#include "imgui/Museo700.h"
 
-int gap = 10;
+const static int child_x_size_const = 206;
 
 int get_random_number(int min, int max)
 {
@@ -46,8 +48,12 @@ void c_oink_ui::draw_menu( )
 	ImDrawList* bg_drawlist = ImGui::GetBackgroundDrawList( );
 	ImDrawList* wnd_drawlist = nullptr;
 
+
 	{ // draw cursor
-		auto pointer = ImGui::GetCursorPos( );
+
+		ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+
+		ImVec2 pointer = ImVec2(ImGui::GetIO().MousePos.x, ImGui::GetIO( ).MousePos.y);
 
 		fg_drawlist->AddTriangleFilled(
 			ImVec2(pointer.x - 2, pointer.y),
@@ -62,7 +68,7 @@ void c_oink_ui::draw_menu( )
 			ImColor(255, 255, 255));
 	}
 
-	//bg_drawlist->AddRectFilled(ImVec2(0, 0), ImVec2(3000, 3000), ImColor(0, 0, 0), 0.0f);
+	bg_drawlist->AddRectFilled(ImVec2(0, 0), ImVec2(3000, 3000), ImColor(0, 0, 0), 0.0f);
 
 	//int backgrnd = ImGui::Animate("menu", "bckrg", m_menu_opened, 13, 0.15, ImGui::animation_types::STATIC);
 
@@ -114,32 +120,32 @@ void c_oink_ui::draw_menu( )
 
 				const float button_size_x = wnd_size.x / 6;
 
-				if (ImGui::TabButton("Aimbot", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 1))
+				if (tab_button("Aimbot", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 1))
 					tab = 1;
 
 				ImGui::SameLine( );
 
-				if (ImGui::TabButton("Anti-aim", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 2))
+				if (tab_button("Anti-aim", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 2))
 					tab = 2;
 
 				ImGui::SameLine( );
 
-				if (ImGui::TabButton("Visuals", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 3))
+				if (tab_button("Visuals", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 3))
 					tab = 3;
 
 				ImGui::SameLine( );
 
-				if (ImGui::TabButton("ESP", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 4))
+				if (tab_button("ESP", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 4))
 					tab = 4;
 
 				ImGui::SameLine( );
 
-				if (ImGui::TabButton("Misc", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 5))
+				if (tab_button("Misc", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 5))
 					tab = 5;
 
 				ImGui::SameLine( );
 
-				if (ImGui::TabButton("Configs", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 6))
+				if (tab_button("Configs", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 6))
 					tab = 6;
 
 				int real_selected_tab_pos_x = button_size_x * (tab - 1);
@@ -432,28 +438,6 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m
 	bg_drawlist->AddRect(m_menu_pos, m_menu_pos + m_menu_size, ImColor(50, 74, 168, 50), 0);
 }
 
-bool c_oink_ui::checkbox(const char* label, bool* v)
-{
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
-	return ImGui::Checkbox(label, v);
-};
-
-bool c_oink_ui::slider_int(const char* label, int* v, int v_min, int v_max)
-{
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
-	return ImGui::SliderInt(label, v, v_min, v_max);
-};
-bool c_oink_ui::slider_float(const char* label, float* v, float v_min, float v_max, const char* format)
-{
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
-	return ImGui::SliderFloat(label, v, v_min, v_max, format);
-};
-bool c_oink_ui::combo_box(const char* label, int* current_item, const char* const items[ ], int items_count)
-{
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
-	return ImGui::Combo(label, current_item, items, items_count);
-};
-
 void c_oink_ui::text(const char* text)
 {
 	ImGui::SetCursorPosX(gap * m_dpi_scaling);
@@ -504,60 +488,12 @@ bool c_oink_ui::color_picker_button(const char* label, float* col, bool draw_on_
 	return ImGui::ColorEdit4(std::string(label + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder | ImGuiColorEditFlags_NoInputs);
 }
 
-void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text[ ], int size)
-{
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
-
-	ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeight(-1)));
-
-	std::string combo = "";
-
-	ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeight(-1)));
-
-	std::vector <std::string> vec;
-
-	for (size_t i = 0; i < size; i++)
-	{
-		if (selection[i])
-		{
-			combo += text[i];
-			combo += ", ";
-		}
-	}
-
-	if (combo.length( ) > 2)
-		combo.erase(combo.length( ) - 2, combo.length( ));
-
-	if (ImGui::BeginCombo(title, combo.c_str( ), ImGuiComboFlags_NoArrowButton))
-	{
-		std::vector<std::string> vec;
-		for (size_t i = 0; i < size; i++)
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10));
-
-			ImGui::Selectable(text[i], &selection[i], ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups);
-			if (selection[i])
-				vec.push_back(text[i]);
-
-			ImGui::PopStyleVar( );
-		}
-
-		ImGui::EndCombo( );
-	}
-};
-
 bool c_oink_ui::color_picker(const char* sz, float* col)
 {
 	text(sz);
 	ImGui::SameLine( );
 	ImGui::SetCursorPosX(180 * m_dpi_scaling);
 	return ImGui::ColorEdit4(std::string(sz + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
-}
-
-bool c_oink_ui::button(const char* text, const ImVec2& size)
-{
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
-	return ImGui::Button(text, size);
 }
 
 bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
@@ -701,11 +637,11 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 
 		ImGui::Begin("bind_settings", NULL, m_flags);
 		{
-			if (ImGui::SubButton("On press", ImVec2(0, 0), 0, 1, mode_map->second))
+			if (sub_button("On press", ImVec2(0, 0), 0, 1, mode_map->second))
 				mode_map->second = 1;
-			if (ImGui::SubButton("Toggle", ImVec2(0, 0), 0, 2, mode_map->second))
+			if (sub_button("Toggle", ImVec2(0, 0), 0, 2, mode_map->second))
 				mode_map->second = 2;
-			if (ImGui::SubButton("Always", ImVec2(0, 0), 0, 3, mode_map->second))
+			if (sub_button("Always", ImVec2(0, 0), 0, 3, mode_map->second))
 				mode_map->second = 3;
 
 			if (!ImGui::IsWindowFocused( ))

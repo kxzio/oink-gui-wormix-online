@@ -9,10 +9,7 @@
 #include "imgui/imgui_internal.h"
 #include "imgui/imgui_impl_dx9.h"
 #include "imgui/imgui_impl_win32.h"
-
-#include "imgui/Museo.h"
-#include "imgui/Museo900.h"
-#include "imgui/Museo700.h"
+#include "imgui/imstb_textedit.h"
 
 #include "imgui/pig.h"
 #include "imgui/pigstars.h"
@@ -51,6 +48,9 @@ const ImVec2 operator/(const ImVec2& rv, const ImVec2& lv)
 class c_oink_ui
 {
 public:
+
+	int gap = 10;
+
 	c_oink_ui( ) : m_menu_opened{ false }, m_active_tab{ 0 }, m_dpi_changed{ false }, m_dpi_scaling{ 1.f }, m_theme_colour{ 47.f / 255.f, 70.f / 255.f, 154.f / 255.f }
 	{
 		memset(m_textures, 0, sizeof(m_textures));
@@ -304,16 +304,24 @@ private:
 			buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
 	};
 private:
+
 	void configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m_menu_size, bool main = true);
 
+	//buttons
+	bool sub_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab);
+	bool tab_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab);
+	bool button(const char* label, const ImVec2& size_arg);
+
 	bool checkbox(const char* label, bool* v);
-	bool button(const char* text, const ImVec2& size = ImVec2(0, 0));
 
-	bool slider_int(const char* label, int* v, int v_min, int v_max);
-	bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format);
+	bool slider_int(const char* label, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
+	bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
 
-	bool combo_box(const char* label, int* current_item, const char* const items[ ], int items_count);
+	bool combo(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items);
+	bool combo_box(const char* label, int* current_item, const char* const items[ ], int items_count, int height_in_items = -1);
 	void multi_box(const char* title, bool selection[ ], const char* text[ ], int size);
+
+	bool selectable(const char* label, bool* selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0));
 
 	void text(const char* text);
 	void text_colored(const char* text);

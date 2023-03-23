@@ -2,10 +2,6 @@
 #include "imgui/imgui_impl_dx9.h"
 #include "imgui/imgui_impl_win32.h"
 #include "menu.h"
-#include "imgui/stars.h"
-#include "imgui/pigstars.h"
-#include "imgui/pig.h"
-#include "imgui/syb.h"
 #include <dinput.h>
 #include <tchar.h>
 
