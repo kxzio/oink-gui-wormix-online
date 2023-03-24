@@ -5,21 +5,25 @@
 #include <d3d9.h>
 #include <D3dx9tex.h>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "imgui/imgui_impl_dx9.h"
-#include "imgui/imgui_impl_win32.h"
-#include "imgui/imstb_textedit.h"
+#include "../imgui/imgui.h"
+#include "../imgui/imgui_internal.h"
+#include "../imgui/imgui_impl_dx9.h"
+#include "../imgui/imgui_impl_win32.h"
+#include "../imgui/imstb_textedit.h"
 
-#include "imgui/pig.h"
-#include "imgui/pigstars.h"
-#include "imgui/syb.h"
-#include "imgui/stars.h"
+#include "../imgui/pig.h"
+#include "../imgui/pigstars.h"
+#include "../imgui/syb.h"
+#include "../imgui/stars.h"
 
 #include <string>
 #include <vector>
 #include <map>
 #include <unordered_map>
+
+#include "../imgui/Museo.h"
+#include "../imgui/Museo700.h"
+#include "../imgui/Museo900.h"
 
 #define museo1 museo900
 #define museo2 museo700
@@ -45,6 +49,8 @@ const ImVec2 operator/(const ImVec2& rv, const ImVec2& lv)
 }
 #endif
 
+#include "imstb.h"
+
 class c_oink_ui
 {
 public:
@@ -57,14 +63,6 @@ public:
 		memset(m_fonts, 0, sizeof(m_fonts));
 	};
 
-	void textures_create(IDirect3DDevice9* device)
-	{
-		D3DXCreateTextureFromFileInMemoryEx(device, pigstars, sizeof(pigstars), 1000, 1000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, (LPDIRECT3DTEXTURE9*) m_textures[tex_pig_stars]);
-
-		D3DXCreateTextureFromFileInMemoryEx(device, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, (LPDIRECT3DTEXTURE9*) (LPDIRECT3DTEXTURE9*) m_textures[tex_syb]);
-
-		D3DXCreateTextureFromFileInMemoryEx(device, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, (LPDIRECT3DTEXTURE9*) m_textures[tex_pig]);
-	}
 private:
 	enum e_tex_id
 	{
@@ -253,7 +251,7 @@ private:
 	"Left menu",
 	"Right menu"
 	};
-	ImTextureID* m_textures[tex_max];
+	IDirect3DTexture9* m_textures[tex_max];
 	ImFont* m_fonts[font_max];
 private:
 	int m_active_tab;
@@ -264,6 +262,7 @@ private:
 	float m_border_alpha;
 	ImColor m_theme_colour;
 public:
+	void textures_create(IDirect3DDevice9* device);
 	void fonts_create( );
 	void reinit_fonts( );
 	void draw_menu( );

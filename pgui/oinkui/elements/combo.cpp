@@ -1,22 +1,6 @@
-#include "../../menu.h"
+#include "../ui.h"
 
-using namespace ImGui; 
-
-static float CalcMaxPopupHeightFromItemCount(int items_count)
-{
-	ImGuiContext& g = *GImGui;
-	if (items_count <= 0)
-		return FLT_MAX;
-	return (g.FontSize + g.Style.ItemSpacing.y) * items_count - g.Style.ItemSpacing.y + (g.Style.WindowPadding.y * 2);
-}
-
-static bool Items_ArrayGetter(void* data, int idx, const char** out_text)
-{
-	const char* const* items = (const char* const*) data;
-	if (out_text)
-		*out_text = items[idx];
-	return true;
-}
+using namespace ImGui;
 
 bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags flags)
 {

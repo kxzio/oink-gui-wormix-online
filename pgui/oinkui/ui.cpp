@@ -1,10 +1,6 @@
-#include "menu.h"
+#include "ui.h"
 
-#include "imgui/Museo.h"
-#include "imgui/Museo900.h"
-#include "imgui/Museo700.h"
-
-const static int child_x_size_const = 206;
+constexpr int child_x_size_const = 206;
 
 int get_random_number(int min, int max)
 {
@@ -13,6 +9,15 @@ int get_random_number(int min, int max)
 }
 
 std::string current_help_tip = "";
+
+void c_oink_ui::textures_create(IDirect3DDevice9* device)
+{
+	D3DXCreateTextureFromFileInMemoryEx(device, pigstars, sizeof(pigstars), 1000, 1000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_pig_stars]);
+
+	D3DXCreateTextureFromFileInMemoryEx(device, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_syb]);
+
+	D3DXCreateTextureFromFileInMemoryEx(device, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_pig]);
+};
 
 void c_oink_ui::fonts_create( )
 {
@@ -48,12 +53,10 @@ void c_oink_ui::draw_menu( )
 	ImDrawList* bg_drawlist = ImGui::GetBackgroundDrawList( );
 	ImDrawList* wnd_drawlist = nullptr;
 
-
 	{ // draw cursor
-
 		ImGui::SetMouseCursor(ImGuiMouseCursor_None);
 
-		ImVec2 pointer = ImVec2(ImGui::GetIO().MousePos.x, ImGui::GetIO( ).MousePos.y);
+		ImVec2 pointer = ImVec2(ImGui::GetIO( ).MousePos.x, ImGui::GetIO( ).MousePos.y);
 
 		fg_drawlist->AddTriangleFilled(
 			ImVec2(pointer.x - 2, pointer.y),
@@ -388,7 +391,7 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m
 
 				auto Rotation_value = pValue3.find(i);
 				if (Rotation_value == pValue3.end( ))
-					Rotation_value = pValue3.insert({ i, get_random_number(-3, 3) }).first;
+					Rotation_value = pValue3.insert({ i, static_cast<float>(get_random_number(-3, 3)) }).first;
 
 				auto Move_speed = pValue4.find(i);
 				if (Move_speed == pValue4.end( ))

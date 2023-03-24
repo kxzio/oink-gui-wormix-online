@@ -128,9 +128,9 @@ static const ImU64          IM_U64_MAX = (2ULL * 9223372036854775807LL + 1);
 //-------------------------------------------------------------------------
 
 // For InputTextEx()
-static bool             InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data, ImGuiInputSource input_source);
-static int              InputTextCalcTextLenAndLineCount(const char* text_begin, const char** out_text_end);
-static ImVec2           InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL, ImVec2* out_offset = NULL, bool stop_on_new_line = false);
+bool             InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data, ImGuiInputSource input_source);
+int              InputTextCalcTextLenAndLineCount(const char* text_begin, const char** out_text_end);
+ImVec2           InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL, ImVec2* out_offset = NULL, bool stop_on_new_line = false);
 
 //-------------------------------------------------------------------------
 // [SECTION] Widgets: Text, etc.
@@ -537,7 +537,6 @@ bool ImGui::ButtonEx(const char* label, const ImVec2& size_arg, ImGuiButtonFlags
 	return pressed;
 }
 
-
 bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags)
 {
 	ImGuiContext& g = *GImGui;
@@ -805,7 +804,6 @@ int ImGui::Checkbox(const char* label, bool* v)
 	IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
 	return pressed;
 }
-
 
 bool ImGui::Button(const char* label, const ImVec2& size_arg)
 {
@@ -1353,7 +1351,6 @@ bool ImGui::ImageButton(ImTextureID user_texture_id, const ImVec2& size, const I
 	return ImageButtonEx(id, user_texture_id, size, uv0, uv1, padding, bg_col, tint_col);
 }
 
-
 template<typename T>
 bool ImGui::CheckboxFlagsT(const char* label, T* flags, T flags_value)
 {
@@ -1787,7 +1784,7 @@ void ImGui::ShrinkWidths(ImGuiShrinkWidthItem* items, int count, float width_exc
 // - Combo()
 //-------------------------------------------------------------------------
 
-static float CalcMaxPopupHeightFromItemCount(int items_count)
+float CalcMaxPopupHeightFromItemCount(int items_count)
 {
 	ImGuiContext& g = *GImGui;
 	if (items_count <= 0)
@@ -1913,7 +1910,7 @@ void ImGui::EndComboPreview( )
 }
 
 // Getter for the old Combo() API: const char*[]
-static bool Items_ArrayGetter(void* data, int idx, const char** out_text)
+bool Items_ArrayGetter(void* data, int idx, const char** out_text)
 {
 	const char* const* items = (const char* const*) data;
 	if (out_text)
@@ -2046,7 +2043,7 @@ IM_STATIC_ASSERT(IM_ARRAYSIZE(GDataTypeInfo) == ImGuiDataType_COUNT);
 // FIXME-LEGACY: Prior to 1.61 our DragInt() function internally used floats and because of this the compile-time default value for format was "%.0f".
 // Even though we changed the compile-time default, we expect users to have carried %f around, which would break the display of DragInt() calls.
 // To honor backward compatibility we are rewriting the format string, unless IMGUI_DISABLE_OBSOLETE_FUNCTIONS is enabled. What could possibly go wrong?!
-static const char* PatchFormatStringFloatToInt(const char* fmt)
+const char* PatchFormatStringFloatToInt(const char* fmt)
 {
 	if (fmt[0] == '%' && fmt[1] == '.' && fmt[2] == '0' && fmt[3] == 'f' && fmt[4] == 0) // Fast legacy path for "%.0f" which is expected to be the most common case.
 		return "%d";
@@ -2202,9 +2199,9 @@ void ImGui::DataTypeApplyOp(ImGuiDataType data_type, int op, void* output, const
 			}
 			return;
 		case ImGuiDataType_COUNT: break;
-			}
-	IM_ASSERT(0);
 	}
+	IM_ASSERT(0);
+}
 
 // User can input math operators (e.g. +100) to edit a numerical values.
 // NB: This is _not_ a full expression evaluator. We should probably add one and replace this dumb mess..
@@ -3753,7 +3750,7 @@ bool ImGui::InputTextWithHint(const char* label, const char* hint, char* buf, si
 	return InputTextEx(label, hint, buf, (int) buf_size, ImVec2(0, 0), flags, callback, user_data);
 }
 
-static int InputTextCalcTextLenAndLineCount(const char* text_begin, const char** out_text_end)
+int InputTextCalcTextLenAndLineCount(const char* text_begin, const char** out_text_end)
 {
 	int line_count = 0;
 	const char* s = text_begin;
@@ -3767,7 +3764,7 @@ static int InputTextCalcTextLenAndLineCount(const char* text_begin, const char**
 	return line_count;
 }
 
-static ImVec2 InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining, ImVec2* out_offset, bool stop_on_new_line)
+ImVec2 InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining, ImVec2* out_offset, bool stop_on_new_line)
 {
 	ImGuiContext& g = *GImGui;
 	ImFont* font = g.Font;
@@ -3815,24 +3812,24 @@ static ImVec2 InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* t
 // Wrapper for stb_textedit.h to edit text (our wrapper is for: statically sized buffer, single-line, wchar characters. InputText converts between UTF-8 and wchar)
 namespace ImStb
 {
-	static int     STB_TEXTEDIT_STRINGLEN(const ImGuiInputTextState* obj)
+	int     STB_TEXTEDIT_STRINGLEN(const ImGuiInputTextState* obj)
 	{
 		return obj->CurLenW;
 	}
-	static ImWchar STB_TEXTEDIT_GETCHAR(const ImGuiInputTextState* obj, int idx)
+	ImWchar STB_TEXTEDIT_GETCHAR(const ImGuiInputTextState* obj, int idx)
 	{
 		return obj->TextW[idx];
 	}
-	static float   STB_TEXTEDIT_GETWIDTH(ImGuiInputTextState* obj, int line_start_idx, int char_idx)
+	float   STB_TEXTEDIT_GETWIDTH(ImGuiInputTextState* obj, int line_start_idx, int char_idx)
 	{
 		ImWchar c = obj->TextW[line_start_idx + char_idx]; if (c == '\n') return STB_TEXTEDIT_GETWIDTH_NEWLINE; ImGuiContext& g = *GImGui; return g.Font->GetCharAdvance(c) * (g.FontSize / g.Font->FontSize);
 	}
-	static int     STB_TEXTEDIT_KEYTOTEXT(int key)
+	int     STB_TEXTEDIT_KEYTOTEXT(int key)
 	{
 		return key >= 0x200000 ? 0 : key;
 	}
-	static ImWchar STB_TEXTEDIT_NEWLINE = '\n';
-	static void    STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, ImGuiInputTextState* obj, int line_start_idx)
+	ImWchar STB_TEXTEDIT_NEWLINE = '\n';
+	void    STB_TEXTEDIT_LAYOUTROW(StbTexteditRow* r, ImGuiInputTextState* obj, int line_start_idx)
 	{
 		const ImWchar* text = obj->TextW.Data;
 		const ImWchar* text_remaining = NULL;
@@ -3846,23 +3843,23 @@ namespace ImStb
 	}
 
 	// When ImGuiInputTextFlags_Password is set, we don't want actions such as CTRL+Arrow to leak the fact that underlying data are blanks or separators.
-	static bool is_separator(unsigned int c)
+	bool is_separator(unsigned int c)
 	{
 		return ImCharIsBlankW(c) || c == ',' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']' || c == '|' || c == '\n' || c == '\r';
 	}
-	static int  is_word_boundary_from_right(ImGuiInputTextState* obj, int idx)
+	int  is_word_boundary_from_right(ImGuiInputTextState* obj, int idx)
 	{
 		if (obj->Flags & ImGuiInputTextFlags_Password) return 0; return idx > 0 ? (is_separator(obj->TextW[idx - 1]) && !is_separator(obj->TextW[idx])) : 1;
 	}
-	static int  is_word_boundary_from_left(ImGuiInputTextState* obj, int idx)
+	int  is_word_boundary_from_left(ImGuiInputTextState* obj, int idx)
 	{
 		if (obj->Flags & ImGuiInputTextFlags_Password) return 0; return idx > 0 ? (!is_separator(obj->TextW[idx - 1]) && is_separator(obj->TextW[idx])) : 1;
 	}
-	static int  STB_TEXTEDIT_MOVEWORDLEFT_IMPL(ImGuiInputTextState* obj, int idx)
+	int  STB_TEXTEDIT_MOVEWORDLEFT_IMPL(ImGuiInputTextState* obj, int idx)
 	{
 		idx--; while (idx >= 0 && !is_word_boundary_from_right(obj, idx)) idx--; return idx < 0 ? 0 : idx;
 	}
-	static int  STB_TEXTEDIT_MOVEWORDRIGHT_MAC(ImGuiInputTextState* obj, int idx)
+	int  STB_TEXTEDIT_MOVEWORDRIGHT_MAC(ImGuiInputTextState* obj, int idx)
 	{
 		idx++; int len = obj->CurLenW; while (idx < len && !is_word_boundary_from_left(obj, idx)) idx++; return idx > len ? len : idx;
 	}
@@ -3870,14 +3867,14 @@ namespace ImStb
 #ifdef __APPLE__    // FIXME: Move setting to IO structure
 #define STB_TEXTEDIT_MOVEWORDRIGHT  STB_TEXTEDIT_MOVEWORDRIGHT_MAC
 #else
-	static int  STB_TEXTEDIT_MOVEWORDRIGHT_WIN(ImGuiInputTextState* obj, int idx)
+	int  STB_TEXTEDIT_MOVEWORDRIGHT_WIN(ImGuiInputTextState* obj, int idx)
 	{
 		idx++; int len = obj->CurLenW; while (idx < len && !is_word_boundary_from_right(obj, idx)) idx++; return idx > len ? len : idx;
 	}
 #define STB_TEXTEDIT_MOVEWORDRIGHT  STB_TEXTEDIT_MOVEWORDRIGHT_WIN
 #endif
 
-	static void STB_TEXTEDIT_DELETECHARS(ImGuiInputTextState* obj, int pos, int n)
+	void STB_TEXTEDIT_DELETECHARS(ImGuiInputTextState* obj, int pos, int n)
 	{
 		ImWchar* dst = obj->TextW.Data + pos;
 
@@ -3893,7 +3890,7 @@ namespace ImStb
 		*dst = '\0';
 	}
 
-	static bool STB_TEXTEDIT_INSERTCHARS(ImGuiInputTextState* obj, int pos, const ImWchar* new_text, int new_text_len)
+	bool STB_TEXTEDIT_INSERTCHARS(ImGuiInputTextState* obj, int pos, const ImWchar* new_text, int new_text_len)
 	{
 		const bool is_resizable = (obj->Flags & ImGuiInputTextFlags_CallbackResize) != 0;
 		const int text_len = obj->CurLenW;
@@ -3949,7 +3946,7 @@ namespace ImStb
 
 // stb_textedit internally allows for a single undo record to do addition and deletion, but somehow, calling
 // the stb_textedit_paste() function creates two separate records, so we perform it manually. (FIXME: Report to nothings/stb?)
-	static void stb_textedit_replace(ImGuiInputTextState* str, STB_TexteditState* state, const STB_TEXTEDIT_CHARTYPE* text, int text_len)
+	void stb_textedit_replace(ImGuiInputTextState* str, STB_TexteditState* state, const STB_TEXTEDIT_CHARTYPE* text, int text_len)
 	{
 		stb_text_makeundo_replace(str, state, 0, str->CurLenW, text_len);
 		ImStb::STB_TEXTEDIT_DELETECHARS(str, 0, str->CurLenW);
@@ -4031,7 +4028,7 @@ void ImGuiInputTextCallbackData::InsertChars(int pos, const char* new_text, cons
 }
 
 // Return false to discard a character.
-static bool InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data, ImGuiInputSource input_source)
+bool InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data, ImGuiInputSource input_source)
 {
 	IM_ASSERT(input_source == ImGuiInputSource_Keyboard || input_source == ImGuiInputSource_Clipboard);
 	unsigned int c = *p_char;
@@ -4127,7 +4124,7 @@ static bool InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags f
 // - If you want to use ImGui::InputText() with std::string, see misc/cpp/imgui_stdlib.h
 // (FIXME: Rather confusing and messy function, among the worse part of our codebase, expecting to rewrite a V2 at some point.. Partly because we are
 //  doing UTF8 > U16 > UTF8 conversions on the go to easily interface with stb_textedit. Ideally should stay in UTF-8 all the time. See https://github.com/nothings/stb/issues/188)
-// 
+//
 //-------------------------------------------------------------------------
 // [SECTION] Widgets: ColorEdit, ColorPicker, ColorButton, etc.
 //-------------------------------------------------------------------------

@@ -1,27 +1,6 @@
-#include "../../menu.h"
+#include "../ui.h"
 
 using namespace ImGui;
-
-static const char* PatchFormatStringFloatToInt(const char* fmt)
-{
-	if (fmt[0] == '%' && fmt[1] == '.' && fmt[2] == '0' && fmt[3] == 'f' && fmt[4] == 0) // Fast legacy path for "%.0f" which is expected to be the most common case.
-		return "%d";
-	const char* fmt_start = ImParseFormatFindStart(fmt);    // Find % (if any, and ignore %%)
-	const char* fmt_end = ImParseFormatFindEnd(fmt_start);  // Find end of format specifier, which itself is an exercise of confidence/recklessness (because snprintf is dependent on libc or user).
-	if (fmt_end > fmt_start && fmt_end[-1] == 'f')
-	{
-#ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-		if (fmt_start == fmt && fmt_end[0] == 0)
-			return "%d";
-		ImGuiContext& g = *GImGui;
-		ImFormatString(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), "%.*s%%d%s", (int) (fmt_start - fmt), fmt, fmt_end); // Honor leading and trailing decorations, but lose alignment/precision.
-		return g.TempBuffer;
-#else
-		IM_ASSERT(0 && "DragInt(): Invalid format string!"); // Old versions used a default parameter of "%.0f", please replace with e.g. "%d"
-#endif
-	}
-	return fmt;
-}
 
 bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags)
 {

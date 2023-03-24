@@ -1,6 +1,6 @@
-#include "../../menu.h"
+#include "../ui.h"
 
-using namespace ImGui; 
+using namespace ImGui;
 
 bool c_oink_ui::checkbox(const char* label, bool* v)
 {
@@ -54,9 +54,9 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 							  ImColor(auto_red, auto_green, auto_blue, int(50 + hovered1)), 0, 0, 1);
 
 	window->DrawList->AddRectFilledMultiColor(ImVec2(check_bb.Min.x, check_bb.Min.y), ImVec2(check_bb.Max.x, check_bb.Max.y),
-	ImColor(auto_red, auto_green, auto_blue, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), 
-	ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), 
-	ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)), 
+	ImColor(auto_red, auto_green, auto_blue, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)),
+	ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)),
+	ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)),
 	ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / check_bb.GetSize( ).y) * 200)));
 
 	for (int i = 0; i < 5; i++)

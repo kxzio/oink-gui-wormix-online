@@ -1,9 +1,10 @@
-#include "../../menu.h"
+#include "../ui.h"
+
 #include <sstream>
 
 using namespace ImGui;
 
-bool button_ex (const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags)
+bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags)
 {
 	auto stored_cursor = GetCursorPos( );
 
@@ -96,7 +97,7 @@ bool button_ex (const char* label, const ImVec2& size_arg, ImGuiButtonFlags flag
 	return pressed;
 }
 
-bool c_oink_ui::sub_button (const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab)
+bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -198,7 +199,7 @@ bool c_oink_ui::sub_button (const char* label, const ImVec2& size_arg, ImGuiButt
 	return pressed;
 }
 
-bool c_oink_ui::tab_button (const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab)
+bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -250,7 +251,7 @@ bool c_oink_ui::tab_button (const char* label, const ImVec2& size_arg, ImGuiButt
 	return pressed;
 }
 
-bool c_oink_ui::button (const char* label, const ImVec2& size_arg)
+bool c_oink_ui::button(const char* label, const ImVec2& size_arg)
 {
 	return button_ex(label, size_arg, ImGuiButtonFlags_None);
 }
