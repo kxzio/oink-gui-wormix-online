@@ -943,3 +943,10 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 	else
 		return value_changed;
 }
+
+bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+{
+	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	IM_ASSERT(!(flags & ImGuiInputTextFlags_Multiline)); // call InputTextMultiline()
+	return input_text_ex(label, NULL, buf, (int) buf_size, ImVec2(0, 0), flags, callback, user_data);
+}

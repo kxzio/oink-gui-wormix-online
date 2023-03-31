@@ -1113,6 +1113,8 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
 }
 float ImGui::Animate(const char* label, const char* second_label, bool if_, float Maximal_, float Speed_, int type)
 {
+	Maximal_ /= 255;
+
 	static std::unordered_map <ImGuiID, float> pValue;
 
 	auto ID = ImHashStr(label) ^ ImHashStr(second_label);
@@ -1122,7 +1124,7 @@ float ImGui::Animate(const char* label, const char* second_label, bool if_, floa
 	if (ItPLibrary == pValue.end( ))
 		ItPLibrary = pValue.insert({ ID, 0.f }).first;
 
-	const float FrameRateBasedSpeed = Speed_ / GetIO( ).DeltaTime;
+	const float FrameRateBasedSpeed = Speed_ * GetIO( ).DeltaTime;
 
 	switch (type)
 	{
@@ -1150,9 +1152,9 @@ float ImGui::Animate(const char* label, const char* second_label, bool if_, floa
 	}
 
 	if (type != INTERP)
-		ImClamp(ItPLibrary->second, 0.f, Maximal_);
+		ItPLibrary->second = ImClamp(ItPLibrary->second, 0.f, Maximal_);
 
-	return ItPLibrary->second;
+	return ItPLibrary->second * 255.f;
 }
 bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
 {

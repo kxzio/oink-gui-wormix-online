@@ -36,9 +36,6 @@
     <ClInclude Include="imgui\imgui_impl_win32.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="menu.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="singleton.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
@@ -78,7 +75,10 @@
     <ClInclude Include="imgui\pigstars.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="oinkui\elements\elements.h">
+    <ClInclude Include="oinkui\ui.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="oinkui\imstb.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
@@ -104,9 +104,6 @@
     <ClCompile Include="imgui\imgui_impl_win32.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="menu.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="imgui\blur.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -129,6 +126,12 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="oinkui\elements\slider.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="oinkui\ui.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="oinkui\elements\colorpicker.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

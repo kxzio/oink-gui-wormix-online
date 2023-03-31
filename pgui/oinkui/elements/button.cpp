@@ -253,5 +253,6 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 bool c_oink_ui::button(const char* label, const ImVec2& size_arg)
 {
+	ImGui::SetCursorPosX(gap * m_dpi_scaling);
 	return button_ex(label, size_arg, ImGuiButtonFlags_None);
 }

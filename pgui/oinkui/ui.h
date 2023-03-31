@@ -328,11 +328,13 @@ private:
 	bool begin_child(const char* label, int number_of_child);
 	void end_child( );
 
-	bool color_picker_button(const char* label, float* col, bool draw_on_same_line = false);
-	bool color_picker(const char* text, float* col);
+	bool input_text(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = NULL, ImGuiInputTextCallback callback = NULL, void* user_data = NULL);
 
 	bool hotkey(const char* label, int* k, bool* controlled_value = NULL);
-	bool input_text(const char* label, char* buf, size_t buf_size);
+
+	bool color_picker(const char* sz, float* col);
+
+	bool color_picker_button(const char* label, float* col, bool draw_on_same_line = false);
 };
 
 inline c_oink_ui g_ui;

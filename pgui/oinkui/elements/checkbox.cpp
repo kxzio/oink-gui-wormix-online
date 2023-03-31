@@ -42,9 +42,9 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	//window->DrawList->AddRect(pos, pos + size,
 	//    ImColor(52, 140, 235, int((50 + anim_active) * float(cc_menu::get().border_alpha / 200))));
 
-	float hovered1 = Animate("button_hover", label, hovered, 200, 0.07, DYNAMIC);
-	float alpha = Animate("button", label, *v, 200, 0.05, DYNAMIC);
-	float hovered_alpha = Animate("button_hovered", label, *v, check_bb.GetSize( ).y, 0.05, DYNAMIC);
+	float hovered1 = Animate("button_hover", label, hovered, 200, 70, DYNAMIC);
+	float alpha = Animate("button", label, *v, 200, 50, DYNAMIC);
+	float hovered_alpha = Animate("button_hovered", label, *v, check_bb.GetSize( ).y, 50, DYNAMIC);
 
 	int auto_red = 47;
 	int auto_green = 70;
@@ -65,16 +65,16 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 										  ImColor(auto_red, auto_green, auto_blue, int(alpha / (10 + i))));
 	}
 
-	int active_alpha = Animate(label, "active_alpha", *v, 255, 0.2, DYNAMIC);
-	int active_pad_modifer = Animate(label, "active_pad_modifer", *v, 255, 0.05, DYNAMIC);
-	int hovered_alpha2 = Animate(label, "hover_alpha", hovered, 50, 0.05, DYNAMIC);
+	float active_alpha = Animate(label, "active_alpha", *v, 255, 200, DYNAMIC) ;
+	float active_pad_modifer = Animate(label, "active_pad_modifer", *v, 255, 500, DYNAMIC);
+	float hovered_alpha2 = Animate(label, "hover_alpha", hovered, 150, 500, DYNAMIC);
 
 	bool checkmark_animate = false;
 	//window->DrawList->AddRect(check_bb.Min, check_bb.Max, ImColor(0, 0, 0, active_alpha), style.FrameRounding);
 	const float pad = ImMax(1.0f, square_sz / (3.0f + (255.f - active_pad_modifer) / 100.f));
 	const float checkmark_rad = Animate(label, "rad", true, pad, 0.15, INTERP);
 	checkmark_animate = !(hovered && !(*v));
-	RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(checkmark_rad, pad), ImColor(0, 0, 0, active_alpha), square_sz - checkmark_rad * 2.0f);
+	RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(checkmark_rad, pad), ImColor(0.f, 0.f, 0.f, active_alpha), square_sz - checkmark_rad * 2.0f);
 
 	ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y - 2);
 

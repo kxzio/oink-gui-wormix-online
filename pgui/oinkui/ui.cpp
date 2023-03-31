@@ -244,7 +244,7 @@ void c_oink_ui::draw_menu( )
 						input_text("Config name", config_name, sizeof(config_name));
 						{
 							char buf[64];
-							sprintf_s(buf, "%.2f", ImGui::GetIO( ).Framerate);
+							sprintf_s(buf, "%.5f", ImGui::GetIO( ).DeltaTime);
 							button(buf, ImVec2(100, 25));
 						}
 
@@ -484,20 +484,6 @@ void c_oink_ui::end_child( )
 	ImGui::EndChild( );
 }
 
-bool c_oink_ui::color_picker_button(const char* label, float* col, bool draw_on_same_line)
-{
-	ImGui::SameLine( );
-	ImGui::SetCursorPosX(draw_on_same_line ? 160 * m_dpi_scaling : 180 * m_dpi_scaling);
-	return ImGui::ColorEdit4(std::string(label + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder | ImGuiColorEditFlags_NoInputs);
-}
-
-bool c_oink_ui::color_picker(const char* sz, float* col)
-{
-	text(sz);
-	ImGui::SameLine( );
-	ImGui::SetCursorPosX(180 * m_dpi_scaling);
-	return ImGui::ColorEdit4(std::string(sz + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
-}
 
 bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 {
@@ -736,10 +722,4 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 		*controlled_value = false;
 
 	return false;
-}
-
-bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size)
-{
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
-	return ImGui::InputText(label, buf, buf_size);
 }
