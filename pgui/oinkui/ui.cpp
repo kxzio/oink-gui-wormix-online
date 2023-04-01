@@ -67,18 +67,18 @@ void c_oink_ui::draw_menu( )
 	{ // draw cursor
 		ImGui::SetMouseCursor(ImGuiMouseCursor_None);
 
-		ImVec2 pointer = ImVec2(ImGui::GetIO( ).MousePos.x, ImGui::GetIO( ).MousePos.y);
+		const ImVec2& pointer = ImGui::GetIO( ).MousePos;
 
 		fg_drawlist->AddTriangleFilled(
-			ImVec2(pointer.x - 2, pointer.y),
-			ImVec2(pointer.x - 3, pointer.y + 10),
-			ImVec2(pointer.x + 5, pointer.y + 7),
+			ImVec2(pointer.x, pointer.y),
+			ImVec2(pointer.x, pointer.y + 10 + 3),
+			ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
 			ImColor(0, 0, 0));
 
 		fg_drawlist->AddTriangle(
-			ImVec2(pointer.x - 2, pointer.y),
-			ImVec2(pointer.x - 3, pointer.y + 10),
-			ImVec2(pointer.x + 5, pointer.y + 7),
+			ImVec2(pointer.x, pointer.y),
+			ImVec2(pointer.x, pointer.y + 10 + 3),
+			ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
 			ImColor(255, 255, 255));
 	}
 
