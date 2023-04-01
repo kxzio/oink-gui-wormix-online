@@ -61,7 +61,6 @@ enum e_animation_type : uint8_t
 enum e_tex_id : uint8_t
 {
 	tex_pig = 0u,
-	tex_pig_stars,
 	tex_syb,
 	tex_max
 };
@@ -79,12 +78,15 @@ enum e_font_id : uint8_t
 class c_oink_ui
 {
 public:
-	c_oink_ui( ) : m_menu_opened{ false }, m_active_tab{ 0 }, m_dpi_changed{ false }, m_dpi_scaling{ 1.f }, m_theme_colour{ 47.f / 255.f, 70.f / 255.f, 154.f / 255.f }, m_gap{ 10.f }
+	c_oink_ui( ) : m_menu_opened{ false }, m_active_tab{ 0 }, m_dpi_changed{ false }, m_dpi_scaling{ 1.f }, m_theme_colour{ 47.f / 255.f, 70.f / 255.f, 154.f / 255.f }, m_gap{ 12.f }
 	{
 		memset(m_textures, 0, sizeof(m_textures));
 		memset(m_fonts, 0, sizeof(m_fonts));
 	};
 
+	~c_oink_ui( )
+	{
+	};
 private:
 	const char* m_key_names[166] =
 	{
@@ -269,9 +271,9 @@ private:
 	std::unordered_map<ImGuiID, float> m_animations;
 public:
 	void textures_create(IDirect3DDevice9* device);
-	void fonts_create( );
-	void reinit_fonts( );
+	void fonts_create(bool invalidate = false);
 	void draw_menu( );
+	void terminate_menu( );
 private:
 
 	__forceinline float CalcMaxPopupHeight(int items_count)

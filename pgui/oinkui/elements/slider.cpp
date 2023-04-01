@@ -2,7 +2,7 @@
 
 using namespace ImGui;
 
-bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags)
+bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, const ImColor& theme)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -58,7 +58,7 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	RenderNavHighlight(frame_bb, id);
 	//RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 
-	ImColor color = ImColor(47.f / 255.f, 70.f / 255.f, 154.f / 255.f, 20.f / 255.f);
+	ImColor color = theme;
 	ImColor color_no_alpha = color;
 	color_no_alpha.Value.w = 0.f;
 
@@ -76,26 +76,28 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	if (value_changed)
 		MarkItemEdited(id);
 
-	float button_animation = g_ui.process_animation(label, "button", true, 0.78f, 1.f, e_animation_type::animation_dynamic);
-	float button_hover_animation = g_ui.process_animation(label, "button_hover", hovered || g.ActiveId == id, 0.78f, 1.f, e_animation_type::animation_dynamic);
-	float button_hovered_animation = g_ui.process_animation(label, "button_hovered", true, 1.f, 1.f, e_animation_type::animation_dynamic);
+	float slider_difference = grab_bb.Max.x - frame_bb.Min.x;
 
-	float diff = grab_bb.Max.x - frame_bb.Min.x;
-	float slider_animation = g_ui.process_animation(label, "slider_grab", true, diff, 10.f, e_animation_type::animation_interp);
+	float button_animation = g_ui.process_animation(label, "button", g.ActiveId == id, 0.78f, 10.0f, e_animation_type::animation_dynamic);
+	float button_hovered_animation = g_ui.process_animation(label, "button_hovered", hovered, 1.f - 0.78f, 10.f, e_animation_type::animation_dynamic);
 
-	color.Value.w = 0.09f + button_hovered_animation;
+	float slider_animation = g_ui.process_animation(label, "slider_grab", true, slider_difference, 10.f, e_animation_type::animation_interp);
 
-	//window->DrawList->AddRectFilledMultiColor(frame_bb.Min - ImVec2(1, 0), ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2, 2), color, color, color, color);
+	color.Value.w = 0.78f + button_hovered_animation;
+	IM_ASSERT(color.Value.w <= 1.0f && color.Value.w >= 0.0f);
+
+	// draw filled space
+	window->DrawList->AddRectFilled(frame_bb.Min, ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2, 2), color);
 
 	color.Value.w = button_animation;
+	IM_ASSERT(color.Value.w <= 1.0f && color.Value.w >= 0.0f);
 
-	//window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, color);
+	// draw other space
+	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, color);
 
-	color.Value.w = 0.19f;
+	//color.Value.w = 0.19f;
 
 	//window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color, color_no_alpha, color_no_alpha, color);
-
-	//window->DrawList->AddRectFilled(frame_bb.Min, grab_bb.Max + ImVec2(0, 1), GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
 
 	// Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
 	char value_buf[64];
@@ -110,18 +112,16 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	ImVec2 p1 = ImVec2(new_grab_bb_max - textSize.x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0);
 	ImVec2 p2 = ImVec2(new_grab_bb_max + textSize.x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0);
 
+
 	PushStyleColor(ImGuiCol_Text, ImColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 255.f / 255.f).Value);
 	{
 		window->DrawList->AddRectFilled(p1, p2, ImColor(0.f / 255.f, 0.f / 255.f, 0.f / 255.f, 255.f / 255.f));
 
-		color.Value.w = 0.07f;
-		window->DrawList->AddRectFilledMultiColor(p1, p2, color_no_alpha, color_no_alpha, color, color);
-
 		color.Value.w = 1.f;
 		window->DrawList->AddRect(p1, p2, color);
 
-		RenderTextClipped(ImVec2(new_grab_bb_max - textSize.x / 2, grab_bb.Min.y - 8) - ImVec2(7, 0),
-						  ImVec2(new_grab_bb_max + textSize.x / 2, grab_bb.Max.y + 8) - ImVec2(7, 0),
+		RenderTextClipped(ImVec2(new_grab_bb_max - textSize.x / 2, grab_bb.Min.y - 8) - ImVec2(8, 0),
+						  ImVec2(new_grab_bb_max + textSize.x / 2, grab_bb.Max.y + 8) - ImVec2(8, 0),
 						  value_buf,
 						  value_buf_end,
 						  NULL,
@@ -138,12 +138,12 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 
 bool c_oink_ui::slider_int(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	return slider_scalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags);
+	ImGui::SetCursorPosX(m_dpi_scaling * m_gap);
+	return slider_scalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, m_theme_colour);
 }
 
 bool c_oink_ui::slider_float(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	return slider_scalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags);
+	ImGui::SetCursorPosX(m_dpi_scaling * m_gap);
+	return slider_scalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, m_theme_colour);
 }

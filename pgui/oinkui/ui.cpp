@@ -12,18 +12,16 @@ std::string current_help_tip = "";
 
 void c_oink_ui::textures_create(IDirect3DDevice9* device)
 {
-	D3DXCreateTextureFromFileInMemoryEx(device, pigstars, sizeof(pigstars), 1000, 1000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_pig_stars]);
+
+	D3DXCreateTextureFromFileInMemoryEx(device, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_pig]);
 
 	D3DXCreateTextureFromFileInMemoryEx(device, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_syb]);
 
-	D3DXCreateTextureFromFileInMemoryEx(device, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_pig]);
 };
 
-void c_oink_ui::fonts_create( )
+void c_oink_ui::fonts_create(bool invalidate)
 {
 	ImGuiIO& io = ImGui::GetIO( );
-
-	io.Fonts->Clear( );
 
 	auto glyph_ranges = io.Fonts->GetGlyphRangesCyrillic( );
 
@@ -31,13 +29,26 @@ void c_oink_ui::fonts_create( )
 	m_fonts[1] = io.Fonts->AddFontFromMemoryTTF(museo2, sizeof(museo2), 50.0f * m_dpi_scaling, NULL, glyph_ranges);
 	m_fonts[2] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 13.0f * m_dpi_scaling, NULL, glyph_ranges);
 	m_fonts[3] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 12.0f * m_dpi_scaling, NULL, glyph_ranges);
+	m_fonts[4] = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.f * m_dpi_scaling, NULL, glyph_ranges);
 
-	ImGui_ImplDX9_InvalidateDeviceObjects( );
+	if (invalidate)
+	{
+		ImGui_ImplDX9_InvalidateDeviceObjects( );
 
-	io.Fonts->ClearTexData( );
-	io.Fonts->Build( );
+		io.Fonts->ClearTexData( );
+		io.Fonts->Build( );
 
-	ImGui_ImplDX9_CreateDeviceObjects( );
+		ImGui_ImplDX9_CreateDeviceObjects( );
+	};
+}
+
+void c_oink_ui::terminate_menu( )
+{
+	for (auto& font : m_fonts)
+		delete font;
+
+	ZeroMemory(m_fonts, sizeof(m_fonts));
+	ZeroMemory(m_textures, sizeof(m_textures));
 };
 
 void c_oink_ui::draw_menu( )
@@ -70,8 +81,6 @@ void c_oink_ui::draw_menu( )
 			ImVec2(pointer.x + 5, pointer.y + 7),
 			ImColor(255, 255, 255));
 	}
-
-	bg_drawlist->AddRectFilled(ImVec2(0, 0), ImVec2(3000, 3000), ImColor(0, 0, 0), 0.0f);
 
 	//int backgrnd = g_ui.process_animation("menu", "bckrg", m_menu_opened, 13, 0.15, ImGui::animation_types::e_animation_type::animation_static);
 
@@ -152,7 +161,7 @@ void c_oink_ui::draw_menu( )
 					tab = 6;
 
 				int real_selected_tab_pos_x = button_size_x * (tab - 1);
-				int animate_selected_tab_pos_x = g_ui.process_animation("menu", "animate_selected_tab_pos_x", true, real_selected_tab_pos_x, 0.06, e_animation_type::animation_interp);
+				int animate_selected_tab_pos_x = g_ui.process_animation("menu", "animate_selected_tab_pos_x", true, real_selected_tab_pos_x, 5.f, e_animation_type::animation_interp);
 
 				bg_drawlist->AddRectFilled(wnd_pos + ImVec2(animate_selected_tab_pos_x, 95 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(50, 74, 168), 0);
 				bg_drawlist->AddRectFilledMultiColor(wnd_pos + ImVec2(animate_selected_tab_pos_x, 70 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
@@ -367,7 +376,8 @@ float c_oink_ui::process_animation(const char* label, const char* second_label, 
 
 	float& animation = m_animations.try_emplace(ID, 0.0f).first->second;
 
-	const float speed = ImGui::GetIO( ).DeltaTime * percentage_speed;
+	float speed = ImGui::GetIO( ).DeltaTime;
+	speed *= percentage_speed;
 	IM_ASSERT(speed > 0.0f);
 
 	switch (type)
@@ -380,9 +390,9 @@ float c_oink_ui::process_animation(const char* label, const char* second_label, 
 		case e_animation_type::animation_dynamic:
 		{
 			if (if_) //do
-				animation += ImAbs(v_max - animation) / speed;
+				animation += ImAbs(v_max - animation) * speed;
 			else
-				animation -= animation / speed;
+				animation -= animation * speed;
 			break;
 		};
 		case e_animation_type::animation_interp:
