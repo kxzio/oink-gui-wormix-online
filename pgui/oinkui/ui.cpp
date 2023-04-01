@@ -73,7 +73,7 @@ void c_oink_ui::draw_menu( )
 
 	bg_drawlist->AddRectFilled(ImVec2(0, 0), ImVec2(3000, 3000), ImColor(0, 0, 0), 0.0f);
 
-	//int backgrnd = ImGui::Animate("menu", "bckrg", m_menu_opened, 13, 0.15, ImGui::animation_types::STATIC);
+	//int backgrnd = g_ui.process_animation("menu", "bckrg", m_menu_opened, 13, 0.15, ImGui::animation_types::e_animation_type::animation_static);
 
 	//window vars
 	ImVec2 wnd_pos, wnd_size;
@@ -152,10 +152,10 @@ void c_oink_ui::draw_menu( )
 					tab = 6;
 
 				int real_selected_tab_pos_x = button_size_x * (tab - 1);
-				int animated_selected_tab_pos_x = ImGui::Animate("menu", "animated_selected_tab_pos_x", true, real_selected_tab_pos_x, 0.06, ImGui::animation_types::INTERP);
+				int animate_selected_tab_pos_x = g_ui.process_animation("menu", "animate_selected_tab_pos_x", true, real_selected_tab_pos_x, 0.06, e_animation_type::animation_interp);
 
-				bg_drawlist->AddRectFilled(wnd_pos + ImVec2(animated_selected_tab_pos_x, 95 * m_dpi_scaling), wnd_pos + ImVec2(animated_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(50, 74, 168), 0);
-				bg_drawlist->AddRectFilledMultiColor(wnd_pos + ImVec2(animated_selected_tab_pos_x, 70 * m_dpi_scaling), wnd_pos + ImVec2(animated_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
+				bg_drawlist->AddRectFilled(wnd_pos + ImVec2(animate_selected_tab_pos_x, 95 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(50, 74, 168), 0);
+				bg_drawlist->AddRectFilledMultiColor(wnd_pos + ImVec2(animate_selected_tab_pos_x, 70 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
 			}
 			ImGui::PopStyleVar( );
 
@@ -359,6 +359,43 @@ void c_oink_ui::draw_menu( )
 	}
 	ImGui::End( );
 	//close
+}
+
+float c_oink_ui::process_animation(const char* label, const char* second_label, bool if_, float v_max, float percentage_speed, e_animation_type type)
+{
+	const auto ID = ImGui::GetID(label) ^ ImHashStr(second_label);
+
+	float& animation = m_animations.try_emplace(ID, 0.0f).first->second;
+
+	const float speed = ImGui::GetIO( ).DeltaTime * percentage_speed;
+	IM_ASSERT(speed > 0.0f);
+
+	switch (type)
+	{
+		case e_animation_type::animation_static:
+		{
+			if_ ? animation += speed : animation -= speed;
+			break;
+		};
+		case e_animation_type::animation_dynamic:
+		{
+			if (if_) //do
+				animation += ImAbs(v_max - animation) / speed;
+			else
+				animation -= animation / speed;
+			break;
+		};
+		case e_animation_type::animation_interp:
+		{
+			animation = ImLerp(animation, v_max, speed);
+			break;
+		};
+	};
+
+	if (type != e_animation_type::animation_interp)
+		animation = ImClamp(animation, 0.f, v_max);
+
+	return animation;
 }
 
 void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m_menu_size, bool main)
@@ -657,7 +694,7 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 		ItPLibrary2 = pValue2.find(ID);
 	}
 
-	int alpha_active = ImGui::Animate(label, "act", true, ItPLibrary2->second, 0.05, ImGui::INTERP);
+	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 0.05, e_animation_type::animation_interp);
 
 	if (g.ActiveId == id || value_changed)
 		ItPLibrary->second = true;
@@ -688,7 +725,7 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 	const ImRect clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + size.x, frame_bb.Min.y + size.y); // Not using frame_bb.Max because we have adjusted size
 	ImVec2 render_pos = frame_bb.Min + style.FramePadding;
 
-	float add_pos = ImGui::Animate(label, "add_pos", g.ActiveId == id, 18, 0.05, ImGui::DYNAMIC);
+	float add_pos = g_ui.process_animation(label, "add_pos", g.ActiveId == id, 18, 0.05, e_animation_type::animation_dynamic);
 	ImGui::PushClipRect(frame_bb.Min, frame_bb.Max, false);
 	ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding + ImVec2(add_pos, 0), frame_bb.Max - style.FramePadding + ImVec2(add_pos, 0), buf_display, NULL, NULL);
 	ImGui::PopClipRect( );

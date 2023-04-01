@@ -58,7 +58,7 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max,
 											  ImColor(47, 70, 154, 0), ImColor(47, 70, 154, 0), ImColor(47, 70, 154, 20), ImColor(47, 70, 154, 20));
 
-	float hovered1 = Animate("button_hover", label, hovered || g.ActiveId == id, 200, 0.07, DYNAMIC);
+	float hovered1 = g_ui.process_animation("button_hover", label, hovered || g.ActiveId == id, 200, 0.07, e_animation_type::animation_dynamic);
 
 	int auto_red = 47;
 	int auto_green = 70;

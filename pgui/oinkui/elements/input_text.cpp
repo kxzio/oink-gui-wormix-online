@@ -48,7 +48,7 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 
 	const bool hovered = ItemHoverable(frame_bb, id);
 
-	float hovered1 = Animate("button_hover", label, hovered || g.ActiveId == id, 200, 0.07, DYNAMIC);
+	float hovered1 = g_ui.process_animation("button_hover", label, hovered || g.ActiveId == id, 200, 0.07, e_animation_type::animation_dynamic);
 
 	int auto_red = 47;
 	int auto_green = 70;

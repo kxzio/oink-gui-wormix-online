@@ -58,10 +58,15 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	RenderNavHighlight(frame_bb, id);
 	//RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max,
-											  ImColor(47, 70, 154, 0), ImColor(47, 70, 154, 0), ImColor(47, 70, 154, 20), ImColor(47, 70, 154, 20));
+	ImColor color = ImColor(47.f / 255.f, 70.f / 255.f, 154.f / 255.f, 20.f / 255.f);
+	ImColor color_no_alpha = color;
+	color_no_alpha.Value.w = 0.f;
 
-	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, ImColor(47, 70, 154, 255));
+	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color_no_alpha, color_no_alpha, color, color);
+
+	color.Value.w = 1.f;
+
+	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, color);
 
 	// Slider behavior
 	ImRect grab_bb;
@@ -69,27 +74,24 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	if (value_changed)
 		MarkItemEdited(id);
 
-	float hovered1 = Animate("button_hover", label, hovered || g.ActiveId == id, 200, 0.07, DYNAMIC);
-	float alpha = Animate("button", label, true, 200, 0.05, DYNAMIC);
-	float hovered_alpha = Animate("button_hovered", label, true, frame_bb.GetSize( ).y, 0.05, DYNAMIC);
+	float button_animation = g_ui.process_animation(label, "button", true, 0.78f, 1.f, e_animation_type::animation_dynamic);
+	float button_hover_animation = g_ui.process_animation(label, "button_hover", hovered || g.ActiveId == id, 0.78f, 1.f, e_animation_type::animation_dynamic);
+	float button_hovered_animation = g_ui.process_animation(label, "button_hovered", true, frame_bb.GetSize( ).y, 1.f, e_animation_type::animation_dynamic);
 
 	float diff = grab_bb.Max.x - frame_bb.Min.x;
-	float anim_diff = Animate("slider_grab", label, true, diff, 0.07, INTERP);
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min - ImVec2(1, 0), ImVec2(frame_bb.Min.x + anim_diff, grab_bb.Max.y) + ImVec2(2, 2),
-											   ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)),
-											   ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)),
-											   ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)),
-											   ImColor(47, 70, 154, 25 + int(alpha) + int((hovered_alpha / frame_bb.GetSize( ).y) * 200)));
+	float slider_animation = g_ui.process_animation(label, "slider_grab", true, diff, 4.f, e_animation_type::animation_interp);
 
-	int auto_red = 47;
-	int auto_green = 70;
-	int auto_blue = 154;
+	color.Value.w = 0.09f + (button_hovered_animation / frame_bb.GetSize( ).y);
 
-	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max,
-									ImColor(auto_red, auto_green, auto_blue, int(hovered1 / 5)));
+	window->DrawList->AddRectFilledMultiColor(frame_bb.Min - ImVec2(1, 0), ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2, 2), color, color, color, color);
 
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max,
-											  ImColor(auto_red, auto_green, auto_blue, 50), ImColor(auto_red, auto_green, auto_blue, 0), ImColor(auto_red, auto_green, auto_blue, 0), ImColor(auto_red, auto_green, auto_blue, 50));
+	color.Value.w = button_animation;
+
+	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, color);
+
+	color.Value.w = 0.19f;
+
+	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color, color_no_alpha, color_no_alpha, color);
 
 	//window->DrawList->AddRectFilled(frame_bb.Min, grab_bb.Max + ImVec2(0, 1), GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
 
@@ -99,19 +101,29 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	if (g.LogEnabled)
 		LogSetNextTextDecoration("{", "}");
 
-	float new_grab_bb_max = frame_bb.Min.x + anim_diff;
-	PushStyleColor(ImGuiCol_Text, ImVec4(ImColor(255, 255, 255, 255)));
+	ImVec2 textSize = CalcTextSize(value_buf, value_buf_end);
+
+	float new_grab_bb_max = frame_bb.Min.x + slider_animation;
+
+	ImVec2 p1 = ImVec2(new_grab_bb_max - textSize.x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0);
+	ImVec2 p2 = ImVec2(new_grab_bb_max + textSize.x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0);
+
+	PushStyleColor(ImGuiCol_Text, ImColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 255.f / 255.f).Value);
 	{
-		window->DrawList->AddRectFilled(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0), ImColor(0, 0, 0, 255));
-		window->DrawList->AddRectFilledMultiColor(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0),
-												  ImColor(47, 70, 154, 0),
-												  ImColor(47, 70, 154, 0),
-												  ImColor(47, 70, 154, 20),
-												  ImColor(47, 70, 154, 20));
+		window->DrawList->AddRectFilled(p1, p2, ImColor(0.f / 255.f, 0.f / 255.f, 0.f / 255.f, 255.f / 255.f));
 
-		window->DrawList->AddRect(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0), ImColor(47, 70, 154, 255));
+		color.Value.w = 0.07f;
+		window->DrawList->AddRectFilledMultiColor(p1, p2, color_no_alpha, color_no_alpha, color, color);
 
-		RenderTextClipped(ImVec2(new_grab_bb_max - CalcTextSize(value_buf, value_buf_end).x / 2, grab_bb.Min.y - 8) - ImVec2(7, 0), ImVec2(new_grab_bb_max + CalcTextSize(value_buf, value_buf_end).x / 2, grab_bb.Max.y + 8) - ImVec2(7, 0), value_buf, value_buf_end, NULL, ImVec2(0.5f, 0.5f));
+		color.Value.w = 1.f;
+		window->DrawList->AddRect(p1, p2, color);
+
+		RenderTextClipped(ImVec2(new_grab_bb_max - textSize.x / 2, grab_bb.Min.y - 8) - ImVec2(7, 0),
+						  ImVec2(new_grab_bb_max + textSize.x / 2, grab_bb.Max.y + 8) - ImVec2(7, 0),
+						  value_buf,
+						  value_buf_end,
+						  NULL,
+						  ImVec2(0.5f, 0.5f));
 	}
 	PopStyleColor( );
 

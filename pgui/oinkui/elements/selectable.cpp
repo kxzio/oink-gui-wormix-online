@@ -138,8 +138,8 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 	if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld))
 		hovered = true;
 
-	int alpha = ImGui::Animate(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), "alpha", hovered && (!selected), 200, 0.15, DYNAMIC);
-	int alpha_selected = ImGui::Animate(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), "alpha_selected", selected, 255, 0.15, DYNAMIC);
+	int alpha = g_ui.process_animation(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), "alpha", hovered && (!selected), 200, 0.15, e_animation_type::animation_dynamic);
+	int alpha_selected = g_ui.process_animation(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), "alpha_selected", selected, 255, 0.15, e_animation_type::animation_dynamic);
 	const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
 	ImColor base_col = ImColor(int(47), int(70), int(154), alpha_selected / 10);
 	ImColor null_col = ImColor(int(47), int(70), int(154), 0);

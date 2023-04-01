@@ -51,6 +51,31 @@ const ImVec2 operator/(const ImVec2& rv, const ImVec2& lv)
 
 #include "imstb.h"
 
+enum e_animation_type : uint8_t
+{
+	animation_static = 0u,
+	animation_dynamic,
+	animation_interp
+};
+
+enum e_tex_id : uint8_t
+{
+	tex_pig = 0u,
+	tex_pig_stars,
+	tex_syb,
+	tex_max
+};
+
+enum e_font_id : uint8_t
+{
+	font_big = 0u,
+	font_small,
+	font_default,
+	font_middle,
+	font_giant,
+	font_max
+};
+
 class c_oink_ui
 {
 public:
@@ -63,24 +88,6 @@ public:
 		memset(m_fonts, 0, sizeof(m_fonts));
 	};
 
-private:
-	enum e_tex_id
-	{
-		tex_pig = 0,
-		tex_pig_stars,
-		tex_syb,
-		tex_max
-	};
-
-	enum e_font_id
-	{
-		font_big = 0,
-		font_small,
-		font_default,
-		font_middle,
-		font_giant,
-		font_max
-	};
 private:
 	const char* m_key_names[166] =
 	{
@@ -261,6 +268,7 @@ private:
 	float m_dpi_scaling_copy;
 	float m_border_alpha;
 	ImColor m_theme_colour;
+	std::unordered_map<ImGuiID, float> m_animations;
 public:
 	void textures_create(IDirect3DDevice9* device);
 	void fonts_create( );
@@ -288,7 +296,7 @@ private:
 		for (int i = rotation_start_index; i < buf.Size; i++)
 			l = ImMin(l, buf[i].pos), u = ImMax(u, buf[i].pos);
 
-		return ImVec2((l.x + u.x) / 2, (l.y + u.y) / 2); // or use _ClipRectStack?
+		return { (l.x + u.x) / 2, (l.y + u.y) / 2 }; // or use _ClipRectStack?
 	};
 
 	__forceinline void ImRotateEnd(float rad, int rotation_start_index)
@@ -302,8 +310,10 @@ private:
 		for (int i = rotation_start_index; i < buf.Size; i++)
 			buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
 	};
-private:
 
+public:
+	float process_animation(const char* label, const char* second_label, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
+private:
 	void configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m_menu_size, bool main = true);
 
 	//buttons

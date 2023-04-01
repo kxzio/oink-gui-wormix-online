@@ -250,9 +250,11 @@ struct ImVec2
 {
 	float                                   x, y;
 	constexpr ImVec2( ) : x(0.0f), y(0.0f)
-	{}
+	{
+	}
 	constexpr ImVec2(float _x, float _y) : x(_x), y(_y)
-	{}
+	{
+	}
 	float  operator[] (size_t idx) const
 	{
 		IM_ASSERT(idx <= 1); return (&x)[idx];
@@ -289,9 +291,11 @@ struct ImVec4
 {
 	float                                                     x, y, z, w;
 	constexpr ImVec4( ) : x(0.0f), y(0.0f), z(0.0f), w(0.0f)
-	{}
+	{
+	}
 	constexpr ImVec4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w)
-	{}
+	{
+	}
 #ifdef IM_VEC4_CLASS_EXTRA
 	IM_VEC4_CLASS_EXTRA     // Define additional constructors and implicit cast operators in imconfig.h to convert back and forth between your math types and ImVec4.
 #endif
@@ -305,11 +309,6 @@ IM_MSVC_RUNTIME_CHECKS_RESTORE
 
 namespace ImGui
 {
-	enum  animation_types
-	{
-		STATIC, DYNAMIC, INTERP
-	};
-	float Animate(const char* label, const char* second_label, bool if_, float Maximal_, float Speed_, int type);
 	// Context creation and access
 	// - Each context create its own ImFontAtlas by default. You may instance one yourself and pass it to CreateContext() to share a font atlas between contexts.
 	// - DLL users: heaps and globals are not shared across DLL boundaries! You will need to call SetCurrentContext() + SetAllocatorFunctions()
@@ -1773,13 +1772,15 @@ enum ImGuiCond_
 //-----------------------------------------------------------------------------
 
 struct ImNewWrapper
-{};
+{
+};
 inline void* operator new(size_t, ImNewWrapper, void* ptr)
 {
 	return ptr;
 }
 inline void  operator delete(void*, ImNewWrapper, void*)
-{} // This is only required so we can use the symmetrical new()
+{
+} // This is only required so we can use the symmetrical new()
 #define IM_ALLOC(_SIZE)                     ImGui::MemAlloc(_SIZE)
 #define IM_FREE(_PTR)                       ImGui::MemFree(_PTR)
 #define IM_PLACEMENT_NEW(_PTR)              new(ImNewWrapper(), _PTR)
@@ -2435,7 +2436,8 @@ struct ImGuiTextBuffer
 	IMGUI_API static char EmptyString[1];
 
 	ImGuiTextBuffer( )
-	{}
+	{
+	}
 	inline char         operator[](int i) const
 	{
 		IM_ASSERT(Buf.Data != NULL); return Buf.Data[i];
@@ -2618,11 +2620,14 @@ struct ImColor
 	ImVec4          Value;
 
 	constexpr ImColor( )
-	{}
+	{
+	}
 	constexpr ImColor(float r, float g, float b, float a = 1.0f) : Value(r, g, b, a)
-	{}
+	{
+	}
 	constexpr ImColor(const ImVec4& col) : Value(col)
-	{}
+	{
+	}
 	ImColor(int r, int g, int b, int a = 255)
 	{
 		float sc = 1.0f / 255.0f; Value.x = (float) r * sc; Value.y = (float) g * sc; Value.z = (float) b * sc; Value.w = (float) a * sc;

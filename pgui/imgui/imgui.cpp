@@ -106,7 +106,7 @@ CODE
 
  Designed for developers and content-creators, not the typical end-user! Some of the current weaknesses includes:
 
- - Doesn't look fancy, doesn't animate.
+ - Doesn't look fancy, doesn't g_ui.process_animation.
  - Limited layout features, intricate layouts are typically crafted in code.
 
  END-USER GUIDE

@@ -1111,51 +1111,7 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
 	IMGUI_TEST_ENGINE_ITEM_INFO(id, str_id, g.LastItemData.StatusFlags);
 	return pressed;
 }
-float ImGui::Animate(const char* label, const char* second_label, bool if_, float Maximal_, float Speed_, int type)
-{
-	Maximal_ /= 255;
 
-	static std::unordered_map <ImGuiID, float> pValue;
-
-	auto ID = ImHashStr(label) ^ ImHashStr(second_label);
-
-	auto ItPLibrary = pValue.find(ID);
-
-	if (ItPLibrary == pValue.end( ))
-		ItPLibrary = pValue.insert({ ID, 0.f }).first;
-
-	const float FrameRateBasedSpeed = Speed_ * GetIO( ).DeltaTime;
-
-	switch (type)
-	{
-		case DYNAMIC:
-		{
-			if (if_) //do
-				ItPLibrary->second += ImAbs(Maximal_ - ItPLibrary->second) / FrameRateBasedSpeed;
-			else
-				ItPLibrary->second -= (0 + ItPLibrary->second) / FrameRateBasedSpeed;
-			break;
-		}
-		case INTERP:
-		{
-			ItPLibrary->second += (Maximal_ - ItPLibrary->second) / FrameRateBasedSpeed;
-			break;
-		}
-		case STATIC:
-		{
-			if (if_) //do
-				ItPLibrary->second += FrameRateBasedSpeed;
-			else
-				ItPLibrary->second -= FrameRateBasedSpeed;
-			break;
-		}
-	}
-
-	if (type != INTERP)
-		ItPLibrary->second = ImClamp(ItPLibrary->second, 0.f, Maximal_);
-
-	return ItPLibrary->second * 255.f;
-}
 bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
 {
 	float sz = GetFrameHeight( );
@@ -2201,9 +2157,9 @@ void ImGui::DataTypeApplyOp(ImGuiDataType data_type, int op, void* output, const
 			}
 			return;
 		case ImGuiDataType_COUNT: break;
-	}
+			}
 	IM_ASSERT(0);
-}
+	}
 
 // User can input math operators (e.g. +100) to edit a numerical values.
 // NB: This is _not_ a full expression evaluator. We should probably add one and replace this dumb mess..
