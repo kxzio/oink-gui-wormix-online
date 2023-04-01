@@ -62,8 +62,11 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	ImColor color_no_alpha = color;
 	color_no_alpha.Value.w = 0.f;
 
+
+	color.Value.w = 0.3f;
+
 	// draw slider bg
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color_no_alpha, color_no_alpha, color, color);
+	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color, color_no_alpha, color_no_alpha, color);
 
 	color.Value.w = 1.f;
 
@@ -78,7 +81,7 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 
 	float slider_difference = grab_bb.Max.x - frame_bb.Min.x;
 
-	float button_animation = g_ui.process_animation(label, "button", g.ActiveId == id, 0.78f, 10.0f, e_animation_type::animation_dynamic);
+	float button_animation = g_ui.process_animation(label, "button", g.ActiveId == id, 0.28f, 10.0f, e_animation_type::animation_dynamic);
 	float button_hovered_animation = g_ui.process_animation(label, "button_hovered", hovered, 1.f - 0.78f, 10.f, e_animation_type::animation_dynamic);
 
 	float slider_animation = g_ui.process_animation(label, "slider_grab", true, slider_difference, 10.f, e_animation_type::animation_interp);
@@ -120,8 +123,8 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 		color.Value.w = 1.f;
 		window->DrawList->AddRect(p1, p2, color);
 
-		RenderTextClipped(ImVec2(new_grab_bb_max - textSize.x / 2, grab_bb.Min.y - 8) - ImVec2(8, 0),
-						  ImVec2(new_grab_bb_max + textSize.x / 2, grab_bb.Max.y + 8) - ImVec2(8, 0),
+		RenderTextClipped(ImVec2(new_grab_bb_max - textSize.x / 2, grab_bb.Min.y - 8) - ImVec2(7, 0),
+						  ImVec2(new_grab_bb_max + textSize.x / 2, grab_bb.Max.y + 8) - ImVec2(7, 0),
 						  value_buf,
 						  value_buf_end,
 						  NULL,

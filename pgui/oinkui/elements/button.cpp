@@ -29,7 +29,7 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 
 	hovered = ImGui::IsMouseHoveringRect(bb.Min, bb.Max, true);
 
-	int text_size = g_ui.process_animation(label, "label_size", hovered, 120, 0.15, e_animation_type::animation_static);
+	int text_size = g_ui.process_animation(label, "label_size", hovered, 120, 15.f, e_animation_type::animation_static);
 
 	ItemSize(size, style.FramePadding.y);
 	if (!ItemAdd(bb, id))
@@ -59,7 +59,7 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 		ItPLibrary2 = pValue2.find(ID);
 	}
 
-	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 0.05, e_animation_type::animation_interp);
+	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 15.f, e_animation_type::animation_interp);
 
 	if (pressed)
 		ItPLibrary->second = true;
@@ -126,15 +126,15 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	RenderNavHighlight(bb, id);
 
-	int anim_active = g_ui.process_animation("active", label, this_tab == opened_tab, 200, 0.15, e_animation_type::animation_static);
+	int anim_active = g_ui.process_animation("active", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_static);
 
 	int r1 = 47;
 	int g1 = 70;
 	int b1 = 154;
 
-	float hovered1 = g_ui.process_animation("button_hover", label, hovered, 200, 0.07, e_animation_type::animation_dynamic);
-	float alpha = g_ui.process_animation("button", label, this_tab == opened_tab, 200, 0.05, e_animation_type::animation_dynamic);
-	float hovered_alpha = g_ui.process_animation("button_hovered", label, this_tab == opened_tab, bb.GetSize( ).y, 0.05, e_animation_type::animation_dynamic);
+	float hovered1 = g_ui.process_animation("button_hover", label, hovered, 200, 15.f, e_animation_type::animation_dynamic);
+	float alpha = g_ui.process_animation("button", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
+	float hovered_alpha = g_ui.process_animation("button_hovered", label, this_tab == opened_tab, bb.GetSize( ).y, 15.f, e_animation_type::animation_dynamic);
 
 	float theme_col[4] = { 47 / 255.f, 70 / 255.f, 154 / 255.f };
 	ImVec4 theme = ImVec4(ImColor(int(theme_col[0] * 255), int(theme_col[1] * 255), int(theme_col[2] * 255), int(theme_col[3] * 255)));
@@ -159,7 +159,7 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 		ItPLibrary2 = pValue2.find(ID);
 	}
 
-	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 0.05, e_animation_type::animation_interp);
+	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 15.f, e_animation_type::animation_interp);
 
 	if (this_tab == opened_tab)
 	{
@@ -228,9 +228,9 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	// Render
 	const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-	int hovered1 = g_ui.process_animation("button_hover", label, hovered, 100, 0.15, e_animation_type::animation_dynamic);
-	float alpha = g_ui.process_animation("button", label, this_tab == opened_tab, 200, 0.05, e_animation_type::animation_dynamic);
-	int selected_alpha = g_ui.process_animation("button_hovered", label, this_tab == opened_tab, 200, 0.15, e_animation_type::animation_dynamic);
+	int hovered1 = g_ui.process_animation("button_hover", label, hovered, 100, 15.f, e_animation_type::animation_dynamic);
+	float alpha = g_ui.process_animation("button", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
+	int selected_alpha = g_ui.process_animation("button_hovered", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
 
 	ImColor txt_clr = ImColor(255, 255, 255, 40 + hovered1 + selected_alpha);
 
