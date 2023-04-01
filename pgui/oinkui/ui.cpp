@@ -480,13 +480,13 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m
 
 void c_oink_ui::text(const char* text)
 {
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	ImGui::Text(text);
 };
 
 void c_oink_ui::text_colored(const char* text)
 {
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(47 / 255.f, 70 / 255.f, 154 / 255.f, 1.f));
 	ImGui::Text(text);
 	ImGui::PopStyleColor( );
@@ -502,7 +502,7 @@ bool c_oink_ui::begin_child(const char* label, int number_of_child)
 	{
 		style.ItemSpacing = ImVec2(10 * m_dpi_scaling, 5 * m_dpi_scaling);
 
-		ImGui::SetCursorPos(ImVec2(gap * m_dpi_scaling, 10 * m_dpi_scaling));
+		ImGui::SetCursorPos(ImVec2(m_gap * m_dpi_scaling, 10 * m_dpi_scaling));
 		text_colored(label);
 
 		ImGui::Separator( );

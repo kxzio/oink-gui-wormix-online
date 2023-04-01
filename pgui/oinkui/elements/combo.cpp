@@ -138,7 +138,7 @@ bool c_oink_ui::combo(const char* label, int* current_item, bool (*items_getter)
 
 void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text[ ], int size)
 {
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 
 	ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeight(-1)));
 
@@ -181,7 +181,7 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 
 bool c_oink_ui::combo_box(const char* label, int* current_item, const char* const items[ ], int items_count, int height_in_items)
 {
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10));
 	const bool value_changed = combo(label, current_item, Items_ArrayGetter, (void*) items, items_count, height_in_items);
 	ImGui::PopStyleVar( );

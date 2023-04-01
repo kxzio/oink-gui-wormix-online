@@ -62,10 +62,12 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	ImColor color_no_alpha = color;
 	color_no_alpha.Value.w = 0.f;
 
+	// draw slider bg
 	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color_no_alpha, color_no_alpha, color, color);
 
 	color.Value.w = 1.f;
 
+	// draw slider frame
 	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, color);
 
 	// Slider behavior
@@ -76,22 +78,22 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 
 	float button_animation = g_ui.process_animation(label, "button", true, 0.78f, 1.f, e_animation_type::animation_dynamic);
 	float button_hover_animation = g_ui.process_animation(label, "button_hover", hovered || g.ActiveId == id, 0.78f, 1.f, e_animation_type::animation_dynamic);
-	float button_hovered_animation = g_ui.process_animation(label, "button_hovered", true, frame_bb.GetSize( ).y, 1.f, e_animation_type::animation_dynamic);
+	float button_hovered_animation = g_ui.process_animation(label, "button_hovered", true, 1.f, 1.f, e_animation_type::animation_dynamic);
 
 	float diff = grab_bb.Max.x - frame_bb.Min.x;
-	float slider_animation = g_ui.process_animation(label, "slider_grab", true, diff, 4.f, e_animation_type::animation_interp);
+	float slider_animation = g_ui.process_animation(label, "slider_grab", true, diff, 10.f, e_animation_type::animation_interp);
 
-	color.Value.w = 0.09f + (button_hovered_animation / frame_bb.GetSize( ).y);
+	color.Value.w = 0.09f + button_hovered_animation;
 
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min - ImVec2(1, 0), ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2, 2), color, color, color, color);
+	//window->DrawList->AddRectFilledMultiColor(frame_bb.Min - ImVec2(1, 0), ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2, 2), color, color, color, color);
 
 	color.Value.w = button_animation;
 
-	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, color);
+	//window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, color);
 
 	color.Value.w = 0.19f;
 
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color, color_no_alpha, color_no_alpha, color);
+	//window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color, color_no_alpha, color_no_alpha, color);
 
 	//window->DrawList->AddRectFilled(frame_bb.Min, grab_bb.Max + ImVec2(0, 1), GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
 
@@ -136,12 +138,12 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 
 bool c_oink_ui::slider_int(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
 {
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	return slider_scalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags);
 }
 
 bool c_oink_ui::slider_float(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 {
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	return slider_scalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags);
 }

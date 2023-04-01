@@ -4,7 +4,7 @@ using namespace ImGui;
 
 bool c_oink_ui::checkbox(const char* label, bool* v)
 {
-	ImGui::SetCursorPosX(gap * m_dpi_scaling);
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)

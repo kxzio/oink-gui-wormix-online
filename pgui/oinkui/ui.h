@@ -79,10 +79,7 @@ enum e_font_id : uint8_t
 class c_oink_ui
 {
 public:
-
-	int gap = 10;
-
-	c_oink_ui( ) : m_menu_opened{ false }, m_active_tab{ 0 }, m_dpi_changed{ false }, m_dpi_scaling{ 1.f }, m_theme_colour{ 47.f / 255.f, 70.f / 255.f, 154.f / 255.f }
+	c_oink_ui( ) : m_menu_opened{ false }, m_active_tab{ 0 }, m_dpi_changed{ false }, m_dpi_scaling{ 1.f }, m_theme_colour{ 47.f / 255.f, 70.f / 255.f, 154.f / 255.f }, m_gap{ 10.f }
 	{
 		memset(m_textures, 0, sizeof(m_textures));
 		memset(m_fonts, 0, sizeof(m_fonts));
@@ -261,6 +258,7 @@ private:
 	IDirect3DTexture9* m_textures[tex_max];
 	ImFont* m_fonts[font_max];
 private:
+	float m_gap;
 	int m_active_tab;
 	bool m_menu_opened;
 	bool m_dpi_changed;
