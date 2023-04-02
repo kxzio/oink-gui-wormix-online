@@ -81,10 +81,10 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 
 	float slider_difference = grab_bb.Max.x - frame_bb.Min.x;
 
-	float button_animation = g_ui.process_animation(label, "button", g.ActiveId == id, 0.28f, 10.0f, e_animation_type::animation_dynamic);
-	float button_hovered_animation = g_ui.process_animation(label, "button_hovered", hovered, 1.f - 0.78f, 10.f, e_animation_type::animation_dynamic);
+	float button_animation = g_ui.process_animation(label, 1, g.ActiveId == id, 0.28f, 10.0f, e_animation_type::animation_dynamic);
+	float button_hovered_animation = g_ui.process_animation(label, 2, hovered, 1.f - 0.78f, 10.f, e_animation_type::animation_dynamic);
 
-	float slider_animation = g_ui.process_animation(label, "slider_grab", true, slider_difference, 10.f, e_animation_type::animation_interp);
+	float slider_animation = g_ui.process_animation(label, 3, true, slider_difference, 10.f, e_animation_type::animation_interp);
 
 	color.Value.w = 0.78f + button_hovered_animation;
 	IM_ASSERT(color.Value.w <= 1.0f && color.Value.w >= 0.0f);

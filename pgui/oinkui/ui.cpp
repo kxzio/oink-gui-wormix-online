@@ -12,12 +12,46 @@ std::string current_help_tip = "";
 
 void c_oink_ui::textures_create(IDirect3DDevice9* device)
 {
-
 	D3DXCreateTextureFromFileInMemoryEx(device, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_pig]);
-
 	D3DXCreateTextureFromFileInMemoryEx(device, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_syb]);
-
 };
+
+
+float c_oink_ui::process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed, e_animation_type type)
+{
+	return process_animation(generate_unique_id(label, seed), if_, v_max, percentage_speed, type);
+}
+
+float c_oink_ui::process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed /* 1.0f = 100%, 1.25f = 125% */, e_animation_type type)
+{
+	auto& animation = m_animations.try_emplace(id, 0.0f).first->second;
+
+	const auto& io = ImGui::GetIO( );
+	float speed = io.DeltaTime * percentage_speed;
+
+	switch (type)
+	{
+		case e_animation_type::animation_static:
+			animation += if_ ? speed : -speed;
+			break;
+		case e_animation_type::animation_dynamic:
+			animation += if_ ? ImAbs(v_max - animation) * speed : -animation * speed;
+			break;
+		case e_animation_type::animation_interp:
+			animation = ImLerp(animation, v_max, speed);
+			break;
+	}
+
+	if (type != e_animation_type::animation_interp)
+		animation = ImClamp(animation, 0.0f, v_max);
+
+	return animation;
+}
+
+ImGuiID c_oink_ui::generate_unique_id(const char* label, unsigned int seed)
+{
+	return ImGui::GetID(label) ^ ~seed;
+}
 
 void c_oink_ui::fonts_create(bool invalidate)
 {
@@ -161,7 +195,7 @@ void c_oink_ui::draw_menu( )
 					tab = 6;
 
 				int real_selected_tab_pos_x = button_size_x * (tab - 1);
-				int animate_selected_tab_pos_x = g_ui.process_animation("menu", "animate_selected_tab_pos_x", true, real_selected_tab_pos_x, 15.f, e_animation_type::animation_interp);
+				int animate_selected_tab_pos_x = g_ui.process_animation("menu", 1, true, real_selected_tab_pos_x, 15.f, e_animation_type::animation_interp);
 
 				bg_drawlist->AddRectFilled(wnd_pos + ImVec2(animate_selected_tab_pos_x, 95 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(50, 74, 168), 0);
 				bg_drawlist->AddRectFilledMultiColor(wnd_pos + ImVec2(animate_selected_tab_pos_x, 70 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
@@ -368,44 +402,6 @@ void c_oink_ui::draw_menu( )
 	}
 	ImGui::End( );
 	//close
-}
-
-float c_oink_ui::process_animation(const char* label, const char* second_label, bool if_, float v_max, float percentage_speed, e_animation_type type)
-{
-	const auto ID = ImGui::GetID(label) ^ ImHashStr(second_label);
-
-	float& animation = m_animations.try_emplace(ID, 0.0f).first->second;
-
-	float speed = ImGui::GetIO( ).DeltaTime;
-	speed *= percentage_speed;
-	IM_ASSERT(speed > 0.0f);
-
-	switch (type)
-	{
-		case e_animation_type::animation_static:
-		{
-			if_ ? animation += speed : animation -= speed;
-			break;
-		};
-		case e_animation_type::animation_dynamic:
-		{
-			if (if_) //do
-				animation += ImAbs(v_max - animation) * speed;
-			else
-				animation -= animation * speed;
-			break;
-		};
-		case e_animation_type::animation_interp:
-		{
-			animation = ImLerp(animation, v_max, speed);
-			break;
-		};
-	};
-
-	if (type != e_animation_type::animation_interp)
-		animation = ImClamp(animation, 0.f, v_max);
-
-	return animation;
 }
 
 void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m_menu_size, bool main)
@@ -703,7 +699,7 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 		ItPLibrary2 = pValue2.find(ID);
 	}
 
-	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 10.f, e_animation_type::animation_interp);
+	int alpha_active = g_ui.process_animation(label, 2, true, ItPLibrary2->second, 10.f, e_animation_type::animation_interp);
 
 	if (g.ActiveId == id || value_changed)
 		ItPLibrary->second = true;
@@ -734,7 +730,7 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 	const ImRect clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + size.x, frame_bb.Min.y + size.y); // Not using frame_bb.Max because we have adjusted size
 	ImVec2 render_pos = frame_bb.Min + style.FramePadding;
 
-	float add_pos = g_ui.process_animation(label, "add_pos", g.ActiveId == id, 18, 10.f, e_animation_type::animation_dynamic);
+	float add_pos = g_ui.process_animation(label, 3, g.ActiveId == id, 18, 10.f, e_animation_type::animation_dynamic);
 	ImGui::PushClipRect(frame_bb.Min, frame_bb.Max, false);
 	ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding + ImVec2(add_pos, 0), frame_bb.Max - style.FramePadding + ImVec2(add_pos, 0), buf_display, NULL, NULL);
 	ImGui::PopClipRect( );

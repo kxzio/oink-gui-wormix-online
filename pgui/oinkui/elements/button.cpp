@@ -4,10 +4,8 @@
 
 using namespace ImGui;
 
-bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags)
+bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, const ImColor& theme)
 {
-	auto stored_cursor = GetCursorPos( );
-
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
 		return false;
@@ -27,17 +25,11 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	bool hovered, held;
 	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
-	hovered = ImGui::IsMouseHoveringRect(bb.Min, bb.Max, true);
-
-	int text_size = g_ui.process_animation(label, "label_size", hovered, 120, 15.f, e_animation_type::animation_static);
+	int text_size = g_ui.process_animation(label, 1, hovered, 120, 15.f, e_animation_type::animation_static);
 
 	ItemSize(size, style.FramePadding.y);
 	if (!ItemAdd(bb, id))
 		return false;
-
-	int red = 47;
-	int green = 70;
-	int blue = 154;
 
 	auto ID = GetID((std::stringstream{} << label << "adcty").str( ).c_str( ));
 
@@ -59,8 +51,7 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 		ItPLibrary2 = pValue2.find(ID);
 	}
 
-	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 15.f, e_animation_type::animation_interp);
-
+	int alpha_active = g_ui.process_animation(label, 2, true, ItPLibrary2->second, 15.f, e_animation_type::animation_interp);
 	if (pressed)
 		ItPLibrary->second = true;
 
@@ -78,10 +69,15 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	RenderNavHighlight(bb, id);
 
 	//background
-	window->DrawList->AddRectFilled(bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), ImColor(red, green, blue, 20 + alpha_active), style.FrameRounding);
+
+	ImColor color = theme;
+	color.Value.w = 20.f / 255.f + alpha_active;
+
+	window->DrawList->AddRectFilled(bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), color, style.FrameRounding);
 	//outline
 
-	window->DrawList->AddRect(bb.Min, bb.Max, ImColor(red, green, blue, 150 + text_size), style.FrameRounding);
+	color.Value.w = 150.f / 255.f + text_size;
+	window->DrawList->AddRect(bb.Min, bb.Max, color, style.FrameRounding);
 
 	auto backup_size = window->FontWindowScale;
 	//SetWindowFontScale(window->FontWindowScale + (text_size / 1000.f));
@@ -91,8 +87,8 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	SetWindowFontScale(backup_size);
 
 	// Automatically close popups
-	//if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
-	//    CloseCurrentPopup();
+	if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
+		CloseCurrentPopup( );
 
 	return pressed;
 }
@@ -126,18 +122,13 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	RenderNavHighlight(bb, id);
 
-	int anim_active = g_ui.process_animation("active", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_static);
+	int anim_active = g_ui.process_animation(label, 3, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_static);
 
-	int r1 = 47;
-	int g1 = 70;
-	int b1 = 154;
+	float hovered1 = g_ui.process_animation(label, 4, 200, 15.f, e_animation_type::animation_dynamic);
+	float alpha = g_ui.process_animation(label, 5, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
+	float hovered_alpha = g_ui.process_animation(label, 6, this_tab == opened_tab, bb.GetSize( ).y, 15.f, e_animation_type::animation_dynamic);
 
-	float hovered1 = g_ui.process_animation("button_hover", label, hovered, 200, 15.f, e_animation_type::animation_dynamic);
-	float alpha = g_ui.process_animation("button", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
-	float hovered_alpha = g_ui.process_animation("button_hovered", label, this_tab == opened_tab, bb.GetSize( ).y, 15.f, e_animation_type::animation_dynamic);
-
-	float theme_col[4] = { 47 / 255.f, 70 / 255.f, 154 / 255.f };
-	ImVec4 theme = ImVec4(ImColor(int(theme_col[0] * 255), int(theme_col[1] * 255), int(theme_col[2] * 255), int(theme_col[3] * 255)));
+	ImColor color = m_theme_colour;
 
 	auto ID = ImGui::GetID((std::stringstream{} << label << "adcty").str( ).c_str( ));
 
@@ -159,7 +150,7 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 		ItPLibrary2 = pValue2.find(ID);
 	}
 
-	int alpha_active = g_ui.process_animation(label, "act", true, ItPLibrary2->second, 15.f, e_animation_type::animation_interp);
+	int alpha_active = g_ui.process_animation(label, 7, true, ItPLibrary2->second, 15.f, e_animation_type::animation_interp);
 
 	if (this_tab == opened_tab)
 	{
@@ -183,18 +174,18 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 	RenderNavHighlight(bb, id);
 
 	//background
-	window->DrawList->AddRectFilled(bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), ImColor(47, 70, 154, 20 + alpha_active), style.FrameRounding);
+	color.Value.w = 20.f / 255.f + alpha_active;
+	window->DrawList->AddRectFilled(bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), color, style.FrameRounding);
 	//outline
 
-	window->DrawList->AddRect(bb.Min, bb.Max, ImColor(47, 70, 154, 150 + alpha_active), style.FrameRounding);
+	color.Value.w = 150 / 255.f + alpha_active;
+	window->DrawList->AddRect(bb.Min, bb.Max, color, style.FrameRounding);
 
-	auto backup_size = window->FontWindowScale;
-	//SetWindowFontScale(window->FontWindowScale + (text_size / 1000.f));
 	window->DrawList->AddText(bb.Min + bb.GetSize( ) / 2 - CalcTextSize(label) / 2, ImColor(255, 255, 255, 150 + alpha_active), label);
 
 	// Automatically close popups
-	//if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
-	//    CloseCurrentPopup();
+	if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
+		CloseCurrentPopup( );
 
 	return pressed;
 }
@@ -228,14 +219,14 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	// Render
 	const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-	int hovered1 = g_ui.process_animation("button_hover", label, hovered, 100, 15.f, e_animation_type::animation_dynamic);
-	float alpha = g_ui.process_animation("button", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
-	int selected_alpha = g_ui.process_animation("button_hovered", label, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
+	int hovered1 = g_ui.process_animation(label, 8, hovered, 100, 15.f, e_animation_type::animation_dynamic);
+	float alpha = g_ui.process_animation(label, 9, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
+	int selected_alpha = g_ui.process_animation(label, 10, this_tab == opened_tab, 200, 15.f, e_animation_type::animation_dynamic);
 
 	ImColor txt_clr = ImColor(255, 255, 255, 40 + hovered1 + selected_alpha);
 
 	RenderNavHighlight(bb, id);
-	PushStyleColor(ImGuiCol_Text, ImVec4(txt_clr));
+	PushStyleColor(ImGuiCol_Text, txt_clr.Value);
 	{
 		RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
 	}
@@ -254,5 +245,5 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 bool c_oink_ui::button(const char* label, const ImVec2& size_arg)
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	return button_ex(label, size_arg, ImGuiButtonFlags_None);
+	return button_ex(label, size_arg, ImGuiButtonFlags_None, m_theme_colour);
 }
