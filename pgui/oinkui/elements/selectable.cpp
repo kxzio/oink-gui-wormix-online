@@ -2,11 +2,13 @@
 
 using namespace ImGui;
 
-bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags, const ImVec2& size_arg)
+bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags, const ImVec2& size_arg, ImColor& theme_colour)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
 		return false;
+
+	ImColor color = theme_colour;
 
 	ImGuiContext& g = *GImGui;
 	const ImGuiStyle& style = g.Style;
@@ -178,7 +180,7 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 
 bool c_oink_ui::selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags, const ImVec2& size_arg)
 {
-	if (selectable_ex(label, *p_selected, flags, size_arg))
+	if (selectable_ex(label, *p_selected, flags, size_arg, m_theme_colour))
 	{
 		*p_selected = !*p_selected;
 		return true;

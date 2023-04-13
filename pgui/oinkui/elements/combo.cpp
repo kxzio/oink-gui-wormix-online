@@ -1,32 +1,37 @@
-#include "../ui.h"
+﻿#include "../ui.h"
+
+#include <sstream>
 
 using namespace ImGui;
 
-bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags flags)
+bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags flags, const ImColor& theme_colour)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = GetCurrentWindow( );
-
-	auto backuppos = GetCursorPosX( );
-	auto backup = GetStyle( ).Colors[ImGuiCol_Text];
-	GetStyle( ).Colors[ImGuiCol_Text] = ImColor(47, 70, 154, 255);
-	Text(label);
-	GetStyle( ).Colors[ImGuiCol_Text] = backup;
-
-	SetCursorPosX(backuppos);
 
 	ImGuiNextWindowDataFlags backup_next_window_data_flags = g.NextWindowData.Flags;
 	g.NextWindowData.ClearFlags( ); // We behave like Begin() and need to consume those values
 	if (window->SkipItems)
 		return false;
 
+	float backup_x = ImGui::GetCursorPosX( );
+
+	ImColor color = theme_colour;
+
+	ImGui::PushStyleColor(ImGuiCol_Text, color.Value);
+	Text(label);
+	ImGui::PopStyleColor( );
+
+	ImGui::SetCursorPosX(backup_x);
+
 	const ImGuiStyle& style = g.Style;
 	const ImGuiID id = window->GetID(label);
 	IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
 
+	const float w = 186;
+
 	const float arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight( );
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
-	const float w = 186;
 	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
 	const ImRect total_bb(bb.Min, bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 	ItemSize(total_bb, style.FramePadding.y);
@@ -55,19 +60,16 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 		ImU32 text_col = GetColorU32(ImGuiCol_Text);
 	}
 
-	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max,
-											  ImColor(47, 70, 154, 0), ImColor(47, 70, 154, 0), ImColor(47, 70, 154, 20), ImColor(47, 70, 154, 20));
+	color.Value.w = 0.07f;
+	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color, color);
 
-	float hovered1 = g_ui.process_animation(label, 1, hovered || g.ActiveId == id, 200, 0.07, e_animation_type::animation_dynamic);
+	float animation_active_hovered = g_ui.process_animation(label, 1, hovered || g.ActiveId == id, 0.78f, 0.07f, e_animation_type::animation_dynamic);
 
-	int auto_red = 47;
-	int auto_green = 70;
-	int auto_blue = 154;
+	color.Value.w = animation_active_hovered / 5;
+	window->DrawList->AddRectFilled(bb.Min, bb.Max, color);
 
-	window->DrawList->AddRectFilled(bb.Min, bb.Max,
-									ImColor(auto_red, auto_green, auto_blue, int(hovered1 / 5)));
-
-	window->DrawList->AddRect(bb.Min, bb.Max, ImColor(47, 70, 154, 255));
+	color.Value.w = 1.f;
+	window->DrawList->AddRect(bb.Min, bb.Max, color);
 
 	// Custom preview
 	if (flags & ImGuiComboFlags_CustomPreview)
@@ -92,7 +94,7 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 	return BeginComboPopup(popup_id, bb, flags);
 }
 
-bool c_oink_ui::combo(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items)
+bool c_oink_ui::combo_box(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items)
 {
 	ImGuiContext& g = *GImGui;
 
@@ -105,7 +107,7 @@ bool c_oink_ui::combo(const char* label, int* current_item, bool (*items_getter)
 	if (popup_max_height_in_items != -1 && !(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint))
 		SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
 
-	if (!begin_combo(label, preview_value, ImGuiComboFlags_None))
+	if (!begin_combo(label, preview_value, ImGuiComboFlags_None, m_theme_colour))
 		return false;
 
 	// Display items
@@ -140,50 +142,46 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeight(-1)));
+	auto max_popup_height = CalcMaxPopupHeight(-1);
 
-	std::string combo = "";
+	ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, max_popup_height));
 
-	ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeight(-1)));
+	std::string render_str;
+	size_t active_items = 0u;
 
-	std::vector <std::string> vec;
-
-	for (size_t i = 0; i < size; i++)
+	for (size_t i = 0u; i < size; ++i)
 	{
 		if (selection[i])
 		{
-			combo += text[i];
-			combo += ", ";
+			active_items++;
+			if (active_items > 1u)
+				render_str.append(", ");
+			render_str.append(text[i]);
 		}
 	}
 
-	if (combo.length( ) > 2)
-		combo.erase(combo.length( ) - 2, combo.length( ));
+	if (active_items < 1)
+		render_str = "None";
 
-	if (begin_combo(title, combo.c_str( ), ImGuiComboFlags_NoArrowButton))
+	if (begin_combo(title, render_str.c_str( ), ImGuiComboFlags_NoArrowButton, m_theme_colour))
 	{
-		std::vector<std::string> vec;
-		for (size_t i = 0; i < size; i++)
+		for (size_t i = 0u; i < size; ++i)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10));
-
-			selectable(text[i], &selection[i], ImGuiSelectableFlags_::ImGuiSelectableFlags_DontClosePopups);
-
-			if (selection[i])
-				vec.push_back(text[i]);
-
+			selectable(text[i], &selection[i], ImGuiSelectableFlags_DontClosePopups);
 			ImGui::PopStyleVar( );
-		}
+		};
 
 		ImGui::EndCombo( );
-	}
+	};
 };
 
-bool c_oink_ui::combo_box(const char* label, int* current_item, const char* const items[ ], int items_count, int height_in_items)
+
+bool c_oink_ui::combo_box(const char* label, int* current_item, void* const items, int items_count, int height_in_items)
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10));
-	const bool value_changed = combo(label, current_item, Items_ArrayGetter, (void*) items, items_count, height_in_items);
+	const bool value_changed = combo_box(label, current_item, Items_ArrayGetter, items, items_count, height_in_items);
 	ImGui::PopStyleVar( );
 	return value_changed;
 }

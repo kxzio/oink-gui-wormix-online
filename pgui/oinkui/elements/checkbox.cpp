@@ -37,9 +37,16 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	ImColor color = m_theme_colour;
 
 	float active_animation = g_ui.process_animation(label, 1, *v, 0.78f, 20.f, e_animation_type::animation_static);
-	float hovered_animation = g_ui.process_animation(label, 2, hovered, 200, 17.f, e_animation_type::animation_dynamic);
-	float alpha = g_ui.process_animation(label, 3, *v, 200, 15.f, e_animation_type::animation_dynamic);
+	float hovered_animation = g_ui.process_animation(label, 2, hovered, 0.78f, 17.f, e_animation_type::animation_dynamic);
+	float alpha = g_ui.process_animation(label, 3, *v, 0.78f, 15.f, e_animation_type::animation_dynamic);
 	float hovered_alpha = g_ui.process_animation(label, 4, *v, check_bb.GetSize( ).y, 15.f, e_animation_type::animation_dynamic);
+
+	float active_alpha = g_ui.process_animation(label, 5, *v, 1.f, 20.f, e_animation_type::animation_dynamic);
+	float active_pad_modifer = g_ui.process_animation(label, 6, *v, 1.f, 18.f, e_animation_type::animation_dynamic);
+	float hovered_alpha2 = g_ui.process_animation(label, 7, hovered, 0.58f, 15.f, e_animation_type::animation_dynamic);
+
+	float pad = ImMax(1.0f, square_sz / (3.6f + (1.f - active_pad_modifer) / 100.f));
+	float checkmark_rad = g_ui.process_animation(label, 8, true, pad, 8.f, e_animation_type::animation_interp);
 
 	window->DrawList->AddRectFilled(pos, pos + check_bb.GetSize( ), ImColor(0.f, 0.f, 0.f, 0.39f));
 
@@ -51,24 +58,20 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 
 	for (int i = 0; i < 5; i++)
 	{
+		// wrong
 		color.Value.w = alpha + 0.03f + (i / 10.f);
 		window->DrawList->AddCircleFilled(ImVec2(check_bb.Min.x + check_bb.GetSize( ).x / 2, check_bb.Min.y + check_bb.GetSize( ).y / 2), 7 + i, color);
 	};
 
-	float active_alpha = g_ui.process_animation(label, 5, *v, 255, 20.f, e_animation_type::animation_dynamic);
-	float active_pad_modifer = g_ui.process_animation(label, 6, *v, 255, 18.f, e_animation_type::animation_dynamic);
-	float hovered_alpha2 = g_ui.process_animation(label, 7, hovered, 150, 15.f, e_animation_type::animation_dynamic);
-
-	bool animate = false;
 	//window->DrawList->AddRect(check_bb.Min, check_bb.Max, ImColor(0, 0, 0, active_alpha), style.FrameRounding);
-	const float pad = ImMax(1.0f, square_sz / (3.6f + (255.f - active_pad_modifer) / 100.f));
-	const float checkmark_rad = g_ui.process_animation(label, 8, true, pad, 8.f, e_animation_type::animation_interp);
-	animate = !(hovered && !(*v));
+
 	RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(checkmark_rad, pad), ImColor(0.f, 0.f, 0.f, active_alpha), square_sz - checkmark_rad * 2.0f);
 
 	ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y - 2);
 
-	PushStyleColor(ImGuiCol_Text, ImVec4(ImColor(255, 255, 255, 50 + int(alpha) + int(hovered1 / 3))));
+	color = IM_COL32_WHITE;
+	color.Value.w = 0.19f + alpha + hovered_animation;
+	PushStyleColor(ImGuiCol_Text, color.Value);
 	{
 		RenderText(label_pos, label);
 	}

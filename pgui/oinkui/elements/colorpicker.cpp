@@ -25,14 +25,6 @@ static void ColorEditRestoreHS(const float* col, float* H, float* S, float* V)
 		*S = g.ColorEditLastSat;
 }
 
-std::string rgb_to_hex(int r, int g, int b, bool with_head)
-{
-	std::stringstream ss;
-	if (with_head)
-		ss << "#";
-	ss << std::hex << (r << 16 | g << 8 | b);
-	return ss.str( );
-}
 
 bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, const float* ref_col)
 {
@@ -187,21 +179,50 @@ bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, c
 		BeginGroup( );
 	}
 
-	if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(67))
+	if (ImGui::IsKeyDown(ImGuiKey_ModCtrl))
 	{
-		std::stringstream clip_str; clip_str << rgb_to_hex(int(col[0] * 255.f), int(col[1] * 255.f), int(col[2] * 255.f), true);
-		ImGui::SetClipboardText(clip_str.str( ).c_str( ));
-	}
+		char buf[32];
+		unsigned int bitcolor[4];
 
-	if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(86))
-	{
-		const char* clip = ImGui::GetClipboardText( );
-		int r, g, b;
-		std::sscanf(clip, "#%02x%02x%02x", &r, &g, &b);
-		col[0] = r / 255.f;
-		col[1] = g / 255.f;
-		col[2] = b / 255.f;
-	}
+		auto& color_ref = *reinterpret_cast<ImVec4*>(col);
+
+		if (ImGui::IsKeyPressed(ImGuiKey_C))
+		{
+			ImU32 _col = ImGui::ColorConvertFloat4ToU32(color_ref);
+
+			bitcolor[0] = (_col >> IM_COL32_R_SHIFT) & 0xFF;
+			bitcolor[1] = (_col >> IM_COL32_G_SHIFT) & 0xFF;
+			bitcolor[2] = (_col >> IM_COL32_B_SHIFT) & 0xFF;
+			bitcolor[3] = (_col >> IM_COL32_A_SHIFT) & 0xFF;
+
+			ImFormatString(buf, sizeof(buf), "#%02X%02X%02X%02X", bitcolor[0], bitcolor[1], bitcolor[2], bitcolor[3]);
+			ImGui::SetClipboardText(buf);
+		}
+		else if (ImGui::IsKeyPressed(ImGuiKey_V))
+		{
+			const char* clip = ImGui::GetClipboardText( );
+
+			size_t clip_length = strnlen_s(clip, 9);
+
+			if ((clip_length == 7 || clip_length == 9) && clip[0] == '#')
+			{
+				int count = sscanf_s(clip + 1, "%02X%02X%02X%02X", &bitcolor[0], &bitcolor[1], &bitcolor[2], &bitcolor[3]);
+
+				if (count == 4)
+				{
+					color_ref = ImGui::ColorConvertU32ToFloat4(IM_COL32(bitcolor[0], bitcolor[1], bitcolor[2], bitcolor[3]));
+					value_changed = true;
+				}
+				else if (count == 3) // no alpha
+				{
+					float copy = color_ref.w;
+					color_ref = ImGui::ColorConvertU32ToFloat4(IM_COL32(bitcolor[0], bitcolor[1], bitcolor[2], 0));
+					color_ref.w = copy;
+					value_changed = true;
+				};
+			};
+		};
+	};
 
 	// Convert back color to RGB
 	if (value_changed_h || value_changed_sv)
@@ -211,7 +232,7 @@ bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, c
 			ColorConvertHSVtoRGB(H, S, V, col[0], col[1], col[2]);
 			g.ColorEditLastHue = H;
 			g.ColorEditLastSat = S;
-			g.ColorEditLastColor = ColorConvertFloat4ToU32(ImVec4(col[0], col[1], col[2], 0));
+			g.ColorEditLastColor = ColorConvertFloat4ToU32(*reinterpret_cast<ImVec4*>(col));
 		}
 		else if (flags & ImGuiColorEditFlags_InputHSV)
 		{
@@ -604,12 +625,13 @@ bool c_oink_ui::color_picker(const char* sz, float* col)
 	text(sz);
 	ImGui::SameLine( );
 	ImGui::SetCursorPosX(180 * m_dpi_scaling);
-	return color_edit4(std::string(sz + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
+
+	return color_edit4(sz, col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
 }
 
 bool c_oink_ui::color_picker_button(const char* label, float* col, bool draw_on_same_line)
 {
 	ImGui::SameLine( );
 	ImGui::SetCursorPosX(draw_on_same_line ? 160 * m_dpi_scaling : 180 * m_dpi_scaling);
-	return color_edit4(std::string(label + std::string("__color")).c_str( ), col, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder | ImGuiColorEditFlags_NoInputs);
+	return color_edit4(label, col, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder | ImGuiColorEditFlags_NoInputs);
 }

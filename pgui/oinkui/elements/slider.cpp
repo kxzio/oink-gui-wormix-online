@@ -59,14 +59,11 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	//RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, g.Style.FrameRounding);
 
 	ImColor color = theme;
-	ImColor color_no_alpha = color;
-	color_no_alpha.Value.w = 0.f;
-
 
 	color.Value.w = 0.3f;
 
 	// draw slider bg
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color, color_no_alpha, color_no_alpha, color);
+	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
 
 	color.Value.w = 1.f;
 
@@ -87,13 +84,11 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	float slider_animation = g_ui.process_animation(label, 3, true, slider_difference, 10.f, e_animation_type::animation_interp);
 
 	color.Value.w = 0.78f + button_hovered_animation;
-	IM_ASSERT(color.Value.w <= 1.0f && color.Value.w >= 0.0f);
 
 	// draw filled space
 	window->DrawList->AddRectFilled(frame_bb.Min, ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2, 2), color);
 
 	color.Value.w = button_animation;
-	IM_ASSERT(color.Value.w <= 1.0f && color.Value.w >= 0.0f);
 
 	// draw other space
 	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, color);
@@ -116,9 +111,9 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	ImVec2 p2 = ImVec2(new_grab_bb_max + textSize.x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0);
 
 
-	PushStyleColor(ImGuiCol_Text, ImColor(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 255.f / 255.f).Value);
+	PushStyleColor(ImGuiCol_Text, IM_COL32_WHITE);
 	{
-		window->DrawList->AddRectFilled(p1, p2, ImColor(0.f / 255.f, 0.f / 255.f, 0.f / 255.f, 255.f / 255.f));
+		window->DrawList->AddRectFilled(p1, p2, IM_COL32_BLACK);
 
 		color.Value.w = 1.f;
 		window->DrawList->AddRect(p1, p2, color);

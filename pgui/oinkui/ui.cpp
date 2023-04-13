@@ -16,7 +16,6 @@ void c_oink_ui::textures_create(IDirect3DDevice9* device)
 	D3DXCreateTextureFromFileInMemoryEx(device, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_syb]);
 };
 
-
 float c_oink_ui::process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed, e_animation_type type)
 {
 	return process_animation(generate_unique_id(label, seed), if_, v_max, percentage_speed, type);
@@ -107,13 +106,13 @@ void c_oink_ui::draw_menu( )
 			ImVec2(pointer.x, pointer.y),
 			ImVec2(pointer.x, pointer.y + 10 + 3),
 			ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
-			ImColor(0, 0, 0));
+			ImColor(0.f, 0.f, 0.f));
 
 		fg_drawlist->AddTriangle(
 			ImVec2(pointer.x, pointer.y),
 			ImVec2(pointer.x, pointer.y + 10 + 3),
 			ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
-			ImColor(255, 255, 255));
+			ImColor(1.f, 1.f, 1.f));
 	}
 
 	//int backgrnd = g_ui.process_animation("menu", "bckrg", m_menu_opened, 13, 0.15, ImGui::animation_types::e_animation_type::animation_static);

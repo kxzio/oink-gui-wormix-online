@@ -2,19 +2,19 @@
 
 using namespace ImGui;
 
-bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data)
+bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data, ImColor& theme_colour)
 {
-	auto backuppos = GetCursorPosX( );
-	auto backup = GetStyle( ).Colors[ImGuiCol_Text];
-	GetStyle( ).Colors[ImGuiCol_Text] = ImColor(47, 70, 150);
-	Text(label);
-	GetStyle( ).Colors[ImGuiCol_Text] = backup;
-
-	SetCursorPosX(backuppos);
-
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
 		return false;
+
+	float backup_x = GetCursorPosX( );
+
+	ImGui::PushStyleColor(ImGuiCol_Text, theme_colour.Value);
+	Text(label);
+	ImGui::PopStyleColor( );
+
+	SetCursorPosX(backup_x);
 
 	IM_ASSERT(buf != NULL && buf_size >= 0);
 	IM_ASSERT(!((flags & ImGuiInputTextFlags_CallbackHistory) && (flags & ImGuiInputTextFlags_Multiline)));        // Can't use both together (they both use up/down keys)
@@ -43,21 +43,21 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
 	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
-	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max,
-											  ImColor(int((47)), int((70)), int((154)), 0), ImColor(int((47)), int((70)), int((154)), 0), ImColor(int((47)), int((70)), int((154)), 20), ImColor(int((47)), int((70)), int((154)), 20));
+	ImColor color = theme_colour;
+
+	color.Value.w = 0.07f;
+	window->DrawList->AddRectFilledMultiColor(frame_bb.Min, frame_bb.Max, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color, color);
 
 	const bool hovered = ItemHoverable(frame_bb, id);
 
-	float hovered1 = g_ui.process_animation(label, 1, hovered || g.ActiveId == id, 200, 0.07, e_animation_type::animation_dynamic);
+	float animation_active_hovered = g_ui.process_animation(label, 1, hovered || g.ActiveId == id, 0.78f, 0.07f, e_animation_type::animation_dynamic);
 
-	int auto_red = 47;
-	int auto_green = 70;
-	int auto_blue = 154;
+	color.Value.w = animation_active_hovered / 5.f;
 
-	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max,
-									ImColor(auto_red, auto_green, auto_blue, int(hovered1 / 5)));
+	window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, color);
 
-	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, ImColor(int((47)), int((70)), int((154)), 255));
+	color.Value.w = 1.f;
+	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, color);
 
 	const ImVec2 frame_size = frame_bb.GetSize( ); // Arbitrary default of 8 lines high for multi-line
 	const ImVec2 total_size = total_bb.GetSize( );
@@ -948,5 +948,5 @@ bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size, ImGuiI
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	IM_ASSERT(!(flags & ImGuiInputTextFlags_Multiline)); // call InputTextMultiline()
-	return input_text_ex(label, NULL, buf, (int) buf_size, ImVec2(0, 0), flags, callback, user_data);
+	return input_text_ex(label, NULL, buf, buf_size, ImVec2(0, 0), flags, callback, user_data, m_theme_colour);
 }

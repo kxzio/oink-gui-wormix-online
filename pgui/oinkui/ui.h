@@ -328,8 +328,8 @@ private:
 	bool slider_int(const char* label, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
 	bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
 
-	bool combo(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items);
-	bool combo_box(const char* label, int* current_item, const char* const items[ ], int items_count, int height_in_items = -1);
+	bool combo_box(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items);
+	bool combo_box(const char* label, int* current_item, void* const items, int items_count, int height_in_items = -1);
 	void multi_box(const char* title, bool selection[ ], const char* text[ ], int size);
 
 	bool selectable(const char* label, bool* selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0));
