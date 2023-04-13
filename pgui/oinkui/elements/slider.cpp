@@ -46,12 +46,6 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 		}
 	}
 
-	if (temp_input_is_active)
-	{
-		// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
-		const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
-		return TempInputScalar(frame_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
-	}
 
 	// Draw frame
 	const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
@@ -100,8 +94,7 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	// Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
 	char value_buf[64];
 	const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
-	if (g.LogEnabled)
-		LogSetNextTextDecoration("{", "}");
+
 
 	ImVec2 textSize = CalcTextSize(value_buf, value_buf_end);
 

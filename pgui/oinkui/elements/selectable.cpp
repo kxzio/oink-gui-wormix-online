@@ -140,18 +140,6 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 	if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld))
 		hovered = true;
 
-	int alpha = g_ui.process_animation(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), 1, hovered && (!selected), 200, 10.f, e_animation_type::animation_dynamic);
-	int alpha_selected = g_ui.process_animation(std::string(label + std::string(GetCurrentWindow( )->Name)).c_str( ), 2, selected, 255, 10.f, e_animation_type::animation_dynamic);
-	const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
-	ImColor base_col = ImColor(int(47), int(70), int(154), alpha_selected / 10);
-	ImColor null_col = ImColor(int(47), int(70), int(154), 0);
-
-	RenderFrame(bb.Min, bb.Max, ImColor(0, 0, 0, 100), false, 0.0f);
-
-	RenderFrame(bb.Min, bb.Min + ImVec2(1, bb.GetSize( ).y), ImColor(int(47), int(70), int(154), alpha_selected), false, 0.0f);
-	RenderFrame(bb.Max, bb.Max - ImVec2(1, bb.GetSize( ).y), ImColor(int(47), int(70), int(154), alpha_selected), false, 0.0f);
-	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
-	window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
 	RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
 
 	if (span_all_columns && window->DC.CurrentColumns)
@@ -159,13 +147,32 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 	else if (span_all_columns && g.CurrentTable)
 		TablePopBackgroundChannel( );
 
-	PushStyleColor(ImGuiCol_Text, ImVec4(ImColor(255, 255, 255, 25 + alpha)));
-	RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
+	float alpha = g_ui.process_animation(label, 1, hovered && (!selected), 0.6f, 15.f, e_animation_type::animation_dynamic);
+
+	float alpha_selected = g_ui.process_animation(label, 2, selected, 0.6f, 15.f, e_animation_type::animation_dynamic);
+
+	//gradient col
+	ImColor base_col = ImColor(0.18, 0.27, 0.6, alpha_selected / 2);
+	ImColor null_col = ImColor(0.18, 0.27, 0.6, 0);
+
+	RenderFrame(bb.Min, bb.Max, ImColor(0, 0, 0, 100), false, 0.0f);
+
+	window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(1, bb.GetSize( ).y), ImColor(0.18, 0.27, 1.f, alpha_selected), false, 0.0f);
+	window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(1, bb.GetSize( ).y), ImColor(0.18, 0.27, 0.6, alpha_selected), false, 0.0f);
+
+	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
+	window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
+
+	//default
+	PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.2 + alpha));
+		RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 	PopStyleColor( );
 
-	PushStyleColor(ImGuiCol_Text, ImVec4(ImColor(int(47), int(70), int(154), 0 + alpha_selected)));
-	RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
+	//selected
+	PushStyleColor(ImGuiCol_Text, ImVec4(0.18, 0.27, 0.6, alpha_selected));
+		RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 	PopStyleColor( );
+
 
 	// Automatically close popups
 	if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.LastItemData.InFlags & ImGuiItemFlags_SelectableDontClosePopup))

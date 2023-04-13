@@ -268,7 +268,6 @@ private:
 	float m_dpi_scaling_copy;
 	float m_border_alpha;
 	ImColor m_theme_colour;
-	std::unordered_map<ImGuiID, float> m_animations;
 public:
 	void textures_create(IDirect3DDevice9* device);
 	void fonts_create(bool invalidate = false);
@@ -312,6 +311,7 @@ private:
 	};
 
 public:
+	std::unordered_map<ImGuiID, float> m_animations;
 	float process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	float process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	ImGuiID generate_unique_id(const char* label, unsigned int seed);

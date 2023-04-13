@@ -59,7 +59,7 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	for (int i = 0; i < 5; i++)
 	{
 		// wrong
-		color.Value.w = alpha + 0.03f + (i / 10.f);
+		color.Value.w = (alpha / 3 + 0.02f + (i / 110.f)) / 5;
 		window->DrawList->AddCircleFilled(ImVec2(check_bb.Min.x + check_bb.GetSize( ).x / 2, check_bb.Min.y + check_bb.GetSize( ).y / 2), 7 + i, color);
 	};
 
