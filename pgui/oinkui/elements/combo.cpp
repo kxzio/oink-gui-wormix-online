@@ -63,7 +63,7 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 	color.Value.w = 0.07f;
 	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Max, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color, color);
 
-	float animation_active_hovered = g_ui.process_animation(label, 1, hovered || g.ActiveId == id, 0.78f, 0.07f, e_animation_type::animation_dynamic);
+	float animation_active_hovered = g_ui.process_animation(label, 1, hovered || pressed, 0.78f, 0.07f, e_animation_type::animation_dynamic);
 
 	color.Value.w = animation_active_hovered / 5;
 	window->DrawList->AddRectFilled(bb.Min, bb.Max, color);

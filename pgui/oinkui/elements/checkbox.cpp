@@ -39,21 +39,19 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	float active_animation = g_ui.process_animation(label, 1, *v, 0.78f, 20.f, e_animation_type::animation_static);
 	float hovered_animation = g_ui.process_animation(label, 2, hovered, 0.78f, 17.f, e_animation_type::animation_dynamic);
 	float alpha = g_ui.process_animation(label, 3, *v, 0.78f, 15.f, e_animation_type::animation_dynamic);
-	float hovered_alpha = g_ui.process_animation(label, 4, *v, check_bb.GetSize( ).y, 15.f, e_animation_type::animation_dynamic);
 
-	float active_alpha = g_ui.process_animation(label, 5, *v, 1.f, 20.f, e_animation_type::animation_dynamic);
-	float active_pad_modifer = g_ui.process_animation(label, 6, *v, 1.f, 18.f, e_animation_type::animation_dynamic);
-	float hovered_alpha2 = g_ui.process_animation(label, 7, hovered, 0.58f, 15.f, e_animation_type::animation_dynamic);
+	float active_alpha = g_ui.process_animation(label, 4, *v, 1.f, 20.f, e_animation_type::animation_dynamic);
+	float active_pad_modifer = g_ui.process_animation(label, 5, *v, 1.f, 18.f, e_animation_type::animation_dynamic);
 
 	float pad = ImMax(1.0f, square_sz / (3.6f + (1.f - active_pad_modifer) / 100.f));
-	float checkmark_rad = g_ui.process_animation(label, 8, true, pad, 8.f, e_animation_type::animation_interp);
+	float checkmark_rad = g_ui.process_animation(label, 6, true, pad, 8.f, e_animation_type::animation_interp);
 
 	window->DrawList->AddRectFilled(pos, pos + check_bb.GetSize( ), ImColor(0.f, 0.f, 0.f, 0.39f));
 
 	color.Value.w = 0.19f + active_animation;
 	window->DrawList->AddRect(pos, pos + check_bb.GetSize( ), color);
 
-	color.Value.w = 0.09f + alpha + hovered_alpha;
+	color.Value.w = 0.09f + alpha + alpha;
 	window->DrawList->AddRectFilled(ImVec2(check_bb.Min.x, check_bb.Min.y), ImVec2(check_bb.Max.x, check_bb.Max.y), color);
 
 	for (int i = 0; i < 5; i++)

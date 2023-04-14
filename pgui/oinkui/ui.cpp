@@ -34,7 +34,7 @@ float c_oink_ui::process_animation(ImGuiID id, bool if_, float v_max, float perc
 			animation += if_ ? speed : -speed;
 			break;
 		case e_animation_type::animation_dynamic:
-			animation += if_ ? ImAbs(v_max - animation) * speed : -animation * speed;
+			animation += if_ ? ImAbs(v_max - animation) * speed : animation * (speed * -1.f);
 			break;
 		case e_animation_type::animation_interp:
 			animation = ImLerp(animation, v_max, speed);

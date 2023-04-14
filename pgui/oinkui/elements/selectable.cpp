@@ -147,32 +147,37 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 	else if (span_all_columns && g.CurrentTable)
 		TablePopBackgroundChannel( );
 
-	float alpha = g_ui.process_animation(label, 1, hovered && (!selected), 0.6f, 15.f, e_animation_type::animation_dynamic);
-
+	float alpha = g_ui.process_animation(label, 1, hovered && !selected, 0.6f, 15.f, e_animation_type::animation_dynamic);
 	float alpha_selected = g_ui.process_animation(label, 2, selected, 0.6f, 15.f, e_animation_type::animation_dynamic);
-
-	//gradient col
-	ImColor base_col = ImColor(0.18, 0.27, 0.6, alpha_selected / 2);
-	ImColor null_col = ImColor(0.18, 0.27, 0.6, 0);
 
 	RenderFrame(bb.Min, bb.Max, ImColor(0, 0, 0, 100), false, 0.0f);
 
-	window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(1, bb.GetSize( ).y), ImColor(0.18, 0.27, 1.f, alpha_selected), false, 0.0f);
-	window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(1, bb.GetSize( ).y), ImColor(0.18, 0.27, 0.6, alpha_selected), false, 0.0f);
+	if (alpha_selected > 0.f)
+	{
+		window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(1, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 1.f, alpha_selected), false, 0.0f);
+		window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(1, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 0.6f, alpha_selected), false, 0.0f);
 
-	window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
-	window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30, bb.GetSize( ).y), base_col, null_col, null_col, base_col);
+		color.Value.w = alpha_selected * 0.5f;
+
+		if (color.Value.w > 0.0f)
+		{
+			window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30.f, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
+			window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30.f, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
+		};
+	};
 
 	//default
-	PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.2 + alpha));
-		RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
+	PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.2f + alpha));
+	RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 	PopStyleColor( );
 
 	//selected
-	PushStyleColor(ImGuiCol_Text, ImVec4(0.18, 0.27, 0.6, alpha_selected));
+	if (alpha_selected > 0.0f)
+	{
+		PushStyleColor(ImGuiCol_Text, ImVec4(0.18, 0.27, 0.6, alpha_selected));
 		RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
-	PopStyleColor( );
-
+		PopStyleColor( );
+	};
 
 	// Automatically close popups
 	if (pressed && (window->Flags & ImGuiWindowFlags_Popup) && !(flags & ImGuiSelectableFlags_DontClosePopups) && !(g.LastItemData.InFlags & ImGuiItemFlags_SelectableDontClosePopup))
