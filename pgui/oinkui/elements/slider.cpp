@@ -2,7 +2,52 @@
 
 using namespace ImGui;
 
-bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, const ImColor& theme)
+static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format)
+{
+	if (data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double)
+		return ImGuiInputTextFlags_CharsScientific;
+	const char format_last_char = format[0] ? format[strlen(format) - 1] : 0;
+	return (format_last_char == 'x' || format_last_char == 'X') ? ImGuiInputTextFlags_CharsHexadecimal : ImGuiInputTextFlags_CharsDecimal;
+}
+
+bool c_oink_ui::temp_input_scalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format, const void* p_clamp_min, const void* p_clamp_max)
+{
+	char fmt_buf[32];
+	char data_buf[32];
+	format = ImParseFormatTrimDecorations(format, fmt_buf, IM_ARRAYSIZE(fmt_buf));
+	DataTypeFormatString(data_buf, IM_ARRAYSIZE(data_buf), data_type, p_data, format);
+	ImStrTrimBlanks(data_buf);
+
+	ImGuiInputTextFlags flags = ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoMarkEdited;
+	flags |= InputScalar_DefaultCharsFilter(data_type, format);
+
+	bool value_changed = false;
+	if (temp_input_text(bb, id, label, data_buf, IM_ARRAYSIZE(data_buf), flags))
+	{
+		// Backup old value
+		size_t data_type_size = DataTypeGetInfo(data_type)->Size;
+		ImGuiDataTypeTempStorage data_backup;
+		memcpy(&data_backup, p_data, data_type_size);
+
+		// Apply new value (or operations) then clamp
+		DataTypeApplyFromText(data_buf, data_type, p_data, format);
+		if (p_clamp_min || p_clamp_max)
+		{
+			if (p_clamp_min && p_clamp_max && DataTypeCompare(data_type, p_clamp_min, p_clamp_max) > 0)
+				ImSwap(p_clamp_min, p_clamp_max);
+			DataTypeClamp(data_type, p_data, p_clamp_min, p_clamp_max);
+		}
+
+		// Only mark as edited if new value is different
+		value_changed = memcmp(&data_backup, p_data, data_type_size) != 0;
+		if (value_changed)
+			MarkItemEdited(id);
+	}
+	return value_changed;
+}
+
+
+bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, const ImColor& theme)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -28,6 +73,8 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	else if (data_type == ImGuiDataType_S32 && strcmp(format, "%d") != 0) // (FIXME-LEGACY: Patch old "%.0f" format string to use "%d", read function more details.)
 		format = PatchFormatStringFloatToInt(format);
 
+	const ImRect input_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 10.0f));
+
 	// Tabbing or CTRL-clicking on Slider turns it into an input box
 	const bool hovered = ItemHoverable(frame_bb, id);
 	bool temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
@@ -46,6 +93,12 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 		}
 	}
 
+	if (temp_input_is_active)
+	{
+		// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
+		const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
+		return temp_input_scalar(input_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
+	}
 
 	// Draw frame
 	const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);

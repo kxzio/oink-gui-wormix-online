@@ -2,19 +2,20 @@
 
 using namespace ImGui;
 
-bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data, ImColor& theme_colour)
+bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data, ImColor& theme_colour, bool show_title = true)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
 		return false;
 
-	float backup_x = GetCursorPosX( );
-
-	ImGui::PushStyleColor(ImGuiCol_Text, theme_colour.Value);
-	Text(label);
-	ImGui::PopStyleColor( );
-
-	SetCursorPosX(backup_x);
+	if (show_title)
+	{
+		float backup_x = GetCursorPosX( );
+		ImGui::PushStyleColor(ImGuiCol_Text, theme_colour.Value);
+		Text(label);
+		ImGui::PopStyleColor( );
+		SetCursorPosX(backup_x);
+	}
 
 	IM_ASSERT(buf != NULL && buf_size >= 0);
 	IM_ASSERT(!((flags & ImGuiInputTextFlags_CallbackHistory) && (flags & ImGuiInputTextFlags_Multiline)));        // Can't use both together (they both use up/down keys)
@@ -944,6 +945,25 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 		return value_changed;
 }
 
+bool c_oink_ui::temp_input_text(const ImRect& bb, ImGuiID id, const char* label, char* buf, int buf_size, ImGuiInputTextFlags flags)
+{
+	// On the first frame, g.TempInputTextId == 0, then on subsequent frames it becomes == id.
+	// We clear ActiveID on the first frame to allow the InputText() taking it back.
+	ImGuiContext& g = *GImGui;
+	const bool init = (g.TempInputId != id);
+	if (init)
+		ClearActiveID( );
+
+	g.CurrentWindow->DC.CursorPos = bb.Min;
+	bool value_changed = input_text_ex(label, NULL, buf, buf_size, bb.GetSize( ), flags | ImGuiInputTextFlags_MergedItem, NULL, NULL, m_theme_colour, false);
+	if (init)
+	{
+		// First frame we started displaying the InputText widget, we expect it to take the active id.
+		IM_ASSERT(g.ActiveId == id);
+		g.TempInputId = g.ActiveId;
+	}
+	return value_changed;
+}
 bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
