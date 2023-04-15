@@ -97,4 +97,35 @@ bool scroll_bar_ex(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS64* p_
 	window->DrawList->AddRectFilled(ImVec2(grab_rect.Min.x, grab_rect.Min.y) + ImVec2(2, 0), grab_rect.Max - ImVec2(2, 0), grab_col, style.ScrollbarRounding);
 
 	return held;
+};
+
+constexpr int child_x_size_const = 206;
+
+bool c_oink_ui::begin_child(const char* label, int number_of_child)
+{
+	ImGui::SetCursorPos(ImVec2(10 * m_dpi_scaling + ((child_x_size_const * m_dpi_scaling + 10 * m_dpi_scaling) * (number_of_child - 1)), 105 * m_dpi_scaling));
+
+	ImGuiStyle& style = ImGui::GetStyle( );
+
+	if (ImGui::BeginChild(label, ImVec2(child_x_size_const, 393)))
+	{
+		style.ItemSpacing = ImVec2(10 * m_dpi_scaling, 5 * m_dpi_scaling);
+
+		ImGui::SetCursorPos(ImVec2(m_gap * m_dpi_scaling, 10 * m_dpi_scaling));
+		text_colored(label);
+
+		ImGui::Separator( );
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2 * m_dpi_scaling);
+		return true;
+	};
+
+	return false;
+}
+
+void c_oink_ui::end_child( )
+{
+	ImGuiStyle& style = ImGui::GetStyle( );
+	style.ItemSpacing = ImVec2(20 * m_dpi_scaling, 0 * m_dpi_scaling);
+	ImGui::Dummy(ImVec2(10 * m_dpi_scaling, 10 * m_dpi_scaling));
+	ImGui::EndChild( );
 }
