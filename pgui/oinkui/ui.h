@@ -277,6 +277,7 @@ public:
 	void textures_create(IDirect3DDevice9* device);
 	void fonts_create(bool invalidate = false);
 	void draw_menu( );
+	void pre_draw_menu( );
 	void terminate_menu( );
 private:
 

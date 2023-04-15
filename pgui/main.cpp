@@ -114,6 +114,8 @@ int main( )
 			continue;
 		}
 
+		g_ui.pre_draw_menu( );
+
 		ImGui_ImplDX9_NewFrame( );
 		ImGui_ImplWin32_NewFrame( );
 		ImGui::NewFrame( );
