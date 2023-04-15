@@ -136,7 +136,7 @@ void c_oink_ui::draw_menu( )
 	//window flags
 	constexpr int m_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar;
 
-	ImGui::SetNextWindowSize(ImVec2(658.f * m_dpi_scaling, 510.f * m_dpi_scaling), ImGuiCond_Once);
+	ImGui::SetNextWindowSize(ImVec2(658.f * m_dpi_scaling, 510.f * m_dpi_scaling), ImGuiCond_Always);
 	ImGui::SetNextWindowPos(ImVec2(100.f, 100.f), ImGuiCond_Once);
 
 	//menu code
