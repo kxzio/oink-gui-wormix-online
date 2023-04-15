@@ -183,6 +183,8 @@
     <ClCompile Include="imgui\imgui_impl_dx9.cpp" />
     <ClCompile Include="imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="oinkui\elements\colorpicker.cpp" />
+    <ClCompile Include="oinkui\elements\hotkey.cpp" />
+    <ClCompile Include="oinkui\elements\text.cpp" />
     <ClCompile Include="oinkui\ui.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
