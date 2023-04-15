@@ -1877,7 +1877,7 @@ bool Items_ArrayGetter(void* data, int idx, const char** out_text)
 }
 
 // Getter for the old Combo() API: "item1\0item2\0item3\0"
-static bool Items_SingleStringGetter(void* data, int idx, const char** out_text)
+bool Items_SingleStringGetter(void* data, int idx, const char** out_text)
 {
 	// FIXME-OPT: we could pre-compute the indices to fasten this. But only 1 active combo means the waste is limited.
 	const char* items_separated_by_zeros = (const char*) data;

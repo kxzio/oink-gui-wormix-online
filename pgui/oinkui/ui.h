@@ -6,6 +6,7 @@
 #include <D3dx9tex.h>
 
 #include "../imgui/imgui.h"
+#include "../imgui/imgui_freetype.h"
 #include "../imgui/imgui_internal.h"
 #include "../imgui/imgui_impl_dx9.h"
 #include "../imgui/imgui_impl_win32.h"
@@ -268,7 +269,6 @@ private:
 	int m_active_tab;
 	bool m_menu_opened;
 	bool m_dpi_changed;
-	float m_dpi_scaling;
 	float m_dpi_scaling_backup;
 	float m_border_alpha;
 	ImColor m_theme_colour;
@@ -317,6 +317,7 @@ private:
 	};
 
 public:
+	float m_dpi_scaling;
 	float process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	float process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	ImGuiID generate_unique_id(const char* label, unsigned int seed);
@@ -337,7 +338,7 @@ private:
 
 	bool combo_box(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items);
 	bool combo_box(const char* label, int* current_item, void* const items, int items_count, int height_in_items = -1);
-
+	bool combo_box(const char* label, int* current_item, const char* items_separated_by_zeros, int height_in_items = -1);
 	void multi_box(const char* title, bool selection[ ], const char* text[ ], int size);
 
 	bool selectable(const char* label, bool* selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0));

@@ -28,11 +28,11 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 	const ImGuiID id = window->GetID(label);
 	IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
 
-	const float w = 186;
+	const float w = 186 * g_ui.m_dpi_scaling;
 
 	const float arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight( );
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
-	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * g_ui.m_dpi_scaling));
 	const ImRect total_bb(bb.Min, bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 	ItemSize(total_bb, style.FramePadding.y);
 	if (!ItemAdd(total_bb, id, &bb))
@@ -180,8 +180,24 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 bool c_oink_ui::combo_box(const char* label, int* current_item, void* const items, int items_count, int height_in_items)
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10 * m_dpi_scaling));
 	const bool value_changed = combo_box(label, current_item, Items_ArrayGetter, items, items_count, height_in_items);
+	ImGui::PopStyleVar( );
+	return value_changed;
+}
+
+bool c_oink_ui::combo_box(const char* label, int* current_item, const char* items_separated_by_zeros, int height_in_items)
+{
+	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10 * m_dpi_scaling));
+	int items_count = 0;
+	const char* p = items_separated_by_zeros;       // FIXME-OPT: Avoid computing this, or at least only when combo is open
+	while (*p)
+	{
+		p += strlen(p) + 1;
+		items_count++;
+	}
+	bool value_changed = combo_box(label, current_item, Items_SingleStringGetter, (void*) items_separated_by_zeros, items_count, height_in_items);
 	ImGui::PopStyleVar( );
 	return value_changed;
 }

@@ -64,13 +64,21 @@ void c_oink_ui::fonts_create(bool invalidate)
 {
 	ImGuiIO& io = ImGui::GetIO( );
 
-	auto glyph_ranges = io.Fonts->GetGlyphRangesCyrillic( );
+	auto glyph_ranges = io.Fonts->GetGlyphRangesCyrillic();
 
-	m_fonts[0] = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
-	m_fonts[1] = io.Fonts->AddFontFromMemoryTTF(museo2, sizeof(museo2), 50.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
-	m_fonts[2] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 13.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
-	m_fonts[3] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 12.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
-	m_fonts[4] = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.f * m_dpi_scaling_backup, NULL, glyph_ranges);
+	ZeroMemory(m_fonts, sizeof(m_fonts));
+	io.Fonts->Clear( );
+	ImFontConfig cfg, cfg_bold;
+
+	cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags::ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+	cfg_bold.FontBuilderFlags |=  ImGuiFreeTypeBuilderFlags_Bold;
+
+	m_fonts[0] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 100.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+	m_fonts[1] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 50.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+	m_fonts[2] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+	m_fonts[3] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+	m_fonts[4] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Segoeuib.ttf", 100.f * m_dpi_scaling_backup, &cfg_bold, glyph_ranges);
+	
 
 	if (invalidate)
 	{
@@ -172,7 +180,7 @@ void c_oink_ui::draw_menu( )
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			{
-				ImGui::SetCursorPos(ImVec2(0, 71));
+				ImGui::SetCursorPos(ImVec2(0, 71 * m_dpi_scaling));
 
 				const float button_size_x = wnd_size.x / 6;
 
@@ -401,7 +409,14 @@ void c_oink_ui::draw_menu( )
 
 					begin_child("Extra settings", 3);
 					{
-						slider_float("ui scale", &m_dpi_scaling_backup, 0.5f, 1.5f, "%.2f");
+
+						static int slider_value_dpi_scale = 2;
+						if (combo_box("DPI Scale", &slider_value_dpi_scale, "50%\00075%\000100%\000125%\000150%\000175%\000200%", 6))
+						{
+							constexpr float scale_factors[ ] = { 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
+							m_dpi_scaling_backup = scale_factors[slider_value_dpi_scale];
+						};
+
 						color_picker("ui theme", reinterpret_cast<float*>(&m_theme_colour_backup.Value), false);
 					}
 					end_child( );
@@ -425,9 +440,9 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m
 {
 	bg_drawlist->AddRectFilled(m_menu_pos, m_menu_pos + m_menu_size, ImColor(5, 5, 5), 0);
 
-	bg_drawlist->AddRectFilled(m_menu_pos, m_menu_pos + ImVec2(m_menu_size.x, 70), ImColor(0, 0, 0), 0);
+	bg_drawlist->AddRectFilled(m_menu_pos, m_menu_pos + ImVec2(m_menu_size.x, 70 * m_dpi_scaling), ImColor(0, 0, 0), 0);
 
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos, m_menu_pos + ImVec2(m_menu_size.x, 100), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 0), ImColor(25, 25, 25, 0));
+	bg_drawlist->AddRectFilledMultiColor(m_menu_pos, m_menu_pos + ImVec2(m_menu_size.x, 100 * m_dpi_scaling), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 0), ImColor(25, 25, 25, 0));
 
 	if (main)
 	{
@@ -474,29 +489,29 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m
 				if (ItPLibrary->second.y + m_menu_pos.y < m_menu_pos.y)
 					Move_speed->second.y *= -1;
 
-				bg_drawlist->PushClipRect(ImVec2(m_menu_pos), ImVec2(m_menu_pos + ImVec2(m_menu_size.x, 70)));
+				bg_drawlist->PushClipRect(ImVec2(m_menu_pos), ImVec2(m_menu_pos + ImVec2(m_menu_size.x, 70 * m_dpi_scaling)));
 				ImRotateStart(Rotation->second);
 
-				bg_drawlist->AddImage(m_textures[tex_pig], m_menu_pos + ItPLibrary->second, m_menu_pos + ItPLibrary->second + ImVec2(35, 35), ImVec2(0, 0), ImVec2(1, 1), ImColor(125, 143, 212, 30));
+				bg_drawlist->AddImage(m_textures[tex_pig], m_menu_pos + ItPLibrary->second, m_menu_pos + ItPLibrary->second + ImVec2(35 * m_dpi_scaling, 35 * m_dpi_scaling), ImVec2(0, 0), ImVec2(1 , 1 ), ImColor(125, 143, 212, 30));
 				ImRotateEnd(Rotation_value->second, Rotation->second);
 				bg_drawlist->PopClipRect( );
 			}
 		}
 
-		bg_drawlist->AddText(m_fonts[font_giant], 100, m_menu_pos + ImVec2(100, 1), ImColor(50, 74, 168, 200), "Industries");
+		bg_drawlist->AddText(m_fonts[font_giant], 100 * m_dpi_scaling, m_menu_pos + ImVec2(100 * m_dpi_scaling, 1 * m_dpi_scaling), ImColor(50, 74, 168, 200), "Industries");
 	}
 
 	//bg_drawlist->AddText(c_oink_ui::get( ).small_font, 12, m_menu_pos + ImVec2(4, 3), ImColor(255, 255, 255, 100), main ? "Oink.industries | beta | v1.01 | User" : "Player list");
 
-	bg_drawlist->AddRectFilled(m_menu_pos + ImVec2(0, 70), m_menu_pos + m_menu_size, ImColor(10, 10, 10), 0);
+	bg_drawlist->AddRectFilled(m_menu_pos + ImVec2(0, 70 * m_dpi_scaling), m_menu_pos + m_menu_size, ImColor(10, 10, 10), 0);
 
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 70), m_menu_pos + ImVec2(m_menu_size.x, 71), ImColor(50, 74, 168), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0), ImColor(50, 74, 168));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 0), m_menu_pos + ImVec2(m_menu_size.x, 71), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 70), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y), ImColor(50, 74, 168, 25), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 96), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y), ImColor(9, 10, 15, 100), ImColor(9, 10, 15, 100), ImColor(21, 25, 38, 0), ImColor(21, 25, 38, 0));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 96), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y / 2), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0));
+	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 70 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0), ImColor(50, 74, 168));
+	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 0), m_menu_pos + ImVec2(m_menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
+	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 70 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y), ImColor(50, 74, 168, 25), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
+	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 96 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y), ImColor(9, 10, 15, 100), ImColor(9, 10, 15, 100), ImColor(21, 25, 38, 0), ImColor(21, 25, 38, 0));
+	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 96 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y / 2), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0));
 
-	bg_drawlist->AddRectFilled(m_menu_pos + ImVec2(0, 95), m_menu_pos + ImVec2(m_menu_size.x, 96), ImColor(51, 53, 61, 150), 0);
+	bg_drawlist->AddRectFilled(m_menu_pos + ImVec2(0, 95 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 150), 0);
 
 	bg_drawlist->AddRect(m_menu_pos, m_menu_pos + m_menu_size, ImColor(50, 74, 168, 50), 0);
 }
