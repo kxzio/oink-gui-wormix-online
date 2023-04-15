@@ -81,6 +81,9 @@
     <ClInclude Include="oinkui\imstb.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="imgui\imgui_freetype.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="imgui\imgui.cpp">
@@ -138,6 +141,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="oinkui\elements\text.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_freetype.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

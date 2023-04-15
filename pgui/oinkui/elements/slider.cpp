@@ -52,11 +52,11 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	ImGuiContext& g = *GImGui;
 	const ImGuiStyle& style = g.Style;
 	const ImGuiID id = window->GetID(label);
-	const float w = 186;
+	const float w = 186 * m_dpi_scaling;
 
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
-	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, 9));
-	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 3.0f));
+	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, 9 * m_dpi_scaling));
+	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 3.0f * m_dpi_scaling));
 
 	const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
 	ItemSize(total_bb, style.FramePadding.y);
@@ -69,7 +69,7 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	else if (data_type == ImGuiDataType_S32 && strcmp(format, "%d") != 0) // (FIXME-LEGACY: Patch old "%.0f" format string to use "%d", read function more details.)
 		format = PatchFormatStringFloatToInt(format);
 
-	const ImRect input_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 10.0f));
+	const ImRect input_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 10.0f * m_dpi_scaling));
 
 	// Tabbing or CTRL-clicking on Slider turns it into an input box
 	const bool hovered = ItemHoverable(frame_bb, id);
@@ -129,7 +129,7 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	color.Value.w = 0.78f + button_hovered_animation;
 
 	// draw filled space
-	window->DrawList->AddRectFilled(frame_bb.Min, ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2, 2), color);
+	window->DrawList->AddRectFilled(frame_bb.Min, ImVec2(frame_bb.Min.x + slider_animation, grab_bb.Max.y) + ImVec2(2 * m_dpi_scaling, 2 * m_dpi_scaling), color);
 
 	color.Value.w = button_animation;
 
@@ -144,15 +144,15 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	char value_buf[64];
 	const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 
-	ImVec2 textSize = CalcTextSize(value_buf, value_buf_end);
+	ImVec2 textSize = m_fonts[3]->CalcTextSizeA(12.f * m_dpi_scaling, FLT_MAX, -1, value_buf, value_buf_end, NULL);
 
-	textSize.x = ImMax(12.f, textSize.x);
+	textSize.x = ImMax(12.f * m_dpi_scaling, textSize.x);
 
 	float new_grab_bb_max = frame_bb.Min.x + slider_animation;
+	float new_grab_bb_min = frame_bb.Min.x + slider_animation - 8 * m_dpi_scaling;
 
-	ImVec2 p1 = ImVec2(new_grab_bb_max - textSize.x / 2 - 4, grab_bb.Min.y - 8) - ImVec2(8, 0);
-	ImVec2 p2 = ImVec2(new_grab_bb_max + textSize.x / 2 + 4, grab_bb.Max.y + 8) - ImVec2(8, 0);
-
+	ImVec2 p1 = ImVec2(new_grab_bb_max - textSize.x / 2 - 4 * m_dpi_scaling, grab_bb.Min.y - 8 * m_dpi_scaling) - ImVec2(8 * m_dpi_scaling, 0);
+	ImVec2 p2 = ImVec2(new_grab_bb_max + textSize.x / 2 + 4 * m_dpi_scaling, grab_bb.Max.y + 8 * m_dpi_scaling) - ImVec2(8 * m_dpi_scaling, 0);
 
 	PushStyleColor(ImGuiCol_Text, IM_COL32_WHITE);
 	{
@@ -161,12 +161,14 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 		color.Value.w = 1.f;
 		window->DrawList->AddRect(p1, p2, color);
 
-		RenderTextClipped(ImVec2(new_grab_bb_max - textSize.x / 2, grab_bb.Min.y - 8) - ImVec2(7, 0),
-						  ImVec2(new_grab_bb_max + textSize.x / 2, grab_bb.Max.y + 8) - ImVec2(7, 0),
-						  value_buf,
-						  value_buf_end,
-						  NULL,
-						  ImVec2(0.5f, 0.5f));
+		RenderTextClipped(ImVec2(p1.x, grab_bb.Min.y - 5 * m_dpi_scaling),
+				  ImVec2(p2.x, grab_bb.Max.y + 5 * m_dpi_scaling),
+				  value_buf,
+				  value_buf_end,
+				  NULL,
+				  ImVec2(0.5f, 0.5f));
+
+
 	}
 	PopStyleColor( );
 

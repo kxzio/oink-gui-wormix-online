@@ -40,8 +40,8 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 	if (is_multiline) // Open group before calling GetID() because groups tracks id created within their scope (including the scrollbar)
 		BeginGroup( );
 
-	const float w = 186;
-	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+	const float w = 186 * g_ui.m_dpi_scaling;
+	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * g_ui.m_dpi_scaling));
 	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
 	ImColor color = theme_colour;

@@ -107,7 +107,7 @@ bool c_oink_ui::begin_child(const char* label, int number_of_child)
 
 	ImGuiStyle& style = ImGui::GetStyle( );
 
-	if (ImGui::BeginChild(label, ImVec2(child_x_size_const, 393)))
+	if (ImGui::BeginChild(label, ImVec2(child_x_size_const * m_dpi_scaling, 393 * m_dpi_scaling)))
 	{
 		style.ItemSpacing = ImVec2(10 * m_dpi_scaling, 5 * m_dpi_scaling);
 

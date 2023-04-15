@@ -40,17 +40,17 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 
 	ImColor color = theme;
 
-	color.Value.w = 0.78f + alpha;
+	color.Value.w = alpha;
 
-	window->DrawList->AddRectFilled(bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), color, style.FrameRounding);
+	window->DrawList->AddRectFilled(bb.Min + ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), bb.Max - ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), color, style.FrameRounding);
 	//outline
 
-	color.Value.w = 0.58f + hovered_alpha;
+	color.Value.w = 0.78f + hovered_alpha;
 	window->DrawList->AddRect(bb.Min, bb.Max, color, style.FrameRounding);
 
 	auto backup_size = window->FontWindowScale;
 	//SetWindowFontScale(window->FontWindowScale + (text_size / 1000.f));
-	window->DrawList->AddText(bb.Min + bb.GetSize( ) / 2 - label_size / 2, ImColor(1.f, 1.f, 1.f, 0.5f + hovered_alpha), label);
+	window->DrawList->AddText(bb.Min + bb.GetSize( ) / 2 - label_size / 2, ImColor(1.f, 1.f, 1.f, 0.7f + hovered_alpha), label);
 
 	//setup font size
 	SetWindowFontScale(backup_size);
@@ -103,7 +103,7 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	//background
 	color.Value.w = 0.078f + alpha;
-	window->DrawList->AddRectFilled(bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), color, style.FrameRounding);
+	window->DrawList->AddRectFilled(bb.Min + ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), bb.Max - ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), color, style.FrameRounding);
 	//outline
 
 	color.Value.w = 0.39f + alpha;
@@ -176,5 +176,5 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 bool c_oink_ui::button(const char* label, const ImVec2& size_arg)
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	return button_ex(label, size_arg, ImGuiButtonFlags_None, m_theme_colour);
+	return button_ex(label, size_arg * m_dpi_scaling, ImGuiButtonFlags_None, m_theme_colour);
 }

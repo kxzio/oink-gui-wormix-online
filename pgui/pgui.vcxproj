@@ -127,10 +127,13 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,6 +160,7 @@
     <ClInclude Include="imgui\blur.h" />
     <ClInclude Include="imgui\blur_x.h" />
     <ClInclude Include="imgui\blur_y.h" />
+    <ClInclude Include="imgui\imgui_freetype.h" />
     <ClInclude Include="imgui\imgui_internal.h" />
     <ClInclude Include="imgui\Museo.h" />
     <ClInclude Include="imgui\Museo700.h" />
@@ -180,6 +184,7 @@
     <ClCompile Include="imgui\blur.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_freetype.cpp" />
     <ClCompile Include="imgui\imgui_impl_dx9.cpp" />
     <ClCompile Include="imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="oinkui\elements\colorpicker.cpp" />

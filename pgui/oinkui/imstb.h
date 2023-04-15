@@ -66,3 +66,4 @@ extern const char* PatchFormatStringFloatToInt(const char* fmt);
 extern ImVec2 InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL, ImVec2* out_offset = NULL, bool stop_on_new_line = false);
 extern int InputTextCalcTextLenAndLineCount(const char* text_begin, const char** out_text_end);
 extern bool InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data, ImGuiInputSource input_source);
+extern bool Items_SingleStringGetter(void* data, int idx, const char** out_text);
