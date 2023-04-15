@@ -102,6 +102,9 @@ void c_oink_ui::draw_menu( )
 	if (!m_menu_opened)
 		return;
 
+	m_theme_colour = m_theme_colour_backup;
+	m_dpi_scaling = m_dpi_scaling_backup;
+
 	//get general drawlist
 	ImDrawList* fg_drawlist = ImGui::GetForegroundDrawList( );
 	ImDrawList* bg_drawlist = ImGui::GetBackgroundDrawList( );
@@ -300,7 +303,6 @@ void c_oink_ui::draw_menu( )
 							button(buf, ImVec2(100, 25));
 						}
 
-						slider_float("GUI scale", &m_dpi_scaling_copy, 0.5f, 1.5f, "%.2f");
 					}
 					end_child( );
 
@@ -401,6 +403,8 @@ void c_oink_ui::draw_menu( )
 
 					begin_child("Extra settings", 3);
 					{
+						slider_float("ui scale", &m_dpi_scaling_backup, 0.5f, 1.5f, "%.2f");
+						color_picker("ui theme", reinterpret_cast<float*>(&m_theme_colour_backup.Value));
 					}
 					end_child( );
 				}

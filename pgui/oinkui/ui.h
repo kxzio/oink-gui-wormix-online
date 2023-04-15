@@ -82,6 +82,9 @@ public:
 	{
 		memset(m_textures, 0, sizeof(m_textures));
 		memset(m_fonts, 0, sizeof(m_fonts));
+
+		m_theme_colour_backup = m_theme_colour;
+		m_dpi_scaling_backup = m_dpi_scaling;
 	};
 
 	~c_oink_ui( )
@@ -266,9 +269,10 @@ private:
 	bool m_menu_opened;
 	bool m_dpi_changed;
 	float m_dpi_scaling;
-	float m_dpi_scaling_copy;
+	float m_dpi_scaling_backup;
 	float m_border_alpha;
 	ImColor m_theme_colour;
+	ImColor m_theme_colour_backup;
 public:
 	void textures_create(IDirect3DDevice9* device);
 	void fonts_create(bool invalidate = false);
