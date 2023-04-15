@@ -2,13 +2,7 @@
 
 using namespace ImGui;
 
-static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format)
-{
-	if (data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double)
-		return ImGuiInputTextFlags_CharsScientific;
-	const char format_last_char = format[0] ? format[strlen(format) - 1] : 0;
-	return (format_last_char == 'x' || format_last_char == 'X') ? ImGuiInputTextFlags_CharsHexadecimal : ImGuiInputTextFlags_CharsDecimal;
-}
+extern ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format);
 
 bool c_oink_ui::temp_input_scalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format, const void* p_clamp_min, const void* p_clamp_max)
 {
@@ -22,6 +16,7 @@ bool c_oink_ui::temp_input_scalar(const ImRect& bb, ImGuiID id, const char* labe
 	flags |= InputScalar_DefaultCharsFilter(data_type, format);
 
 	bool value_changed = false;
+
 	if (temp_input_text(bb, id, label, data_buf, IM_ARRAYSIZE(data_buf), flags))
 	{
 		// Backup old value
@@ -43,6 +38,7 @@ bool c_oink_ui::temp_input_scalar(const ImRect& bb, ImGuiID id, const char* labe
 		if (value_changed)
 			MarkItemEdited(id);
 	}
+
 	return value_changed;
 }
 
@@ -149,6 +145,8 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 
 	ImVec2 textSize = CalcTextSize(value_buf, value_buf_end);
+
+	textSize.x = ImMax(12.f, textSize.x);
 
 	float new_grab_bb_max = frame_bb.Min.x + slider_animation;
 

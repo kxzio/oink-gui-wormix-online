@@ -2157,9 +2157,9 @@ void ImGui::DataTypeApplyOp(ImGuiDataType data_type, int op, void* output, const
 			}
 			return;
 		case ImGuiDataType_COUNT: break;
-			}
-	IM_ASSERT(0);
 	}
+	IM_ASSERT(0);
+}
 
 // User can input math operators (e.g. +100) to edit a numerical values.
 // NB: This is _not_ a full expression evaluator. We should probably add one and replace this dumb mess..
@@ -3472,7 +3472,7 @@ bool ImGui::TempInputText(const ImRect& bb, ImGuiID id, const char* label, char*
 	return value_changed;
 }
 
-static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format)
+ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format)
 {
 	if (data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double)
 		return ImGuiInputTextFlags_CharsScientific;
@@ -4105,7 +4105,7 @@ bool ImGui::ColorEdit3(const char* label, float col[3], ImGuiColorEditFlags flag
 
 // ColorEdit supports RGB and HSV inputs. In case of RGB input resulting color may have undefined hue and/or saturation.
 // Since widget displays both RGB and HSV values we must preserve hue and saturation to prevent these values resetting.
-static void ColorEditRestoreHS(const float* col, float* H, float* S, float* V)
+void ColorEditRestoreHS(const float* col, float* H, float* S, float* V)
 {
 	// This check is optional. Suppose we have two color widgets side by side, both widgets display different colors, but both colors have hue and/or saturation undefined.
 	// With color check: hue/saturation is preserved in one widget. Editing color in one widget would reset hue/saturation in another one.

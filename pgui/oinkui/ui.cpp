@@ -48,7 +48,7 @@ float c_oink_ui::process_animation(ImGuiID id, bool if_, float v_max, float perc
 
 	if (type != e_animation_type::animation_interp)
 	{
-		animation = ImClamp(animation, 0.0f, v_max);
+		animation = ImMin(animation, v_max);
 
 		if (animation < std::numeric_limits<float>::epsilon( ))
 			animation = 0.f;

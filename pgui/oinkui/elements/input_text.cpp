@@ -963,7 +963,8 @@ bool c_oink_ui::temp_input_text(const ImRect& bb, ImGuiID id, const char* label,
 		g.TempInputId = g.ActiveId;
 	}
 	return value_changed;
-}
+};
+
 bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
