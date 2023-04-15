@@ -66,11 +66,11 @@ void c_oink_ui::fonts_create(bool invalidate)
 
 	auto glyph_ranges = io.Fonts->GetGlyphRangesCyrillic( );
 
-	m_fonts[0] = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.0f * m_dpi_scaling, NULL, glyph_ranges);
-	m_fonts[1] = io.Fonts->AddFontFromMemoryTTF(museo2, sizeof(museo2), 50.0f * m_dpi_scaling, NULL, glyph_ranges);
-	m_fonts[2] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 13.0f * m_dpi_scaling, NULL, glyph_ranges);
-	m_fonts[3] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 12.0f * m_dpi_scaling, NULL, glyph_ranges);
-	m_fonts[4] = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.f * m_dpi_scaling, NULL, glyph_ranges);
+	m_fonts[0] = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
+	m_fonts[1] = io.Fonts->AddFontFromMemoryTTF(museo2, sizeof(museo2), 50.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
+	m_fonts[2] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 13.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
+	m_fonts[3] = io.Fonts->AddFontFromMemoryTTF(museo3, sizeof(museo3), 12.0f * m_dpi_scaling_backup, NULL, glyph_ranges);
+	m_fonts[4] = io.Fonts->AddFontFromMemoryTTF(museo1, sizeof(museo1), 100.f * m_dpi_scaling_backup, NULL, glyph_ranges);
 
 	if (invalidate)
 	{
@@ -414,6 +414,12 @@ void c_oink_ui::draw_menu( )
 	ImGui::End( );
 	//close
 }
+
+void c_oink_ui::pre_draw_menu( )
+{
+	if (m_dpi_scaling != m_dpi_scaling_backup)
+		g_ui.fonts_create(true);
+};
 
 void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m_menu_size, bool main)
 {
