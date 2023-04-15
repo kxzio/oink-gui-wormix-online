@@ -3,28 +3,7 @@
 
 using namespace ImGui;
 
-static void ColorEditRestoreHS(const float* col, float* H, float* S, float* V)
-{
-	// This check is optional. Suppose we have two color widgets side by side, both widgets display different colors, but both colors have hue and/or saturation undefined.
-	// With color check: hue/saturation is preserved in one widget. Editing color in one widget would reset hue/saturation in another one.
-	// Without color check: common hue/saturation would be displayed in all widgets that have hue/saturation undefined.
-	// g.ColorEditLastColor is stored as ImU32 RGB value: this essentially gives us color equality check with reduced precision.
-	// Tiny external color changes would not be detected and this check would still pass. This is OK, since we only restore hue/saturation _only_ if they are undefined,
-	// therefore this change flipping hue/saturation from undefined to a very tiny value would still be represented in color picker.
-	ImGuiContext& g = *GImGui;
-	if (g.ColorEditLastColor != ImGui::ColorConvertFloat4ToU32(ImVec4(col[0], col[1], col[2], 0)))
-		return;
-
-	// When S == 0, H is undefined.
-	// When H == 1 it wraps around to 0.
-	if (*S == 0.0f || (*H == 0.0f && g.ColorEditLastHue == 1))
-		*H = g.ColorEditLastHue;
-
-	// When V == 0, S is undefined.
-	if (*V == 0.0f)
-		*S = g.ColorEditLastSat;
-}
-
+extern void ColorEditRestoreHS(const float* col, float* H, float* S, float* V);
 
 bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, const float* ref_col)
 {

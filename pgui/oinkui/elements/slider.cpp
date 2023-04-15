@@ -95,7 +95,6 @@ bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, con
 	char value_buf[64];
 	const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 
-
 	ImVec2 textSize = CalcTextSize(value_buf, value_buf_end);
 
 	float new_grab_bb_max = frame_bb.Min.x + slider_animation;

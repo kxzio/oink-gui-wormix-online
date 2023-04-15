@@ -23,6 +23,11 @@ float c_oink_ui::process_animation(const char* label, unsigned int seed, bool if
 
 float c_oink_ui::process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed /* 1.0f = 100%, 1.25f = 125% */, e_animation_type type)
 {
+#ifdef _DEBUG
+	static ImGuiID old_id = 0;
+	IM_ASSERT(id != old_id);
+	old_id = id;
+#endif
 	auto& animation = m_animations.try_emplace(id, 0.0f).first->second;
 
 	const auto& io = ImGui::GetIO( );
@@ -42,7 +47,12 @@ float c_oink_ui::process_animation(ImGuiID id, bool if_, float v_max, float perc
 	}
 
 	if (type != e_animation_type::animation_interp)
+	{
 		animation = ImClamp(animation, 0.0f, v_max);
+
+		if (animation < std::numeric_limits<float>::epsilon( ))
+			animation = 0.f;
+	};
 
 	return animation;
 }

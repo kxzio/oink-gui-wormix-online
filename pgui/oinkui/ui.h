@@ -260,6 +260,7 @@ private:
 	IDirect3DTexture9* m_textures[tex_max];
 	ImFont* m_fonts[font_max];
 private:
+	std::unordered_map<ImGuiID, float> m_animations;
 	float m_gap;
 	int m_active_tab;
 	bool m_menu_opened;
@@ -311,7 +312,6 @@ private:
 	};
 
 public:
-	std::unordered_map<ImGuiID, float> m_animations;
 	float process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	float process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	ImGuiID generate_unique_id(const char* label, unsigned int seed);
