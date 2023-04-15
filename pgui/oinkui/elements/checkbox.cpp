@@ -44,7 +44,7 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	float active_pad_modifer = g_ui.process_animation(label, 5, *v, 1.f, 18.f, e_animation_type::animation_dynamic);
 
 	float pad = ImMax(1.0f, square_sz / (3.6f + (1.f - active_pad_modifer) / 100.f));
-	float checkmark_rad = g_ui.process_animation(label, 6, true, pad, 8.f, e_animation_type::animation_interp);
+	float checkmark_rad = g_ui.process_animation(label, 6, true, pad, 15.f, e_animation_type::animation_interp);
 
 	window->DrawList->AddRectFilled(pos, pos + check_bb.GetSize( ), ImColor(0.f, 0.f, 0.f, 0.39f));
 
