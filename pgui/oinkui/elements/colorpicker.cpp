@@ -41,7 +41,7 @@ bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, c
 
 	// Setup
 	int components = (flags & ImGuiColorEditFlags_NoAlpha) ? 3 : 4;
-	bool alpha_bar = true;
+	bool alpha_bar = !(flags & ImGuiColorEditFlags_NoAlpha);
 	ImVec2 picker_pos = window->DC.CursorPos;
 	float square_sz = GetFrameHeight( );
 	float bars_width = square_sz - 10; // Arbitrary smallish width of Hue/Alpha picking bars
@@ -599,18 +599,29 @@ bool color_edit4(const char* label, float col[4], ImGuiColorEditFlags flags)
 	return value_changed;
 }
 
-bool c_oink_ui::color_picker(const char* sz, float* col)
+bool c_oink_ui::color_picker(const char* sz, float* col, bool alpha_bar)
 {
+	auto flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
+
 	text(sz);
 	ImGui::SameLine( );
 	ImGui::SetCursorPosX(180 * m_dpi_scaling);
 
-	return color_edit4(sz, col, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder);
+	if (!alpha_bar)
+		flags |= ImGuiColorEditFlags_NoAlpha;
+
+	return color_edit4(sz, col, flags);
 }
 
-bool c_oink_ui::color_picker_button(const char* label, float* col, bool draw_on_same_line)
+bool c_oink_ui::color_picker_button(const char* label, float* col, bool draw_on_same_line, bool alpha_bar)
 {
+	auto flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
+
 	ImGui::SameLine( );
 	ImGui::SetCursorPosX(draw_on_same_line ? 160 * m_dpi_scaling : 180 * m_dpi_scaling);
-	return color_edit4(label, col, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder | ImGuiColorEditFlags_NoInputs);
+
+	if (!alpha_bar)
+		flags |= ImGuiColorEditFlags_NoAlpha;
+
+	return color_edit4(label, col, flags);
 }

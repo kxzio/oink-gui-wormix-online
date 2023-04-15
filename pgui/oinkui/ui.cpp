@@ -402,7 +402,7 @@ void c_oink_ui::draw_menu( )
 					begin_child("Extra settings", 3);
 					{
 						slider_float("ui scale", &m_dpi_scaling_backup, 0.5f, 1.5f, "%.2f");
-						color_picker("ui theme", reinterpret_cast<float*>(&m_theme_colour_backup.Value));
+						color_picker("ui theme", reinterpret_cast<float*>(&m_theme_colour_backup.Value), false);
 					}
 					end_child( );
 				}

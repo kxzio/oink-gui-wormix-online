@@ -324,7 +324,6 @@ private:
 
 	//buttons
 	bool sub_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab);
-
 	bool tab_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab);
 
 	bool button(const char* label, const ImVec2& size_arg);
@@ -332,13 +331,10 @@ private:
 	bool checkbox(const char* label, bool* v);
 
 	bool slider_int(const char* label, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
-
 	bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
-
 	bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, const ImColor& theme);
 
 	bool combo_box(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items);
-
 	bool combo_box(const char* label, int* current_item, void* const items, int items_count, int height_in_items = -1);
 
 	void multi_box(const char* title, bool selection[ ], const char* text[ ], int size);
@@ -346,24 +342,19 @@ private:
 	bool selectable(const char* label, bool* selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0));
 
 	void text(const char* text);
-
 	void text_colored(const char* text);
 
 	bool begin_child(const char* label, int number_of_child);
-
 	void end_child( );
 
 	bool input_text(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = NULL, ImGuiInputTextCallback callback = NULL, void* user_data = NULL);
-
 	bool temp_input_text(const ImRect& bb, ImGuiID id, const char* label, char* buf, int buf_size, ImGuiInputTextFlags flags);
-
 	bool temp_input_scalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format, const void* p_clamp_min, const void* p_clamp_max);
 
 	bool hotkey(const char* label, int* k, bool* controlled_value = NULL);
 
-	bool color_picker(const char* sz, float* col);
-
-	bool color_picker_button(const char* label, float* col, bool draw_on_same_line = false);
+	bool color_picker(const char* sz, float* col, bool alpha_bar = true);
+	bool color_picker_button(const char* label, float* col, bool draw_on_same_line = false, bool alpha_bar = true);
 };
 
 inline c_oink_ui g_ui;
