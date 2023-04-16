@@ -111,7 +111,8 @@ bool c_oink_ui::begin_child(const char* label, int number_of_child)
 	{
 		style.ItemSpacing = ImVec2(10.f * m_dpi_scaling, 5.f * m_dpi_scaling);
 		ImGui::SetCursorPos(ImVec2(10.f * m_dpi_scaling, 10.f * m_dpi_scaling));
-		text_colored(label, m_theme_colour);
+
+		text_colored(label, m_theme_colour_secondary);
 
 		ImGui::Separator( );
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2.f * m_dpi_scaling);

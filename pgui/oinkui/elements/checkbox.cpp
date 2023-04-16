@@ -35,7 +35,7 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 		MarkItemEdited(id);
 	}
 
-	ImColor color = m_theme_colour;
+	ImColor color = m_theme_colour_primary;
 
 	float active_animation = g_ui.process_animation(label, 1, *v, 0.78f, 20.f, e_animation_type::animation_static);
 	float hovered_animation = g_ui.process_animation(label, 2, hovered, 0.78f, 17.f, e_animation_type::animation_dynamic);
