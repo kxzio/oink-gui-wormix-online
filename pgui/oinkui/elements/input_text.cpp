@@ -955,7 +955,7 @@ bool c_oink_ui::temp_input_text(const ImRect& bb, ImGuiID id, const char* label,
 		ClearActiveID( );
 
 	g.CurrentWindow->DC.CursorPos = bb.Min;
-	bool value_changed = input_text_ex(label, NULL, buf, buf_size, bb.GetSize( ), flags | ImGuiInputTextFlags_MergedItem, NULL, NULL, m_theme_colour, false);
+	bool value_changed = input_text_ex(label, NULL, buf, buf_size, bb.GetSize( ), flags | ImGuiInputTextFlags_MergedItem, NULL, NULL, m_theme_colour_primary, false);
 	if (init)
 	{
 		// First frame we started displaying the InputText widget, we expect it to take the active id.
@@ -969,5 +969,5 @@ bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size, ImGuiI
 {
 	set_cursor_pos_x(m_gap);
 	IM_ASSERT(!(flags & ImGuiInputTextFlags_Multiline)); // call InputTextMultiline()
-	return input_text_ex(label, NULL, buf, buf_size, ImVec2(0, 0), flags, callback, user_data, m_theme_colour, m_dpi_scaling);
+	return input_text_ex(label, NULL, buf, buf_size, ImVec2(0, 0), flags, callback, user_data, m_theme_colour_primary, m_dpi_scaling);
 }

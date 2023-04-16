@@ -96,13 +96,14 @@ struct s_keybind
 class c_oink_ui
 {
 public:
-	c_oink_ui( ) : m_menu_opened{ false }, m_active_tab{ 0 }, m_dpi_changed{ false }, m_dpi_scaling{ 1.f }, m_theme_colour{ 47.f / 255.f, 70.f / 255.f, 154.f / 255.f }, m_gap{ 12.f }
+	c_oink_ui( ) : m_menu_opened{ false }, m_active_tab{ 0 }, m_dpi_changed{ false }, m_dpi_scaling{ 1.f }, m_theme_hsv_backup{ 227.f / 360.f, 69.f / 100.f, 59.f / 100.f }, m_gap{ 12.f }
 	{
 		memset(m_textures, 0, sizeof(m_textures));
 		memset(m_fonts, 0, sizeof(m_fonts));
 
-		m_theme_colour_backup = m_theme_colour;
 		m_dpi_scaling_backup = m_dpi_scaling;
+		m_theme_colour_primary.Value.w = 1.f;
+		m_theme_colour_secondary.Value.w = 1.f;
 	};
 public:
 	void initialize(IDirect3DDevice9* device);
@@ -167,7 +168,7 @@ private:
 	bool checkbox(const char* label, bool* v);
 
 	bool slider_int(const char* label, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
-	bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
+	bool slider_float(const char* label, float* v, float v_min, float v_max, const char* format = "%.2f", ImGuiSliderFlags flags = 0);
 	bool slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, const ImColor& theme);
 
 	bool combo_box(const char* label, int* current_item, bool (*items_getter)(void*, int, const char**), void* data, int items_count, int popup_max_height_in_items);
@@ -218,8 +219,10 @@ private:
 	float m_dpi_scaling;
 	float m_dpi_scaling_backup;
 	float m_border_alpha;
-	ImColor m_theme_colour;
-	ImColor m_theme_colour_backup;
+public:
+	ImColor m_theme_colour_primary;
+	ImColor m_theme_colour_secondary;
+	float m_theme_hsv_backup[3];
 };
 
 inline c_oink_ui g_ui;

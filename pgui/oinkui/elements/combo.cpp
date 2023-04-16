@@ -107,7 +107,7 @@ bool c_oink_ui::combo_box(const char* label, int* current_item, bool (*items_get
 	if (popup_max_height_in_items != -1 && !(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint))
 		SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
 
-	if (!begin_combo(label, preview_value, ImGuiComboFlags_None, m_theme_colour, m_dpi_scaling))
+	if (!begin_combo(label, preview_value, ImGuiComboFlags_None, m_theme_colour_primary, m_dpi_scaling))
 		return false;
 
 	// Display items
@@ -163,7 +163,7 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 	if (active_items < 1)
 		render_str = "None";
 
-	if (begin_combo(title, render_str.c_str( ), ImGuiComboFlags_NoArrowButton, m_theme_colour, m_dpi_scaling))
+	if (begin_combo(title, render_str.c_str( ), ImGuiComboFlags_NoArrowButton, m_theme_colour_primary, m_dpi_scaling))
 	{
 		for (size_t i = 0u; i < size; ++i)
 		{

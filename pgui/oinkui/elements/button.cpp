@@ -89,7 +89,7 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 	float alpha = g_ui.process_animation(label, 4, this_tab == opened_tab, 0.5, 15.f, e_animation_type::animation_dynamic);
 	float hovered_alpha = g_ui.process_animation(label, 5, hovered, 0.5, 15.f, e_animation_type::animation_dynamic);
 
-	ImColor color = m_theme_colour;
+	ImColor color = m_theme_colour_primary;
 
 
 	// Render
@@ -174,10 +174,10 @@ bool c_oink_ui::tab_button(const char* label, ImVec2 size_arg, ImGuiButtonFlags 
 bool c_oink_ui::button(const char* label, const ImVec2& size_arg)
 {
 	set_cursor_pos_x(m_gap);
-	return ::button_ex(label, size_arg * m_dpi_scaling, ImGuiButtonFlags_None, m_theme_colour, m_dpi_scaling);
+	return ::button_ex(label, size_arg * m_dpi_scaling, ImGuiButtonFlags_None, m_theme_colour_primary, m_dpi_scaling);
 }
 
 bool c_oink_ui::button_ex(const char* label, const ImVec2& size_arg, const ImGuiButtonFlags& flags)
 {
-	return ::button_ex(label, size_arg * m_dpi_scaling, flags, m_theme_colour, m_dpi_scaling);
+	return ::button_ex(label, size_arg * m_dpi_scaling, flags, m_theme_colour_primary, m_dpi_scaling);
 }

@@ -194,7 +194,7 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 
 bool c_oink_ui::selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags, const ImVec2& size_arg)
 {
-	if (selectable_ex(label, *p_selected, flags, size_arg, m_theme_colour, m_dpi_scaling))
+	if (selectable_ex(label, *p_selected, flags, size_arg, m_theme_colour_primary, m_dpi_scaling))
 	{
 		*p_selected = !*p_selected;
 		return true;
