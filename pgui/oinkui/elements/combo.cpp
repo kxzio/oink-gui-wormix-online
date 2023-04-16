@@ -140,7 +140,7 @@ bool c_oink_ui::combo_box(const char* label, int* current_item, bool (*items_get
 
 void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text[ ], int size)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
+	set_cursor_pos_x(m_gap);
 
 	auto max_popup_height = calc_max_popup_height(-1);
 
@@ -179,7 +179,7 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 
 bool c_oink_ui::combo_box(const char* label, int* current_item, void* const items, int items_count, int height_in_items)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
+	set_cursor_pos_x(m_gap);
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10 * m_dpi_scaling));
 	const bool value_changed = combo_box(label, current_item, Items_ArrayGetter, items, items_count, height_in_items);
 	ImGui::PopStyleVar( );
@@ -188,7 +188,7 @@ bool c_oink_ui::combo_box(const char* label, int* current_item, void* const item
 
 bool c_oink_ui::combo_box(const char* label, int* current_item, const char* items_separated_by_zeros, int height_in_items)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
+	set_cursor_pos_x(m_gap);
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10 * m_dpi_scaling));
 	int items_count = 0;
 	const char* p = items_separated_by_zeros;       // FIXME-OPT: Avoid computing this, or at least only when combo is open

@@ -178,12 +178,12 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 
 bool c_oink_ui::slider_int(const char* label, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags)
 {
-	ImGui::SetCursorPosX(m_dpi_scaling * m_gap);
+	set_cursor_pos_x(m_gap);
 	return slider_scalar(label, ImGuiDataType_S32, v, &v_min, &v_max, format, flags, m_theme_colour);
 }
 
 bool c_oink_ui::slider_float(const char* label, float* v, float v_min, float v_max, const char* format, ImGuiSliderFlags flags)
 {
-	ImGui::SetCursorPosX(m_dpi_scaling * m_gap);
+	set_cursor_pos_x(m_gap);
 	return slider_scalar(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags, m_theme_colour);
 }

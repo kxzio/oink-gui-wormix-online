@@ -164,34 +164,34 @@ void c_oink_ui::draw_menu( )
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
 			{
-				ImGui::SetCursorPos(ImVec2(0.f, 71.f * m_dpi_scaling));
+				set_cursor_pos(ImVec2(0.f, 71.f));
 
-				if (tab_button("Aimbot", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 1))
+				if (tab_button("Aimbot", ImVec2(button_size_x, 25.f), ImGuiButtonFlags_None, tab == 1))
 					tab = 1;
 
 				same_line( );
 
-				if (tab_button("Anti-aim", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 2))
+				if (tab_button("Anti-aim", ImVec2(button_size_x, 25.f), ImGuiButtonFlags_None, tab == 2))
 					tab = 2;
 
 				same_line( );
 
-				if (tab_button("Visuals", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 3))
+				if (tab_button("Visuals", ImVec2(button_size_x, 25.f), ImGuiButtonFlags_None, tab == 3))
 					tab = 3;
 
 				same_line( );
 
-				if (tab_button("ESP", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 4))
+				if (tab_button("ESP", ImVec2(button_size_x, 25.f), ImGuiButtonFlags_None, tab == 4))
 					tab = 4;
 
 				same_line( );
 
-				if (tab_button("Misc", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 5))
+				if (tab_button("Misc", ImVec2(button_size_x, 25.f), ImGuiButtonFlags_None, tab == 5))
 					tab = 5;
 
 				same_line( );
 
-				if (tab_button("Configs", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 6))
+				if (tab_button("Configs", ImVec2(button_size_x, 25.f), ImGuiButtonFlags_None, tab == 6))
 					tab = 6;
 
 				int real_selected_tab_pos_x = button_size_x * (tab - 1);
@@ -257,6 +257,13 @@ void c_oink_ui::draw_menu( )
 							static int mindamage;
 							slider_int("Min.damage value", &mindamage, 0, 150);
 						}
+
+						for (int i = 0; i <= 50; ++i)
+						{
+							char buf[64];
+							sprintf_s(buf, "button %d", i);
+							button(buf, ImVec2(0, 0));
+						}
 					}
 					end_child( );
 
@@ -278,16 +285,28 @@ void c_oink_ui::draw_menu( )
 						color_picker_button("Visible", col2);
 						color_picker_button("Invisible", col3, true);
 
-						static int key;
+						{
+							set_cursor_pos_x(m_gap);
+							button_ex("button1_test");
+
+							set_cursor_pos_x(m_gap);
+							button_ex("button2_test");
+							same_line(0.f, 5.f);
+							button_ex("button3_test");
+							same_line(0.f, 5.f);
+							button_ex("button4_test");
+						};
+
+						static s_keybind key;
 						static bool dt;
 						checkbox("Double tap", &dt);
-						hotkey("Double tap key", &key, &dt);
+						hotkey("Double tap key", &key);
 
 						static char config_name[32];
 						input_text("Config name", config_name, sizeof(config_name));
 						{
 							char buf[64];
-							sprintf_s(buf, "%.5f", ImGui::GetIO( ).DeltaTime);
+							sprintf_s(buf, "time: %.5f", ImGui::GetIO( ).DeltaTime);
 							text(buf);
 						}
 
@@ -628,6 +647,8 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 				};
 			};
 
+			bg_drawlist->PushClipRect(bb[0], bb[1]);
+
 			for (auto& data : m_pigs_data)
 			{
 				auto& rotation = data.m_rotation;
@@ -668,7 +689,6 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 						speed[axis] *= -1.f;
 				};
 
-				bg_drawlist->PushClipRect(bb[0], bb[1]);
 				rotate_start(bg_drawlist, rotation_index);
 
 				bg_drawlist->AddImage(m_textures[e_tex_id::tex_pig],
@@ -679,11 +699,13 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 									  ImColor(125, 143, 212, 30));
 
 				rotate_end(bg_drawlist, rotation, rotation_index);
-				bg_drawlist->PopClipRect( );
 			};
+
+			bg_drawlist->AddText(m_fonts[font_giant], 100.f * m_dpi_scaling, menu_pos + (ImVec2(100.f, 1.f) * m_dpi_scaling), ImColor(50, 74, 168, 100), "Industries");
+
+			bg_drawlist->PopClipRect( );
 		}
 
-		bg_drawlist->AddText(m_fonts[font_giant], 100 * m_dpi_scaling, menu_pos + ImVec2(100 * m_dpi_scaling, 1 * m_dpi_scaling), ImColor(50, 74, 168, 200), "Industries");
 	}
 
 	//bg_drawlist->AddText(c_oink_ui::get( ).small_font, 12, m_menu_pos + ImVec2(4, 3), ImColor(255, 255, 255, 100), main ? "Oink.industries | beta | v1.01 | User" : "Player list");

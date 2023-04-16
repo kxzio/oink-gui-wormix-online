@@ -104,7 +104,7 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	//background
 	color.Value.w = 0.078f + alpha;
-	window->DrawList->AddRectFilled(bb.Min + ImVec2(1 * m_dpi_scaling, 1 * m_dpi_scaling), bb.Max - ImVec2(1 * m_dpi_scaling, 1 * m_dpi_scaling), color, style.FrameRounding);
+	window->DrawList->AddRectFilled(bb.Min, bb.Max, color, style.FrameRounding);
 	//outline
 
 	color.Value.w = 0.39f + alpha;
@@ -119,11 +119,13 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 	return pressed;
 }
 
-bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, bool is_tab_active)
+bool c_oink_ui::tab_button(const char* label, ImVec2 size_arg, ImGuiButtonFlags flags, bool is_tab_active)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
 		return false;
+
+	size_arg.y *= m_dpi_scaling;
 
 	ImGuiContext& g = *GImGui;
 	const ImGuiStyle& style = g.Style;
@@ -131,6 +133,7 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
 	ImVec2 pos = window->DC.CursorPos;
+
 	if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
 		pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
 	ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
@@ -176,6 +179,11 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 bool c_oink_ui::button(const char* label, const ImVec2& size_arg)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	return button_ex(label, size_arg * m_dpi_scaling, ImGuiButtonFlags_None, m_theme_colour, m_dpi_scaling);
+	set_cursor_pos_x(m_gap);
+	return ::button_ex(label, size_arg * m_dpi_scaling, ImGuiButtonFlags_None, m_theme_colour, m_dpi_scaling);
+}
+
+bool c_oink_ui::button_ex(const char* label, const ImVec2& size_arg, const ImGuiButtonFlags& flags)
+{
+	return ::button_ex(label, size_arg * m_dpi_scaling, flags, m_theme_colour, m_dpi_scaling);
 }
