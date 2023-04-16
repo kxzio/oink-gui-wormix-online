@@ -154,15 +154,17 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 
 	if (alpha_selected > 0.f)
 	{
-		window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(1 * dpi_scale, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 1.f, alpha_selected), false, 0.0f);
-		window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(1 * dpi_scale, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 0.6f, alpha_selected), false, 0.0f);
+		auto bb_size = bb.GetSize( );
+
+		window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(0.f, bb_size.y), ImColor(0.18f, 0.27f, 1.f, alpha_selected), 0.f, 0);
+		window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(0.f, bb_size.y), ImColor(0.18f, 0.27f, 0.6f, alpha_selected), 0.f, 0);
 
 		color.Value.w = alpha_selected * 0.5f;
 
 		if (color.Value.w > 0.0f)
 		{
-			window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30.f * dpi_scale, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
-			window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30.f * dpi_scale, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
+			window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30.f * dpi_scale, bb_size.y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
+			window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30.f * dpi_scale, bb_size.y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
 		};
 	};
 
