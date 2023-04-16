@@ -967,7 +967,7 @@ bool c_oink_ui::temp_input_text(const ImRect& bb, ImGuiID id, const char* label,
 
 bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
+	set_cursor_pos_x(m_gap);
 	IM_ASSERT(!(flags & ImGuiInputTextFlags_Multiline)); // call InputTextMultiline()
 	return input_text_ex(label, NULL, buf, buf_size, ImVec2(0, 0), flags, callback, user_data, m_theme_colour, m_dpi_scaling);
 }

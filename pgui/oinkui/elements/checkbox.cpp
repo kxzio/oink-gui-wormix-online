@@ -4,7 +4,7 @@ using namespace ImGui;
 
 bool c_oink_ui::checkbox(const char* label, bool* v)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
+	set_cursor_pos_x(m_gap);
 
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -15,7 +15,8 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	const ImGuiID id = window->GetID(label);
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
-	const float square_sz = 15 * m_dpi_scaling;
+	const float square_sz = 15.f * m_dpi_scaling;
+
 	const ImVec2 pos = window->DC.CursorPos;
 	const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f * m_dpi_scaling));
 	ItemSize(total_bb, style.FramePadding.y);

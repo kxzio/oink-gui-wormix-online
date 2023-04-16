@@ -111,7 +111,7 @@ bool c_oink_ui::begin_child(const char* label, int number_of_child)
 	{
 		style.ItemSpacing = ImVec2(10.f * m_dpi_scaling, 5.f * m_dpi_scaling);
 		ImGui::SetCursorPos(ImVec2(10.f * m_dpi_scaling, 10.f * m_dpi_scaling));
-		text_colored(label);
+		text_colored(label, m_theme_colour);
 
 		ImGui::Separator( );
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2.f * m_dpi_scaling);
@@ -142,4 +142,29 @@ void c_oink_ui::end( )
 void c_oink_ui::same_line(const float offset_x, const float spacing)
 {
 	ImGui::SameLine(offset_x, spacing);
+}
+
+void c_oink_ui::set_cursor_pos(const ImVec2& v)
+{
+	ImGui::SetCursorPos(v * m_dpi_scaling);
+};
+
+void c_oink_ui::set_cursor_pos_x(const float x)
+{
+	ImGui::SetCursorPosX(x * m_dpi_scaling);
+};
+
+void c_oink_ui::set_cursor_pos_y(const float y)
+{
+	ImGui::SetCursorPosY(y * m_dpi_scaling);
+}
+
+float c_oink_ui::get_cursor_pos_x( )
+{
+	return ImGui::GetCursorPosX( );
+};
+
+float c_oink_ui::get_cursor_pos_y( )
+{
+	return ImGui::GetCursorPosY( );
 };

@@ -87,6 +87,12 @@ struct s_bg_pig_data
 	ImVec2 m_speed;
 };
 
+struct s_keybind
+{
+	uint8_t m_keycode;
+	uint8_t m_activation_mode;
+};
+
 class c_oink_ui
 {
 public:
@@ -153,9 +159,10 @@ private:
 
 	//buttons
 	bool sub_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab);
-	bool tab_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, bool tab_active);
+	bool tab_button(const char* label, ImVec2 size_arg, ImGuiButtonFlags flags, bool tab_active);
 
-	bool button(const char* label, const ImVec2& size_arg);
+	bool button(const char* label, const ImVec2& size_arg = ImVec2(0.f, 0.f));
+	bool button_ex(const char* label, const ImVec2& size_arg = ImVec2(0.f, 0.f), const ImGuiButtonFlags& flags = ImGuiButtonFlags_None);
 
 	bool checkbox(const char* label, bool* v);
 
@@ -171,9 +178,15 @@ private:
 	bool selectable(const char* label, bool* selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0));
 
 	void text(const char* text);
-	void text_colored(const char* text);
+	void text_colored(const char* text, const ImColor& color);
 
 	void same_line(const float offset_x = 0.f, const float spacing = 1.f);
+
+	void set_cursor_pos(const ImVec2& v);
+	void set_cursor_pos_x(const float x);
+	void set_cursor_pos_y(const float y);
+	float get_cursor_pos_x( );
+	float get_cursor_pos_y( );
 
 	bool begin_child(const char* label, int number_of_child);
 	void end_child( );
@@ -185,7 +198,7 @@ private:
 	bool temp_input_text(const ImRect& bb, ImGuiID id, const char* label, char* buf, int buf_size, ImGuiInputTextFlags flags);
 	bool temp_input_scalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format, const void* p_clamp_min, const void* p_clamp_max);
 
-	bool hotkey(const char* label, int* k, bool* controlled_value = NULL);
+	bool hotkey(const char* label, s_keybind* keybind, const ImVec2& size_arg = ImVec2(0.f, 0.f));
 
 	bool color_picker(const char* sz, float* col, bool alpha_bar = true);
 	bool color_picker_button(const char* label, float* col, bool draw_on_same_line = false, bool alpha_bar = true);

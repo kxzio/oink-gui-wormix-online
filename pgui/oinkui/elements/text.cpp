@@ -1,15 +1,15 @@
 #include "../ui.h"
 
-void c_oink_ui::text(const char* text)
+void c_oink_ui::text(const char* str)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	ImGui::Text(text);
+	set_cursor_pos_x(m_gap);
+	ImGui::Text(str);
 };
 
-void c_oink_ui::text_colored(const char* text)
+void c_oink_ui::text_colored(const char* str, const ImColor& color)
 {
-	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(47 / 255.f, 70 / 255.f, 154 / 255.f, 1.f));
-	ImGui::Text(text);
+	set_cursor_pos_x(m_gap);
+	ImGui::PushStyleColor(ImGuiCol_Text, color.Value);
+	text(str);
 	ImGui::PopStyleColor( );
 }

@@ -608,8 +608,8 @@ bool c_oink_ui::color_picker(const char* sz, float* col, bool alpha_bar)
 	auto flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
 
 	text(sz);
-	ImGui::SameLine( );
-	ImGui::SetCursorPosX(180 * m_dpi_scaling);
+	same_line( );
+	set_cursor_pos_x(180.f);
 
 	if (!alpha_bar)
 		flags |= ImGuiColorEditFlags_NoAlpha;
@@ -621,8 +621,8 @@ bool c_oink_ui::color_picker_button(const char* label, float* col, bool draw_on_
 {
 	auto flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
 
-	ImGui::SameLine( );
-	ImGui::SetCursorPosX(draw_on_same_line ? 160.f * m_dpi_scaling : 180.f * m_dpi_scaling);
+	same_line( );
+	set_cursor_pos_x(draw_on_same_line ? 160.f : 180.f);
 
 	if (!alpha_bar)
 		flags |= ImGuiColorEditFlags_NoAlpha;
