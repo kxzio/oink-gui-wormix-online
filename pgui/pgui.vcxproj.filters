@@ -45,15 +45,6 @@
     <ClInclude Include="imgui\syb.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="imgui\Museo.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\Museo900.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="imgui\Museo700.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="imgui\pig.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>

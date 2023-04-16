@@ -8,8 +8,8 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 	static std::map <ImGuiID, int> pValue2;
 
 	ImGui::SameLine( );
-	ImGui::SetCursorPosX(140 * m_dpi_scaling);
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) - 2 * m_dpi_scaling);
+	ImGui::SetCursorPosX(140.f * m_dpi_scaling);
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) - 2.f * m_dpi_scaling);
 
 	ImGuiWindow* window = ImGui::GetCurrentWindow( );
 	if (!window || window->SkipItems)
@@ -22,7 +22,8 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 	const ImVec2 stored_cursor_pos = window->DC.CursorPos;
 	const ImGuiID id = window->GetID(label);
 	const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
-	ImVec2 size = ImVec2(56 * g_ui.m_dpi_scaling, 20 * g_ui.m_dpi_scaling);
+
+	ImVec2 size = ImVec2(56.f * m_dpi_scaling, 20.f * m_dpi_scaling);
 	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + size);
 	const ImRect total_bb(window->DC.CursorPos, frame_bb.Max);
 
@@ -136,8 +137,8 @@ bool c_oink_ui::hotkey(const char* label, int* k, bool* controlled_value)
 	{
 		constexpr int m_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar;
 
-		ImGui::SetNextWindowPos(ImVec2(stored_cursor_pos.x + 10 * m_dpi_scaling, stored_cursor_pos.y + 10 * m_dpi_scaling));
-		ImGui::SetNextWindowSize(ImVec2(67 * g_ui.m_dpi_scaling, 82 * g_ui.m_dpi_scaling));
+		ImGui::SetNextWindowPos(ImVec2(stored_cursor_pos.x + 10.f * m_dpi_scaling, stored_cursor_pos.y + 10.f * m_dpi_scaling));
+		ImGui::SetNextWindowSize(ImVec2(67.f * m_dpi_scaling, 82.f * m_dpi_scaling));
 
 		ImGui::Begin("bind_settings", NULL, m_flags);
 		{

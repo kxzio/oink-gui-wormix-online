@@ -15,9 +15,9 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	const ImGuiID id = window->GetID(label);
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
-	const float square_sz = 15 * g_ui.m_dpi_scaling;
+	const float square_sz = 15 * m_dpi_scaling;
 	const ImVec2 pos = window->DC.CursorPos;
-	const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f * g_ui.m_dpi_scaling));
+	const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f * m_dpi_scaling));
 	ItemSize(total_bb, style.FramePadding.y);
 	if (!ItemAdd(total_bb, id))
 	{
@@ -58,7 +58,7 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 	{
 		// wrong
 		color.Value.w = (alpha / 3 + 0.02f + (i / 110.f)) / 5;
-		window->DrawList->AddCircleFilled(ImVec2(check_bb.Min.x + check_bb.GetSize( ).x / 2, check_bb.Min.y + check_bb.GetSize( ).y / 2), 7 * g_ui.m_dpi_scaling + i, color);
+		window->DrawList->AddCircleFilled(ImVec2(check_bb.Min.x + check_bb.GetSize( ).x / 2, check_bb.Min.y + check_bb.GetSize( ).y / 2), 7 * m_dpi_scaling + i, color);
 	};
 
 	//window->DrawList->AddRect(check_bb.Min, check_bb.Max, ImColor(0, 0, 0, active_alpha), style.FrameRounding);

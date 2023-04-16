@@ -1,9 +1,9 @@
 #include "ui.h"
 
-int get_random_number(int min, int max)
+float get_random_number(float min, float max)
 {
-	int num = min + rand( ) % (max - min + 1);
-	return num;
+	float random = min + static_cast <float> (rand( )) / (static_cast <float> (RAND_MAX / (max - min)));
+	return random;
 }
 
 std::string current_help_tip = "";
@@ -60,25 +60,47 @@ ImGuiID c_oink_ui::generate_unique_id(const char* label, unsigned int seed)
 	return ImGui::GetID(label) ^ ~seed;
 }
 
+void c_oink_ui::render_cursor(ImDrawList* fg_drawlist)
+{
+	ImGui::SetMouseCursor(ImGuiMouseCursor_None);
+
+	const ImVec2& pointer = ImGui::GetIO( ).MousePos;
+
+	fg_drawlist->AddTriangleFilled(
+		ImVec2(pointer.x, pointer.y),
+		ImVec2(pointer.x, pointer.y + 10 + 3),
+		ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
+		ImColor(0.f, 0.f, 0.f));
+
+	fg_drawlist->AddTriangle(
+		ImVec2(pointer.x, pointer.y),
+		ImVec2(pointer.x, pointer.y + 10 + 3),
+		ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
+		ImColor(1.f, 1.f, 1.f));
+};
+
 void c_oink_ui::fonts_create(bool invalidate)
 {
 	ImGuiIO& io = ImGui::GetIO( );
 
-	auto glyph_ranges = io.Fonts->GetGlyphRangesCyrillic();
+	auto glyph_ranges = io.Fonts->GetGlyphRangesCyrillic( );
 
 	ZeroMemory(m_fonts, sizeof(m_fonts));
 	io.Fonts->Clear( );
-	ImFontConfig cfg, cfg_bold;
 
-	cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags::ImGuiFreeTypeBuilderFlags_ForceAutoHint;
-	cfg_bold.FontBuilderFlags |=  ImGuiFreeTypeBuilderFlags_Bold;
+	ImFontConfig cfg = ImFontConfig( );
 
-	m_fonts[0] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 100.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
-	m_fonts[1] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 50.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
-	m_fonts[2] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
-	m_fonts[3] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
-	m_fonts[4] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Segoeuib.ttf", 100.f * m_dpi_scaling_backup, &cfg_bold, glyph_ranges);
-	
+	cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+
+	m_fonts[e_font_id::font_big] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 100.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+	m_fonts[e_font_id::font_small] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 50.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+	m_fonts[e_font_id::font_default] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+	m_fonts[e_font_id::font_middle] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
+
+	cfg.FontBuilderFlags &= ~ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+	cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_Bold;
+
+	m_fonts[e_font_id::font_giant] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Segoeuib.ttf", 100.f * m_dpi_scaling_backup, &cfg, glyph_ranges);
 
 	if (invalidate)
 	{
@@ -91,11 +113,8 @@ void c_oink_ui::fonts_create(bool invalidate)
 	};
 }
 
-void c_oink_ui::terminate_menu( )
+void c_oink_ui::terminate( )
 {
-	for (auto& font : m_fonts)
-		delete font;
-
 	ZeroMemory(m_fonts, sizeof(m_fonts));
 	ZeroMemory(m_textures, sizeof(m_textures));
 };
@@ -116,25 +135,7 @@ void c_oink_ui::draw_menu( )
 	ImDrawList* bg_drawlist = ImGui::GetBackgroundDrawList( );
 	ImDrawList* wnd_drawlist = nullptr;
 
-	{ // draw cursor
-		ImGui::SetMouseCursor(ImGuiMouseCursor_None);
-
-		const ImVec2& pointer = ImGui::GetIO( ).MousePos;
-
-		fg_drawlist->AddTriangleFilled(
-			ImVec2(pointer.x, pointer.y),
-			ImVec2(pointer.x, pointer.y + 10 + 3),
-			ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
-			ImColor(0.f, 0.f, 0.f));
-
-		fg_drawlist->AddTriangle(
-			ImVec2(pointer.x, pointer.y),
-			ImVec2(pointer.x, pointer.y + 10 + 3),
-			ImVec2(pointer.x + 7 + 3, pointer.y + 7 + 1),
-			ImColor(1.f, 1.f, 1.f));
-	}
-
-	//int backgrnd = g_ui.process_animation("menu", "bckrg", m_menu_opened, 13, 0.15, ImGui::animation_types::e_animation_type::animation_static);
+	render_cursor(fg_drawlist);
 
 	//window vars
 	ImVec2 wnd_pos, wnd_size;
@@ -146,7 +147,7 @@ void c_oink_ui::draw_menu( )
 	ImGui::SetNextWindowPos(ImVec2(100.f, 100.f), ImGuiCond_Once);
 
 	//menu code
-	if (ImGui::Begin("main window", &m_menu_opened, m_flags))
+	if (begin("main window", &m_menu_opened, m_flags))
 	{
 		//load vars
 		wnd_pos = ImGui::GetWindowPos( );
@@ -154,69 +155,50 @@ void c_oink_ui::draw_menu( )
 		wnd_drawlist = ImGui::GetWindowDrawList( );
 
 		//setup style
-		ImGuiStyle& style = ImGui::GetStyle( );
-
-		style.WindowBorderSize = 0.0f;
-		style.ChildBorderSize = 0.0f;
-		style.FrameBorderSize = 0.0f;
-		style.PopupBorderSize = 0.0f;
-
-		style.Colors[ImGuiCol_ScrollbarBg] = ImColor(0, 0, 0, 0);
-		style.Colors[ImGuiCol_Border] = ImColor(0, 0, 0, 0);
-		style.Colors[ImGuiCol_Button] = ImColor(14, 16, 25);
-		style.Colors[ImGuiCol_PopupBg] = ImColor(14, 16, 25);
-
-		style.ScrollbarRounding = 0;
-		style.ScrollbarSize = 3.f;
-		style.ItemSpacing = ImVec2(10, 10);
-		style.ItemInnerSpacing.x = 10;
-		style.ItemInnerSpacing.y = 10;
-
 		configure(bg_drawlist, wnd_pos, wnd_size);
 
 		ImGui::PushFont(m_fonts[e_font_id::font_middle]);
 		{
 			static int tab = 1;
+			const float button_size_x = wnd_size.x / 6;
 
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, 0.f));
 			{
-				ImGui::SetCursorPos(ImVec2(0, 71 * m_dpi_scaling));
+				ImGui::SetCursorPos(ImVec2(0.f, 71.f * m_dpi_scaling));
 
-				const float button_size_x = wnd_size.x / 6;
-
-				if (tab_button("Aimbot", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 1))
+				if (tab_button("Aimbot", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 1))
 					tab = 1;
 
-				ImGui::SameLine( );
+				same_line( );
 
-				if (tab_button("Anti-aim", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 2))
+				if (tab_button("Anti-aim", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 2))
 					tab = 2;
 
-				ImGui::SameLine( );
+				same_line( );
 
-				if (tab_button("Visuals", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 3))
+				if (tab_button("Visuals", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 3))
 					tab = 3;
 
-				ImGui::SameLine( );
+				same_line( );
 
-				if (tab_button("ESP", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 4))
+				if (tab_button("ESP", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 4))
 					tab = 4;
 
-				ImGui::SameLine( );
+				same_line( );
 
-				if (tab_button("Misc", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 5))
+				if (tab_button("Misc", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 5))
 					tab = 5;
 
-				ImGui::SameLine( );
+				same_line( );
 
-				if (tab_button("Configs", ImVec2(button_size_x, 25 * m_dpi_scaling), 0, tab, 6))
+				if (tab_button("Configs", ImVec2(button_size_x, 25.f * m_dpi_scaling), ImGuiButtonFlags_None, tab == 6))
 					tab = 6;
 
 				int real_selected_tab_pos_x = button_size_x * (tab - 1);
 				int animate_selected_tab_pos_x = g_ui.process_animation("menu", 1, true, real_selected_tab_pos_x, 15.f, e_animation_type::animation_interp);
 
-				bg_drawlist->AddRectFilled(wnd_pos + ImVec2(animate_selected_tab_pos_x, 95 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(50, 74, 168), 0);
-				bg_drawlist->AddRectFilledMultiColor(wnd_pos + ImVec2(animate_selected_tab_pos_x, 70 * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
+				bg_drawlist->AddRectFilled(wnd_pos + ImVec2(animate_selected_tab_pos_x, 95.f * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96.f * m_dpi_scaling), ImColor(50, 74, 168), 0);
+				bg_drawlist->AddRectFilledMultiColor(wnd_pos + ImVec2(animate_selected_tab_pos_x, 70.f * m_dpi_scaling), wnd_pos + ImVec2(animate_selected_tab_pos_x + button_size_x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 50), ImColor(51, 53, 61, 0), ImColor(51, 53, 61, 0));
 			}
 			ImGui::PopStyleVar( );
 
@@ -306,7 +288,7 @@ void c_oink_ui::draw_menu( )
 						{
 							char buf[64];
 							sprintf_s(buf, "%.5f", ImGui::GetIO( ).DeltaTime);
-							button(buf, ImVec2(100, 25));
+							text(buf);
 						}
 
 					}
@@ -426,9 +408,183 @@ void c_oink_ui::draw_menu( )
 		}
 		ImGui::PopFont( );
 	}
-	ImGui::End( );
+	end( );
 	//close
 }
+
+void c_oink_ui::initialize(IDirect3DDevice9* device)
+{
+	m_key_names = { "Unknown",
+		"Left mouse",
+		"Right mouse",
+		"Cancel",
+		"Middle mouse",
+		"X1 mouse",
+		"X2 mouse",
+		"Unknown",
+		"Back",
+		"Tab",
+		"Unknown",
+		"Unknown",
+		"Clear",
+		"Return",
+		"Unknown",
+		"Unknown",
+		"Shift",
+		"Ctrl",
+		"Menu",
+		"Pause",
+		"Capital",
+		"KANA",
+		"Unknown",
+		"VK_JUNJA",
+		"VK_FINAL",
+		"VK_KANJI",
+		"Unknown",
+		"Escape",
+		"Convert",
+		"NonConvert",
+		"Accept",
+		"VK_MODECHANGE",
+		"Space",
+		"Prior",
+		"Next",
+		"End",
+		"Home",
+		"Left",
+		"Up",
+		"Right",
+		"Down",
+		"Select",
+		"Print",
+		"Execute",
+		"Snapshot",
+		"Insert",
+		"Delete",
+		"Help",
+		"0",
+		"1",
+		"2",
+		"3",
+		"4",
+		"5",
+		"6",
+		"7",
+		"8",
+		"9",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"A",
+		"B",
+		"C",
+		"D",
+		"E",
+		"F",
+		"G",
+		"H",
+		"I",
+		"J",
+		"K",
+		"L",
+		"M",
+		"N",
+		"O",
+		"P",
+		"Q",
+		"R",
+		"S",
+		"T",
+		"U",
+		"V",
+		"W",
+		"X",
+		"Y",
+		"Z",
+		"Win left",
+		"Win right",
+		"Apps",
+		"Unknown",
+		"Sleep",
+		"Numpad 0",
+		"Numpad 1",
+		"Numpad 2",
+		"Numpad 3",
+		"Numpad 4",
+		"Numpad 5",
+		"Numpad 6",
+		"Numpad 7",
+		"Numpad 8",
+		"Numpad 9",
+		"Multiply",
+		"Add",
+		"Seperator",
+		"Subtract",
+		"Decimal",
+		"Devide",
+		"F1",
+		"F2",
+		"F3",
+		"F4",
+		"F5",
+		"F6",
+		"F7",
+		"F8",
+		"F9",
+		"F10",
+		"F11",
+		"F12",
+		"F13",
+		"F14",
+		"F15",
+		"F16",
+		"F17",
+		"F18",
+		"F19",
+		"F20",
+		"F21",
+		"F22",
+		"F23",
+		"F24",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Numlock",
+		"Scroll",
+		"VK_OEM_NEC_EQUAL",
+		"VK_OEM_FJ_MASSHOU",
+		"VK_OEM_FJ_TOUROKU",
+		"VK_OEM_FJ_LOYA",
+		"VK_OEM_FJ_ROYA",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Unknown",
+		"Shift left",
+		"Shift right",
+		"Ctrl left",
+		"Ctrl right",
+		"Left menu",
+		"Right menu"
+	};
+
+	g_ui.textures_create(device);
+	g_ui.fonts_create(false);
+};
 
 void c_oink_ui::pre_draw_menu( )
 {
@@ -436,82 +592,111 @@ void c_oink_ui::pre_draw_menu( )
 		g_ui.fonts_create(true);
 };
 
-void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m_menu_size, bool main)
+void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& menu_size, bool main)
 {
-	bg_drawlist->AddRectFilled(m_menu_pos, m_menu_pos + m_menu_size, ImColor(5, 5, 5), 0);
+	auto& io = ImGui::GetIO( );
 
-	bg_drawlist->AddRectFilled(m_menu_pos, m_menu_pos + ImVec2(m_menu_size.x, 70 * m_dpi_scaling), ImColor(0, 0, 0), 0);
+	constexpr float y_max = 70.f;
 
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos, m_menu_pos + ImVec2(m_menu_size.x, 100 * m_dpi_scaling), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 0), ImColor(25, 25, 25, 0));
+	bg_drawlist->AddRectFilled(menu_pos, menu_pos + menu_size, ImColor(5, 5, 5), 0);
+
+	bg_drawlist->AddRectFilled(menu_pos, menu_pos + ImVec2(menu_size.x, 70.f * m_dpi_scaling), ImColor(0, 0, 0), 0);
+
+	bg_drawlist->AddRectFilledMultiColor(menu_pos, menu_pos + ImVec2(menu_size.x, 100.f * m_dpi_scaling), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 0), ImColor(25, 25, 25, 0));
 
 	if (main)
 	{
 		//flying pigs
 		{
-			for (int i = 0; i < 10; i++)
+			const ImVec2 bb[2] = { menu_pos, menu_pos + ImVec2(menu_size.x, y_max * m_dpi_scaling) };
+
+			const ImVec2 picture_size = ImVec2(35.f * m_dpi_scaling, 35.f * m_dpi_scaling);
+
+			static bool m_pigs_init = false;
+
+			if (!m_pigs_init)
 			{
-				static std::unordered_map <int, ImVec2> pValue;
-				static std::unordered_map <int, int> pValue2;
-				static std::unordered_map <int, float> pValue3;
-				static std::unordered_map <int, ImVec2> pValue4;
+				m_pigs_init = true;
+				for (size_t i = 0u; i < m_pigs_data.size( ); ++i)
+				{
+					m_pigs_data[i] = s_bg_pig_data(
+					ImVec2(get_random_number(bb[0].x, bb[1].x), get_random_number(bb[0].y, bb[1].y)),
+					get_random_number(0.f, 360.f),
+					get_random_number(-50.f, 50.f),
+					get_random_number(-50.f, 50.f),
+					i);
+				};
+			};
 
-				auto ItPLibrary = pValue.find(i);
-				if (ItPLibrary == pValue.end( ))
-					ItPLibrary = pValue.insert({ i, ImVec2(get_random_number(0, m_menu_size.x), get_random_number(0, 80)) }).first;
+			for (auto& data : m_pigs_data)
+			{
+				auto& rotation = data.m_rotation;
+				auto& rotation_index = data.m_rotation_index;
+				auto& position = data.m_position;
+				auto& speed = data.m_speed;
 
-				auto Rotation = pValue2.find(i);
+				rotation += io.DeltaTime;
 
-				if (Rotation == pValue2.end( ))
-					Rotation = pValue2.insert({ i, get_random_number(0, 360) }).first;
+				for (uint8_t axis = 0u; axis != 2; ++axis)
+				{
+					bool collide = false;
 
-				auto Rotation_value = pValue3.find(i);
-				if (Rotation_value == pValue3.end( ))
-					Rotation_value = pValue3.insert({ i, static_cast<float>(get_random_number(-3, 3)) }).first;
+					position[axis] += io.DeltaTime * speed[axis];
 
-				auto Move_speed = pValue4.find(i);
-				if (Move_speed == pValue4.end( ))
-					Move_speed = pValue4.insert({ i, ImVec2(get_random_number(-3, 3), get_random_number(-3, 3)) }).first;
+					if (position[axis] >= bb[1][axis])
+					{
+						collide = true;
+						position[axis] = bb[1][axis];
+					}
+					else if ((position[axis] + picture_size[axis]) >= bb[1][axis])
+					{
+						collide = true;
+						position[axis] = bb[1][axis] - picture_size[axis];
+					}
+					else if (position[axis] <= bb[0][axis])
+					{
+						collide = true;
+						position[axis] = bb[0][axis];
+					}
+					else if ((position[axis] + picture_size[axis]) <= bb[0][axis])
+					{
+						collide = true;
+						position[axis] = bb[0][axis] + picture_size[axis];
+					};
 
-				ItPLibrary->second.x += Move_speed->second.x / 200.f;
-				ItPLibrary->second.y += Move_speed->second.y / 200.f;
+					if (collide)
+						speed[axis] *= -1.f;
+				};
 
-				Rotation_value->second += ImGui::GetIO( ).DeltaTime;
+				bg_drawlist->PushClipRect(bb[0], bb[1]);
+				rotate_start(bg_drawlist, rotation_index);
 
-				if (ItPLibrary->second.x + m_menu_pos.x > m_menu_pos.x + m_menu_size.y)
-					Move_speed->second.x *= -1;
+				bg_drawlist->AddImage(m_textures[e_tex_id::tex_pig],
+									  position,
+									  position + picture_size,
+									  ImVec2(0, 0),
+									  ImVec2(1, 1),
+									  ImColor(125, 143, 212, 30));
 
-				if (ItPLibrary->second.y + m_menu_pos.y > m_menu_pos.y + 70)
-					Move_speed->second.y *= -1;
-
-				if (ItPLibrary->second.x + m_menu_pos.x < m_menu_pos.x)
-					Move_speed->second.x *= -1;
-
-				if (ItPLibrary->second.y + m_menu_pos.y < m_menu_pos.y)
-					Move_speed->second.y *= -1;
-
-				bg_drawlist->PushClipRect(ImVec2(m_menu_pos), ImVec2(m_menu_pos + ImVec2(m_menu_size.x, 70 * m_dpi_scaling)));
-				ImRotateStart(Rotation->second);
-
-				bg_drawlist->AddImage(m_textures[tex_pig], m_menu_pos + ItPLibrary->second, m_menu_pos + ItPLibrary->second + ImVec2(35 * m_dpi_scaling, 35 * m_dpi_scaling), ImVec2(0, 0), ImVec2(1 , 1 ), ImColor(125, 143, 212, 30));
-				ImRotateEnd(Rotation_value->second, Rotation->second);
+				rotate_end(bg_drawlist, rotation, rotation_index);
 				bg_drawlist->PopClipRect( );
-			}
+			};
 		}
 
-		bg_drawlist->AddText(m_fonts[font_giant], 100 * m_dpi_scaling, m_menu_pos + ImVec2(100 * m_dpi_scaling, 1 * m_dpi_scaling), ImColor(50, 74, 168, 200), "Industries");
+		bg_drawlist->AddText(m_fonts[font_giant], 100 * m_dpi_scaling, menu_pos + ImVec2(100 * m_dpi_scaling, 1 * m_dpi_scaling), ImColor(50, 74, 168, 200), "Industries");
 	}
 
 	//bg_drawlist->AddText(c_oink_ui::get( ).small_font, 12, m_menu_pos + ImVec2(4, 3), ImColor(255, 255, 255, 100), main ? "Oink.industries | beta | v1.01 | User" : "Player list");
 
-	bg_drawlist->AddRectFilled(m_menu_pos + ImVec2(0, 70 * m_dpi_scaling), m_menu_pos + m_menu_size, ImColor(10, 10, 10), 0);
+	bg_drawlist->AddRectFilled(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + menu_size, ImColor(10, 10, 10), 0);
 
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 70 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0), ImColor(50, 74, 168));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 0), m_menu_pos + ImVec2(m_menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 70 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y), ImColor(50, 74, 168, 25), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 96 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y), ImColor(9, 10, 15, 100), ImColor(9, 10, 15, 100), ImColor(21, 25, 38, 0), ImColor(21, 25, 38, 0));
-	bg_drawlist->AddRectFilledMultiColor(m_menu_pos + ImVec2(0, 96 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, m_menu_size.y / 2), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0), ImColor(50, 74, 168));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 0), menu_pos + ImVec2(menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y), ImColor(50, 74, 168, 25), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 96 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y), ImColor(9, 10, 15, 100), ImColor(9, 10, 15, 100), ImColor(21, 25, 38, 0), ImColor(21, 25, 38, 0));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 96 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y / 2), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0));
 
-	bg_drawlist->AddRectFilled(m_menu_pos + ImVec2(0, 95 * m_dpi_scaling), m_menu_pos + ImVec2(m_menu_size.x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 150), 0);
+	bg_drawlist->AddRectFilled(menu_pos + ImVec2(0, 95 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 150), 0);
 
-	bg_drawlist->AddRect(m_menu_pos, m_menu_pos + m_menu_size, ImColor(50, 74, 168, 50), 0);
+	bg_drawlist->AddRect(menu_pos, menu_pos + menu_size, ImColor(50, 74, 168, 50), 0);
 }

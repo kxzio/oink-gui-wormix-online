@@ -2,7 +2,7 @@
 
 using namespace ImGui;
 
-bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data, ImColor& theme_colour, bool show_title = true)
+bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data, ImColor& theme_colour, const float& dpi_scale, bool show_title = true)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -40,8 +40,8 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 	if (is_multiline) // Open group before calling GetID() because groups tracks id created within their scope (including the scrollbar)
 		BeginGroup( );
 
-	const float w = 186 * g_ui.m_dpi_scaling;
-	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * g_ui.m_dpi_scaling));
+	const float w = 186 * dpi_scale;
+	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * dpi_scale));
 	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
 	ImColor color = theme_colour;
@@ -969,5 +969,5 @@ bool c_oink_ui::input_text(const char* label, char* buf, size_t buf_size, ImGuiI
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 	IM_ASSERT(!(flags & ImGuiInputTextFlags_Multiline)); // call InputTextMultiline()
-	return input_text_ex(label, NULL, buf, buf_size, ImVec2(0, 0), flags, callback, user_data, m_theme_colour);
+	return input_text_ex(label, NULL, buf, buf_size, ImVec2(0, 0), flags, callback, user_data, m_theme_colour, m_dpi_scaling);
 }
