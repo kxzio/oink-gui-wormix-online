@@ -22,7 +22,6 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
 
 	const ImRect bb(pos, pos + size);
-	const ImRect check_bb = bb;
 	bool hovered, held;
 	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
@@ -31,7 +30,6 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 		return false;
 
 	// Render
-	const ImU32 col = GetColorU32((pressed) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
 	RenderNavHighlight(bb, id);
 
 	float alpha = g_ui.process_animation(label, 1, g.LastActiveId == id && g.LastActiveIdTimer < 0.15f, 0.5f, 15.f, e_animation_type::animation_dynamic);
@@ -49,12 +47,8 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	color.Value.w = 0.78f + hovered_alpha;
 	window->DrawList->AddRect(bb.Min, bb.Max, color, style.FrameRounding);
 
-	auto backup_size = window->FontWindowScale;
 	//SetWindowFontScale(window->FontWindowScale + (text_size / 1000.f));
 	window->DrawList->AddText(bb.Min + bb.GetSize( ) / 2 - label_size / 2, ImColor(1.f, 1.f, 1.f, 0.7f + hovered_alpha), label);
-
-	//setup font size
-	SetWindowFontScale(backup_size);
 
 	// Automatically close popups
 	if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
