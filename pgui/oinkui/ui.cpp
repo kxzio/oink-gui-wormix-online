@@ -431,6 +431,125 @@ void c_oink_ui::draw_menu( )
 	//close
 }
 
+void c_oink_ui::pre_draw_menu( )
+{
+	if (m_dpi_scaling != m_dpi_scaling_backup)
+		g_ui.fonts_create(true);
+};
+
+void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& menu_size, bool main)
+{
+	auto& io = ImGui::GetIO( );
+
+	constexpr float y_max = 70.f;
+
+	bg_drawlist->AddRectFilled(menu_pos, menu_pos + menu_size, ImColor(5, 5, 5), 0);
+
+	bg_drawlist->AddRectFilled(menu_pos, menu_pos + ImVec2(menu_size.x, 70.f * m_dpi_scaling), ImColor(0, 0, 0), 0);
+
+	bg_drawlist->AddRectFilledMultiColor(menu_pos, menu_pos + ImVec2(menu_size.x, 100.f * m_dpi_scaling), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 0), ImColor(25, 25, 25, 0));
+
+	if (main)
+	{
+		//flying pigs
+		{
+			const ImVec2 bb[2] = { menu_pos, menu_pos + ImVec2(menu_size.x, y_max * m_dpi_scaling) };
+
+			const ImVec2 picture_size = ImVec2(35.f * m_dpi_scaling, 35.f * m_dpi_scaling);
+
+			static bool m_pigs_init = false;
+
+			if (!m_pigs_init)
+			{
+				m_pigs_init = true;
+				for (size_t i = 0u; i < m_pigs_data.size( ); ++i)
+				{
+					m_pigs_data[i] = s_bg_pig_data(
+					ImVec2(get_random_number(bb[0].x, bb[1].x), get_random_number(bb[0].y, bb[1].y)),
+					get_random_number(0.f, 360.f),
+					get_random_number(-50.f, 50.f),
+					get_random_number(-50.f, 50.f),
+					i);
+				};
+			};
+
+			bg_drawlist->PushClipRect(bb[0], bb[1]);
+
+			for (auto& data : m_pigs_data)
+			{
+				auto& rotation = data.m_rotation;
+				auto& rotation_index = data.m_rotation_index;
+				auto& position = data.m_position;
+				auto& speed = data.m_speed;
+
+				rotation += io.DeltaTime;
+
+				for (uint8_t axis = 0u; axis != 2; ++axis)
+				{
+					bool collide = false;
+
+					position[axis] += io.DeltaTime * speed[axis];
+
+					if (position[axis] >= bb[1][axis])
+					{
+						collide = true;
+						position[axis] = bb[1][axis];
+					}
+					else if ((position[axis] + picture_size[axis]) >= bb[1][axis])
+					{
+						collide = true;
+						position[axis] = bb[1][axis] - picture_size[axis];
+					}
+					else if (position[axis] <= bb[0][axis])
+					{
+						collide = true;
+						position[axis] = bb[0][axis];
+					}
+					else if ((position[axis] + picture_size[axis]) <= bb[0][axis])
+					{
+						collide = true;
+						position[axis] = bb[0][axis] + picture_size[axis];
+					};
+
+					if (collide)
+						speed[axis] *= -1.f;
+				};
+
+				rotate_start(bg_drawlist, rotation_index);
+
+				bg_drawlist->AddImage(m_textures[e_tex_id::tex_pig],
+									  position,
+									  position + picture_size,
+									  ImVec2(0, 0),
+									  ImVec2(1, 1),
+									  ImColor(125, 143, 212, 30));
+
+				rotate_end(bg_drawlist, rotation, rotation_index);
+			};
+
+			bg_drawlist->AddText(m_fonts[font_giant], 100.f * m_dpi_scaling, menu_pos + (ImVec2(100.f, 1.f) * m_dpi_scaling), ImColor(50, 74, 168, 100), "Industries");
+
+			bg_drawlist->PopClipRect( );
+		}
+
+	}
+
+	//bg_drawlist->AddText(c_oink_ui::get( ).small_font, 12, m_menu_pos + ImVec2(4, 3), ImColor(255, 255, 255, 100), main ? "Oink.industries | beta | v1.01 | User" : "Player list");
+
+	bg_drawlist->AddRectFilled(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + menu_size, ImColor(10, 10, 10), 0);
+
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0), ImColor(50, 74, 168));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 0), menu_pos + ImVec2(menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y), ImColor(50, 74, 168, 25), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 96 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y), ImColor(9, 10, 15, 100), ImColor(9, 10, 15, 100), ImColor(21, 25, 38, 0), ImColor(21, 25, 38, 0));
+	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 96 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y / 2), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0));
+
+	bg_drawlist->AddRectFilled(menu_pos + ImVec2(0, 95 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 150), 0);
+
+	bg_drawlist->AddRect(menu_pos, menu_pos + menu_size, ImColor(50, 74, 168, 50), 0);
+}
+
+
 void c_oink_ui::initialize(IDirect3DDevice9* device)
 {
 	m_key_names = { "Unknown",
@@ -604,121 +723,3 @@ void c_oink_ui::initialize(IDirect3DDevice9* device)
 	g_ui.textures_create(device);
 	g_ui.fonts_create(false);
 };
-
-void c_oink_ui::pre_draw_menu( )
-{
-	if (m_dpi_scaling != m_dpi_scaling_backup)
-		g_ui.fonts_create(true);
-};
-
-void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& menu_size, bool main)
-{
-	auto& io = ImGui::GetIO( );
-
-	constexpr float y_max = 70.f;
-
-	bg_drawlist->AddRectFilled(menu_pos, menu_pos + menu_size, ImColor(5, 5, 5), 0);
-
-	bg_drawlist->AddRectFilled(menu_pos, menu_pos + ImVec2(menu_size.x, 70.f * m_dpi_scaling), ImColor(0, 0, 0), 0);
-
-	bg_drawlist->AddRectFilledMultiColor(menu_pos, menu_pos + ImVec2(menu_size.x, 100.f * m_dpi_scaling), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 150), ImColor(25, 25, 25, 0), ImColor(25, 25, 25, 0));
-
-	if (main)
-	{
-		//flying pigs
-		{
-			const ImVec2 bb[2] = { menu_pos, menu_pos + ImVec2(menu_size.x, y_max * m_dpi_scaling) };
-
-			const ImVec2 picture_size = ImVec2(35.f * m_dpi_scaling, 35.f * m_dpi_scaling);
-
-			static bool m_pigs_init = false;
-
-			if (!m_pigs_init)
-			{
-				m_pigs_init = true;
-				for (size_t i = 0u; i < m_pigs_data.size( ); ++i)
-				{
-					m_pigs_data[i] = s_bg_pig_data(
-					ImVec2(get_random_number(bb[0].x, bb[1].x), get_random_number(bb[0].y, bb[1].y)),
-					get_random_number(0.f, 360.f),
-					get_random_number(-50.f, 50.f),
-					get_random_number(-50.f, 50.f),
-					i);
-				};
-			};
-
-			bg_drawlist->PushClipRect(bb[0], bb[1]);
-
-			for (auto& data : m_pigs_data)
-			{
-				auto& rotation = data.m_rotation;
-				auto& rotation_index = data.m_rotation_index;
-				auto& position = data.m_position;
-				auto& speed = data.m_speed;
-
-				rotation += io.DeltaTime;
-
-				for (uint8_t axis = 0u; axis != 2; ++axis)
-				{
-					bool collide = false;
-
-					position[axis] += io.DeltaTime * speed[axis];
-
-					if (position[axis] >= bb[1][axis])
-					{
-						collide = true;
-						position[axis] = bb[1][axis];
-					}
-					else if ((position[axis] + picture_size[axis]) >= bb[1][axis])
-					{
-						collide = true;
-						position[axis] = bb[1][axis] - picture_size[axis];
-					}
-					else if (position[axis] <= bb[0][axis])
-					{
-						collide = true;
-						position[axis] = bb[0][axis];
-					}
-					else if ((position[axis] + picture_size[axis]) <= bb[0][axis])
-					{
-						collide = true;
-						position[axis] = bb[0][axis] + picture_size[axis];
-					};
-
-					if (collide)
-						speed[axis] *= -1.f;
-				};
-
-				rotate_start(bg_drawlist, rotation_index);
-
-				bg_drawlist->AddImage(m_textures[e_tex_id::tex_pig],
-									  position,
-									  position + picture_size,
-									  ImVec2(0, 0),
-									  ImVec2(1, 1),
-									  ImColor(125, 143, 212, 30));
-
-				rotate_end(bg_drawlist, rotation, rotation_index);
-			};
-
-			bg_drawlist->AddText(m_fonts[font_giant], 100.f * m_dpi_scaling, menu_pos + (ImVec2(100.f, 1.f) * m_dpi_scaling), ImColor(50, 74, 168, 100), "Industries");
-
-			bg_drawlist->PopClipRect( );
-		}
-
-	}
-
-	//bg_drawlist->AddText(c_oink_ui::get( ).small_font, 12, m_menu_pos + ImVec2(4, 3), ImColor(255, 255, 255, 100), main ? "Oink.industries | beta | v1.01 | User" : "Player list");
-
-	bg_drawlist->AddRectFilled(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + menu_size, ImColor(10, 10, 10), 0);
-
-	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0), ImColor(50, 74, 168));
-	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 0), menu_pos + ImVec2(menu_size.x, 71 * m_dpi_scaling), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
-	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 70 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y), ImColor(50, 74, 168, 25), ImColor(50, 74, 168, 20), ImColor(50, 74, 168, 0), ImColor(50, 74, 168, 0));
-	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 96 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y), ImColor(9, 10, 15, 100), ImColor(9, 10, 15, 100), ImColor(21, 25, 38, 0), ImColor(21, 25, 38, 0));
-	bg_drawlist->AddRectFilledMultiColor(menu_pos + ImVec2(0, 96 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, menu_size.y / 2), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 100), ImColor(0, 0, 0, 0), ImColor(0, 0, 0, 0));
-
-	bg_drawlist->AddRectFilled(menu_pos + ImVec2(0, 95 * m_dpi_scaling), menu_pos + ImVec2(menu_size.x, 96 * m_dpi_scaling), ImColor(51, 53, 61, 150), 0);
-
-	bg_drawlist->AddRect(menu_pos, menu_pos + menu_size, ImColor(50, 74, 168, 50), 0);
-}
