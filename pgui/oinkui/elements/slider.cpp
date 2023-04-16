@@ -42,7 +42,6 @@ bool c_oink_ui::temp_input_scalar(const ImRect& bb, ImGuiID id, const char* labe
 	return value_changed;
 }
 
-
 bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format, ImGuiSliderFlags flags, const ImColor& theme)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
@@ -119,7 +118,7 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	if (value_changed)
 		MarkItemEdited(id);
 
-	float slider_difference = grab_bb.Max.x - frame_bb.Min.x;
+	float slider_difference = grab_bb.Min.x - frame_bb.Min.x;
 
 	float button_animation = g_ui.process_animation(label, 1, g.ActiveId == id, 0.28f, 10.0f, e_animation_type::animation_dynamic);
 	float button_hovered_animation = g_ui.process_animation(label, 2, hovered, 1.f - 0.78f, 10.f, e_animation_type::animation_dynamic);
@@ -144,15 +143,13 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	char value_buf[64];
 	const char* value_buf_end = value_buf + DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 
-	ImVec2 textSize = m_fonts[3]->CalcTextSizeA(12.f * m_dpi_scaling, FLT_MAX, -1, value_buf, value_buf_end, NULL);
-
-	textSize.x = ImMax(12.f * m_dpi_scaling, textSize.x);
+	ImVec2 textSize = CalcTextSize(value_buf, value_buf_end);
 
 	float new_grab_bb_max = frame_bb.Min.x + slider_animation;
 	float new_grab_bb_min = frame_bb.Min.x + slider_animation - 8 * m_dpi_scaling;
 
-	ImVec2 p1 = ImVec2(new_grab_bb_max - textSize.x / 2 - 4 * m_dpi_scaling, grab_bb.Min.y - 8 * m_dpi_scaling) - ImVec2(8 * m_dpi_scaling, 0);
-	ImVec2 p2 = ImVec2(new_grab_bb_max + textSize.x / 2 + 4 * m_dpi_scaling, grab_bb.Max.y + 8 * m_dpi_scaling) - ImVec2(8 * m_dpi_scaling, 0);
+	ImVec2 p1 = ImVec2(new_grab_bb_max - textSize.x / 2 - 4 * m_dpi_scaling, grab_bb.Min.y - 6 * m_dpi_scaling);
+	ImVec2 p2 = ImVec2(new_grab_bb_max + textSize.x / 2 + 4 * m_dpi_scaling, grab_bb.Max.y + 6 * m_dpi_scaling);
 
 	PushStyleColor(ImGuiCol_Text, IM_COL32_WHITE);
 	{

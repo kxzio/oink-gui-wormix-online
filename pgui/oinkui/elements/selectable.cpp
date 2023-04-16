@@ -2,7 +2,7 @@
 
 using namespace ImGui;
 
-bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags, const ImVec2& size_arg, ImColor& theme_colour)
+bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags, const ImVec2& size_arg, const ImColor& theme_colour, const float& dpi_scale)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -30,7 +30,7 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 		size.x = ImMax(label_size.x, max_x - min_x);
 
 	// Text stays at the submission position, but bounding box may be extended on both sides
-	const ImVec2 text_min = pos + ImVec2(3 * g_ui.m_dpi_scaling, 0);
+	const ImVec2 text_min = pos + ImVec2(3.f * dpi_scale, 0.f);
 	const ImVec2 text_max(min_x + size.x, pos.y + size.y);
 
 	// Selectables are meant to be tightly packed together with no click-gap, so we extend their box to cover spacing between selectable.
@@ -154,15 +154,15 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 
 	if (alpha_selected > 0.f)
 	{
-		window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(1 * g_ui.m_dpi_scaling, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 1.f, alpha_selected), false, 0.0f);
-		window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(1 * g_ui.m_dpi_scaling, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 0.6f, alpha_selected), false, 0.0f);
+		window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(1 * dpi_scale, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 1.f, alpha_selected), false, 0.0f);
+		window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(1 * dpi_scale, bb.GetSize( ).y), ImColor(0.18f, 0.27f, 0.6f, alpha_selected), false, 0.0f);
 
 		color.Value.w = alpha_selected * 0.5f;
 
 		if (color.Value.w > 0.0f)
 		{
-			window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30.f * g_ui.m_dpi_scaling, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
-			window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30.f * g_ui.m_dpi_scaling, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
+			window->DrawList->AddRectFilledMultiColor(bb.Min, bb.Min + ImVec2(30.f * dpi_scale, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
+			window->DrawList->AddRectFilledMultiColor(bb.Max, bb.Max - ImVec2(30.f * dpi_scale, bb.GetSize( ).y), color, IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS, color);
 		};
 	};
 
@@ -192,7 +192,7 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 
 bool c_oink_ui::selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags, const ImVec2& size_arg)
 {
-	if (selectable_ex(label, *p_selected, flags, size_arg, m_theme_colour))
+	if (selectable_ex(label, *p_selected, flags, size_arg, m_theme_colour, m_dpi_scaling))
 	{
 		*p_selected = !*p_selected;
 		return true;

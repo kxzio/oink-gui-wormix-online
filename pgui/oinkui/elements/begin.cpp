@@ -99,23 +99,22 @@ bool scroll_bar_ex(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS64* p_
 	return held;
 };
 
-constexpr int child_x_size_const = 206;
-
 bool c_oink_ui::begin_child(const char* label, int number_of_child)
 {
-	ImGui::SetCursorPos(ImVec2(10 * m_dpi_scaling + ((child_x_size_const * m_dpi_scaling + 10 * m_dpi_scaling) * (number_of_child - 1)), 105 * m_dpi_scaling));
+	constexpr int child_x_size_const = 206;
+
+	ImGui::SetCursorPos(ImVec2(10.f * m_dpi_scaling + ((child_x_size_const * m_dpi_scaling + 10.f * m_dpi_scaling) * (number_of_child - 1)), 105.f * m_dpi_scaling));
 
 	ImGuiStyle& style = ImGui::GetStyle( );
 
-	if (ImGui::BeginChild(label, ImVec2(child_x_size_const * m_dpi_scaling, 393 * m_dpi_scaling)))
+	if (ImGui::BeginChild(label, ImVec2(child_x_size_const * m_dpi_scaling, 393.f * m_dpi_scaling)))
 	{
-		style.ItemSpacing = ImVec2(10 * m_dpi_scaling, 5 * m_dpi_scaling);
-
-		ImGui::SetCursorPos(ImVec2(m_gap * m_dpi_scaling, 10 * m_dpi_scaling));
+		style.ItemSpacing = ImVec2(10.f * m_dpi_scaling, 5.f * m_dpi_scaling);
+		ImGui::SetCursorPos(ImVec2(10.f * m_dpi_scaling, 10.f * m_dpi_scaling));
 		text_colored(label);
 
 		ImGui::Separator( );
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2 * m_dpi_scaling);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2.f * m_dpi_scaling);
 		return true;
 	};
 
@@ -125,7 +124,22 @@ bool c_oink_ui::begin_child(const char* label, int number_of_child)
 void c_oink_ui::end_child( )
 {
 	ImGuiStyle& style = ImGui::GetStyle( );
-	style.ItemSpacing = ImVec2(20 * m_dpi_scaling, 0 * m_dpi_scaling);
-	ImGui::Dummy(ImVec2(10 * m_dpi_scaling, 10 * m_dpi_scaling));
+	style.ItemSpacing = ImVec2(20.f * m_dpi_scaling, 0.f * m_dpi_scaling);
+	ImGui::Dummy(ImVec2(10.f * m_dpi_scaling, 10.f * m_dpi_scaling));
 	ImGui::EndChild( );
 }
+
+bool c_oink_ui::begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
+{
+	return ImGui::Begin(name, p_open, flags);
+}
+
+void c_oink_ui::end( )
+{
+	ImGui::End( );
+}
+
+void c_oink_ui::same_line(const float offset_x, const float spacing)
+{
+	ImGui::SameLine(offset_x, spacing);
+};

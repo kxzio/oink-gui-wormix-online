@@ -100,10 +100,7 @@ int main( )
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 	UpdateWindow(hwnd);
 
-	{
-		g_ui.textures_create(g_pd3dDevice);
-		g_ui.fonts_create( );
-	};
+	g_ui.initialize(g_pd3dDevice);
 
 	while (msg.message != WM_QUIT)
 	{
@@ -148,7 +145,7 @@ int main( )
 		}
 	}
 
-	g_ui.terminate_menu( );
+	g_ui.terminate( );
 
 	ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );

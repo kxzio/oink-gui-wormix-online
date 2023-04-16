@@ -4,7 +4,7 @@
 
 using namespace ImGui;
 
-bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, const ImColor& theme)
+bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, const ImColor& theme_colour, const float& dpi_scale)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -18,6 +18,7 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	ImVec2 pos = window->DC.CursorPos;
 	if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
 		pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+
 	ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
 
 	const ImRect bb(pos, pos + size);
@@ -38,11 +39,11 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 
 	//background
 
-	ImColor color = theme;
+	ImColor color = theme_colour;
 
 	color.Value.w = alpha;
 
-	window->DrawList->AddRectFilled(bb.Min + ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), bb.Max - ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), color, style.FrameRounding);
+	window->DrawList->AddRectFilled(bb.Min, bb.Max, color, style.FrameRounding);
 	//outline
 
 	color.Value.w = 0.78f + hovered_alpha;
@@ -103,7 +104,7 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	//background
 	color.Value.w = 0.078f + alpha;
-	window->DrawList->AddRectFilled(bb.Min + ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), bb.Max - ImVec2(1 * g_ui.m_dpi_scaling, 1 * g_ui.m_dpi_scaling), color, style.FrameRounding);
+	window->DrawList->AddRectFilled(bb.Min + ImVec2(1 * m_dpi_scaling, 1 * m_dpi_scaling), bb.Max - ImVec2(1 * m_dpi_scaling, 1 * m_dpi_scaling), color, style.FrameRounding);
 	//outline
 
 	color.Value.w = 0.39f + alpha;
@@ -118,7 +119,7 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 	return pressed;
 }
 
-bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, int this_tab, int opened_tab)
+bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags, bool is_tab_active)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)
@@ -150,7 +151,7 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	float animation_hovered = g_ui.process_animation(label, 6, hovered, 0.39f, 15.f, e_animation_type::animation_dynamic);
 
-	float selected_alpha = g_ui.process_animation(label, 7, this_tab == opened_tab, 0.78f, 15.f, e_animation_type::animation_dynamic);
+	float selected_alpha = g_ui.process_animation(label, 7, is_tab_active, 0.78f, 15.f, e_animation_type::animation_dynamic);
 
 	ImColor text_color = IM_COL32_WHITE;
 
@@ -176,5 +177,5 @@ bool c_oink_ui::tab_button(const char* label, const ImVec2& size_arg, ImGuiButto
 bool c_oink_ui::button(const char* label, const ImVec2& size_arg)
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
-	return button_ex(label, size_arg * m_dpi_scaling, ImGuiButtonFlags_None, m_theme_colour);
+	return button_ex(label, size_arg * m_dpi_scaling, ImGuiButtonFlags_None, m_theme_colour, m_dpi_scaling);
 }

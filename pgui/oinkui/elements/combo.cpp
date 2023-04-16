@@ -4,7 +4,7 @@
 
 using namespace ImGui;
 
-bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags flags, const ImColor& theme_colour)
+bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags flags, const ImColor& theme_colour, const float& dpi_scale)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = GetCurrentWindow( );
@@ -28,11 +28,11 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 	const ImGuiID id = window->GetID(label);
 	IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
 
-	const float w = 186 * g_ui.m_dpi_scaling;
+	const float w = 186 * dpi_scale;
 
 	const float arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight( );
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
-	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * g_ui.m_dpi_scaling));
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * dpi_scale));
 	const ImRect total_bb(bb.Min, bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 	ItemSize(total_bb, style.FramePadding.y);
 	if (!ItemAdd(total_bb, id, &bb))
@@ -107,7 +107,7 @@ bool c_oink_ui::combo_box(const char* label, int* current_item, bool (*items_get
 	if (popup_max_height_in_items != -1 && !(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint))
 		SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
 
-	if (!begin_combo(label, preview_value, ImGuiComboFlags_None, m_theme_colour))
+	if (!begin_combo(label, preview_value, ImGuiComboFlags_None, m_theme_colour, m_dpi_scaling))
 		return false;
 
 	// Display items
@@ -142,7 +142,7 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 {
 	ImGui::SetCursorPosX(m_gap * m_dpi_scaling);
 
-	auto max_popup_height = CalcMaxPopupHeight(-1);
+	auto max_popup_height = calc_max_popup_height(-1);
 
 	ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, max_popup_height));
 
@@ -163,7 +163,7 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 	if (active_items < 1)
 		render_str = "None";
 
-	if (begin_combo(title, render_str.c_str( ), ImGuiComboFlags_NoArrowButton, m_theme_colour))
+	if (begin_combo(title, render_str.c_str( ), ImGuiComboFlags_NoArrowButton, m_theme_colour, m_dpi_scaling))
 	{
 		for (size_t i = 0u; i < size; ++i)
 		{
