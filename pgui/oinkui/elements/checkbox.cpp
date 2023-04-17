@@ -66,7 +66,7 @@ bool c_oink_ui::checkbox(const char* label, bool* v)
 
 	RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(checkmark_rad, pad), ImColor(0.f, 0.f, 0.f, active_alpha), square_sz - checkmark_rad * 2.0f);
 
-	ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y - 2);
+	ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x * m_dpi_scaling, check_bb.Min.y + style.FramePadding.y * m_dpi_scaling - 2 * m_dpi_scaling);
 
 	color = IM_COL32_WHITE;
 	color.Value.w = 0.19f + alpha + hovered_animation;

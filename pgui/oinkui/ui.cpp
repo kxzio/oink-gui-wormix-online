@@ -151,6 +151,13 @@ void c_oink_ui::draw_menu( )
 	//menu code
 	if (begin("main window", &m_menu_opened, m_flags))
 	{
+		//style
+		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarBg]          = ImColor(0, 0, 0, 0);
+		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarGrab]        = m_theme_colour_primary;
+		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarGrabHovered] = m_theme_colour_primary;
+		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarGrabActive]  = m_theme_colour_primary;
+		ImGui::GetStyle( ).ScrollbarSize = 1.f;
+		ImGui::GetStyle( ).PopupBorderSize = 0.f;
 		//load vars
 		wnd_pos = ImGui::GetWindowPos( );
 		wnd_size = ImGui::GetWindowSize( );
@@ -592,7 +599,7 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 
 	color_sec_transparent.Value.w = 0.58f;
 
-	bg_drawlist->AddRectFilled(menu_pos + (ImVec2(0.f, 95.f) * m_dpi_scaling), menu_pos + (ImVec2(menu_size.x, 96.f) * m_dpi_scaling), ImColor(51, 51, 51, 150));
+	bg_drawlist->AddRectFilled(menu_pos + (ImVec2(0.f, 95.f) * m_dpi_scaling), menu_pos + (ImVec2(menu_size.x, 96.f * m_dpi_scaling)), ImColor(51, 51, 51, 150));
 
 	bg_drawlist->AddRect(menu_pos, menu_pos + menu_size, color_sec_transparent);
 }

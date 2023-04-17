@@ -147,6 +147,7 @@ private:
 			buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
 	};
 public:
+
 	float process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	float process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	ImGuiID generate_unique_id(const char* label, unsigned int seed);
@@ -154,6 +155,9 @@ private:
 	void textures_create(IDirect3DDevice9* device);
 	void fonts_create(bool invalidate = false);
 private:
+
+	bool begin_window(const char* name, bool* p_open, ImGuiWindowFlags flags, bool p = false);
+
 	void render_cursor(ImDrawList* fg_drawlist);
 
 	void configure(ImDrawList* bg_drawlist, ImVec2& m_menu_pos, ImVec2& m_menu_size, bool main = true);
@@ -190,6 +194,8 @@ private:
 	float get_cursor_pos_y( );
 
 	bool begin_child(const char* label, int number_of_child);
+	bool begin_child_ex(const char* name, ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags flags);
+	bool create_child(const char* str_id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags);
 	void end_child( );
 
 	bool begin(const char* name, bool* p_open = nullptr, ImGuiWindowFlags flags = ImGuiWindowFlags_None);
