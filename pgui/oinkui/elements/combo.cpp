@@ -87,6 +87,7 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 		RenderTextClipped(bb.Min + style.FramePadding, ImVec2(value_x2, bb.Max.y), preview_value, NULL, NULL);
 	}
 
+
 	if (!popup_open)
 		return false;
 
@@ -107,8 +108,13 @@ bool c_oink_ui::combo_box(const char* label, int* current_item, bool (*items_get
 	if (popup_max_height_in_items != -1 && !(g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint))
 		SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
 
+	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(ImColor(9, 10, 15, 240)));
+
 	if (!begin_combo(label, preview_value, ImGuiComboFlags_None, m_theme_colour_primary, m_dpi_scaling))
+	{
+		ImGui::PopStyleColor( );
 		return false;
+	}
 
 	// Display items
 	// FIXME-OPT: Use clipper (but we need to disable it on the appearing frame to make sure our call to SetItemDefaultFocus() is processed)
@@ -131,15 +137,19 @@ bool c_oink_ui::combo_box(const char* label, int* current_item, bool (*items_get
 	}
 
 	EndCombo( );
+	ImGui::PopStyleColor( );
 
 	if (value_changed)
 		MarkItemEdited(g.LastItemData.ID);
+
 
 	return value_changed;
 }
 
 void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text[ ], int size)
 {
+	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(ImColor(9, 10, 15, 240)));
+
 	set_cursor_pos_x(m_gap);
 
 	auto max_popup_height = calc_max_popup_height(-1);
@@ -168,12 +178,13 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 		for (size_t i = 0u; i < size; ++i)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10));
-			selectable(text[i], &selection[i], ImGuiSelectableFlags_DontClosePopups);
+				selectable(text[i], &selection[i], ImGuiSelectableFlags_DontClosePopups);
 			ImGui::PopStyleVar( );
 		};
 
 		ImGui::EndCombo( );
 	};
+	ImGui::PopStyleColor( );
 };
 
 

@@ -68,7 +68,7 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	else if (data_type == ImGuiDataType_S32 && strcmp(format, "%d") != 0) // (FIXME-LEGACY: Patch old "%.0f" format string to use "%d", read function more details.)
 		format = PatchFormatStringFloatToInt(format);
 
-	const ImRect input_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 10.0f * m_dpi_scaling));
+	const ImRect input_bb(frame_bb.Min, frame_bb.Max + ImVec2(w, label_size.y + style.FramePadding.y * 10.0f * m_dpi_scaling));
 
 	// Tabbing or CTRL-clicking on Slider turns it into an input box
 	const bool hovered = ItemHoverable(frame_bb, id);

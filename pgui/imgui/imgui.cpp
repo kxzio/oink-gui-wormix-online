@@ -972,7 +972,7 @@ namespace ImGui
 	static void             RenderWindowTitleBarContents(ImGuiWindow* window, const ImRect& title_bar_rect, const char* name, bool* p_open);
 	static void             RenderDimmedBackgroundBehindWindow(ImGuiWindow* window, ImU32 col);
 	static void             RenderDimmedBackgrounds( );
-	static ImGuiWindow* FindBlockingModal(ImGuiWindow* window);
+	ImGuiWindow* FindBlockingModal(ImGuiWindow* window);
 
 	// Viewports
 	static void             UpdateViewportsNewFrame( );
@@ -3330,7 +3330,7 @@ ImGuiID ImGuiWindow::GetIDFromRectangle(const ImRect& r_abs)
 	return id;
 }
 
-static void SetCurrentWindow(ImGuiWindow* window)
+void SetCurrentWindow(ImGuiWindow* window)
 {
 	ImGuiContext& g = *GImGui;
 	g.CurrentWindow = window;
@@ -5312,7 +5312,7 @@ void ImGui::EndChildFrame( )
 	EndChild( );
 }
 
-static void SetWindowConditionAllowFlags(ImGuiWindow* window, ImGuiCond flags, bool enabled)
+void SetWindowConditionAllowFlags(ImGuiWindow* window, ImGuiCond flags, bool enabled)
 {
 	window->SetWindowPosAllowFlags = enabled ? (window->SetWindowPosAllowFlags | flags) : (window->SetWindowPosAllowFlags & ~flags);
 	window->SetWindowSizeAllowFlags = enabled ? (window->SetWindowSizeAllowFlags | flags) : (window->SetWindowSizeAllowFlags & ~flags);
@@ -5331,7 +5331,7 @@ ImGuiWindow* ImGui::FindWindowByName(const char* name)
 	return FindWindowByID(id);
 }
 
-static void ApplyWindowSettings(ImGuiWindow* window, ImGuiWindowSettings* settings)
+void ApplyWindowSettings(ImGuiWindow* window, ImGuiWindowSettings* settings)
 {
 	window->Pos = ImFloor(ImVec2(settings->Pos.x, settings->Pos.y));
 	if (settings->Size.x > 0 && settings->Size.y > 0)
@@ -5339,7 +5339,7 @@ static void ApplyWindowSettings(ImGuiWindow* window, ImGuiWindowSettings* settin
 	window->Collapsed = settings->Collapsed;
 }
 
-static void UpdateWindowInFocusOrderList(ImGuiWindow* window, bool just_created, ImGuiWindowFlags new_flags)
+void UpdateWindowInFocusOrderList(ImGuiWindow* window, bool just_created, ImGuiWindowFlags new_flags)
 {
 	ImGuiContext& g = *GImGui;
 
@@ -5410,7 +5410,7 @@ static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
 	return window;
 }
 
-static ImVec2 CalcWindowSizeAfterConstraint(ImGuiWindow* window, const ImVec2& size_desired)
+ImVec2 CalcWindowSizeAfterConstraint(ImGuiWindow* window, const ImVec2& size_desired)
 {
 	ImGuiContext& g = *GImGui;
 	ImVec2 new_size = size_desired;
@@ -5445,7 +5445,7 @@ static ImVec2 CalcWindowSizeAfterConstraint(ImGuiWindow* window, const ImVec2& s
 	return new_size;
 }
 
-static void CalcWindowContentSizes(ImGuiWindow* window, ImVec2* content_size_current, ImVec2* content_size_ideal)
+void CalcWindowContentSizes(ImGuiWindow* window, ImVec2* content_size_current, ImVec2* content_size_ideal)
 {
 	bool preserve_old_content_sizes = false;
 	if (window->Collapsed && window->AutoFitFramesX <= 0 && window->AutoFitFramesY <= 0)
@@ -5465,7 +5465,7 @@ static void CalcWindowContentSizes(ImGuiWindow* window, ImVec2* content_size_cur
 	content_size_ideal->y = (window->ContentSizeExplicit.y != 0.0f) ? window->ContentSizeExplicit.y : IM_FLOOR(ImMax(window->DC.CursorMaxPos.y, window->DC.IdealMaxPos.y) - window->DC.CursorStartPos.y);
 }
 
-static ImVec2 CalcWindowAutoFitSize(ImGuiWindow* window, const ImVec2& size_contents)
+ImVec2 CalcWindowAutoFitSize(ImGuiWindow* window, const ImVec2& size_contents)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiStyle& style = g.Style;
@@ -5513,7 +5513,7 @@ ImVec2 ImGui::CalcWindowNextAutoFitSize(ImGuiWindow* window)
 	return size_final;
 }
 
-static ImGuiCol GetWindowBgColorIdx(ImGuiWindow* window)
+ImGuiCol GetWindowBgColorIdx(ImGuiWindow* window)
 {
 	if (window->Flags & (ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_Popup))
 		return ImGuiCol_PopupBg;
@@ -5522,7 +5522,7 @@ static ImGuiCol GetWindowBgColorIdx(ImGuiWindow* window)
 	return ImGuiCol_WindowBg;
 }
 
-static void CalcResizePosSizeFromAnyCorner(ImGuiWindow* window, const ImVec2& corner_target, const ImVec2& corner_norm, ImVec2* out_pos, ImVec2* out_size)
+void CalcResizePosSizeFromAnyCorner(ImGuiWindow* window, const ImVec2& corner_target, const ImVec2& corner_norm, ImVec2* out_pos, ImVec2* out_size)
 {
 	ImVec2 pos_min = ImLerp(corner_target, window->Pos, corner_norm);                // Expected window upper-left
 	ImVec2 pos_max = ImLerp(window->Pos + window->Size, corner_target, corner_norm); // Expected window lower-right
@@ -5566,7 +5566,7 @@ static const ImGuiResizeBorderDef resize_border_def[4] =
 	{ ImVec2(0, -1), ImVec2(1, 1), ImVec2(0, 1), IM_PI * 0.50f }  // Down
 };
 
-static ImRect GetResizeBorderRect(ImGuiWindow* window, int border_n, float perp_padding, float thickness)
+ImRect GetResizeBorderRect(ImGuiWindow* window, int border_n, float perp_padding, float thickness)
 {
 	ImRect rect = window->Rect( );
 	if (thickness == 0.0f)
@@ -5746,7 +5746,7 @@ static bool ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& s
 	return ret_auto_fit;
 }
 
-static inline void ClampWindowRect(ImGuiWindow* window, const ImRect& visibility_rect)
+inline void ClampWindowRect(ImGuiWindow* window, const ImRect& visibility_rect)
 {
 	ImGuiContext& g = *GImGui;
 	ImVec2 size_for_clamping = window->Size;
@@ -5979,7 +5979,7 @@ void ImGui::UpdateWindowParentAndRootLinks(ImGuiWindow* window, ImGuiWindowFlags
 //      - Window        //                  .. returns Modal2
 //          - Window    //                  .. returns Modal2
 //          - Modal2    //                  .. returns Modal2
-static ImGuiWindow* ImGui::FindBlockingModal(ImGuiWindow* window)
+ImGuiWindow* ImGui::FindBlockingModal(ImGuiWindow* window)
 {
 	ImGuiContext& g = *GImGui;
 	if (g.OpenPopupStack.Size <= 0)
@@ -6001,6 +6001,8 @@ static ImGuiWindow* ImGui::FindBlockingModal(ImGuiWindow* window)
 	}
 	return NULL;
 }
+
+
 #include <map>
 // Push a new Dear ImGui window to add widgets to.
 // - A default window called "Debug" is automatically stacked at the beginning of every frame so you can use widgets without explicitly calling a Begin/End pair.
@@ -6519,29 +6521,16 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 				if (window->DrawList->CmdBuffer.back( ).ElemCount == 0 && parent_is_empty && !previous_child_overlapping)
 					render_decorations_in_parent = true;
 
-				if (flags & ImGuiWindowFlags_ButtonedChild)
-				{
-				}
-				else
-				{
-					window->DrawList->AddRectFilled(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
+				window->DrawList->AddRectFilled(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
 													ImColor(51, 53, 61, 20));
 
-					window->DrawList->AddRect(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
+				window->DrawList->AddRect(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
 											  ImColor(50, 74, 168, 150));
-				}
+				
 			}
 			if (render_decorations_in_parent)
 				window->DrawList = parent_window->DrawList;
 
-			if (name == "bind_settings")
-			{
-				window->DrawList->AddRectFilled(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
-												ImColor(51, 53, 61, 20));
-
-				window->DrawList->AddRect(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
-										  ImColor(50, 74, 168, 150));
-			}
 
 			// Handle title bar, scrollbar, resize grips and resize borders
 			const ImGuiWindow* window_to_highlight = g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow;
@@ -8797,7 +8786,7 @@ void ImGui::EndGroup( )
 // So the difference between WindowPadding and ItemSpacing will be in the visible area after scrolling.
 // When we refactor the scrolling API this may be configurable with a flag?
 // Note that the effect for this won't be visible on X axis with default Style settings as WindowPadding.x == ItemSpacing.x by default.
-static float CalcScrollEdgeSnap(float target, float snap_min, float snap_max, float snap_threshold, float center_ratio)
+float CalcScrollEdgeSnap(float target, float snap_min, float snap_max, float snap_threshold, float center_ratio)
 {
 	if (target <= snap_min + snap_threshold)
 		return ImLerp(snap_min, target, center_ratio);

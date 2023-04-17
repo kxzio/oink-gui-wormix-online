@@ -152,12 +152,13 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 
 	RenderFrame(bb.Min, bb.Max, ImColor(0, 0, 0, 100), false, 0.0f);
 
+	ImColor c1 = g_ui.m_theme_colour_primary;  c1.Value.w = alpha_selected;
 	if (alpha_selected > 0.f)
 	{
 		auto bb_size = bb.GetSize( );
 
-		window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(0.f, bb_size.y), ImColor(0.18f, 0.27f, 1.f, alpha_selected), 0.f, 0);
-		window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(0.f, bb_size.y), ImColor(0.18f, 0.27f, 0.6f, alpha_selected), 0.f, 0);
+		window->DrawList->AddRectFilled(bb.Min, bb.Min + ImVec2(1.f, bb_size.y), c1, 0.f, 0);
+		window->DrawList->AddRectFilled(bb.Max, bb.Max - ImVec2(1.f, bb_size.y), c1, 0.f, 0);
 
 		color.Value.w = alpha_selected * 0.5f;
 
@@ -176,7 +177,7 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 	//selected
 	if (alpha_selected > 0.0f)
 	{
-		PushStyleColor(ImGuiCol_Text, ImVec4(0.18, 0.27, 0.6, alpha_selected));
+		PushStyleColor(ImGuiCol_Text, ImVec4(c1));
 		RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 		PopStyleColor( );
 	};

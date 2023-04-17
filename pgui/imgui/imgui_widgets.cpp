@@ -1596,7 +1596,7 @@ void ImGui::SeparatorEx(ImGuiSeparatorFlags flags)
 		if (item_visible)
 		{
 			// Draw
-			window->DrawList->AddLine(bb.Min, ImVec2(bb.Max.x, bb.Min.y), ImColor(50, 74, 168, 150));
+			window->DrawList->AddLine(bb.Min, ImVec2(bb.Max.x, bb.Min.y), GetColorU32(ImGuiCol_Separator));
 			if (g.LogEnabled)
 				LogRenderedText(&bb.Min, "--------------------------------\n");
 		}
@@ -7747,6 +7747,9 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
 	const bool allow_interaction = (alpha >= 1.0f);
 
 	ImRect bb = bb_frame;
+	bb.Min -= ImVec2(4, -2);
+	bb.Max -= ImVec2(4, 5);
+
 	bb.Expand(ImVec2(-ImClamp(IM_FLOOR((bb_frame_width - 2.0f) * 0.5f), 0.0f, 3.0f), -ImClamp(IM_FLOOR((bb_frame_height - 2.0f) * 0.5f), 0.0f, 3.0f)));
 
 	// V denote the main, longer axis of the scrollbar (= height for a vertical scrollbar)
@@ -7803,14 +7806,15 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
 
 	// Render
 	const ImU32 bg_col = GetColorU32(ImGuiCol_ScrollbarBg);
-	const ImU32 grab_col = GetColorU32(held ? ImGuiCol_ScrollbarGrabActive : hovered ? ImGuiCol_ScrollbarGrabHovered : ImGuiCol_ScrollbarGrab, alpha);
+	const ImU32 grab_col = ImColor(255, 255, 255, 0);
 	window->DrawList->AddRectFilled(bb_frame.Min, bb_frame.Max, bg_col, window->WindowRounding, flags);
 	ImRect grab_rect;
 	if (axis == ImGuiAxis_X)
 		grab_rect = ImRect(ImLerp(bb.Min.x, bb.Max.x, grab_v_norm), bb.Min.y, ImLerp(bb.Min.x, bb.Max.x, grab_v_norm) + grab_h_pixels, bb.Max.y);
 	else
 		grab_rect = ImRect(bb.Min.x, ImLerp(bb.Min.y, bb.Max.y, grab_v_norm), bb.Max.x, ImLerp(bb.Min.y, bb.Max.y, grab_v_norm) + grab_h_pixels);
-	window->DrawList->AddRectFilled(grab_rect.Min, grab_rect.Max, grab_col, style.ScrollbarRounding);
+
+	window->DrawList->AddRectFilled(ImVec2(grab_rect.Min.x, grab_rect.Min.y), grab_rect.Max, grab_col, style.ScrollbarRounding);
 
 	return held;
 }

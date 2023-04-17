@@ -41,8 +41,25 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 		BeginGroup( );
 
 	const float w = 186 * dpi_scale;
-	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * dpi_scale));
-	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+	ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * dpi_scale));
+	ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+	if (size_arg.x == 0 && size_arg.y == 0)
+	{
+
+	}
+	else
+	{
+		const ImVec2 label_size = CalcTextSize(label, NULL, true);
+		const ImVec2 frame_size = CalcItemSize(size_arg, CalcItemWidth( ), (is_multiline ? g.FontSize * 8.0f : label_size.y) + style.FramePadding.y * 2.0f); // Arbitrary default of 8 lines high for multi-line
+		const ImVec2 total_size = ImVec2(frame_size.x + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), frame_size.y);
+
+		ImRect frame_bb = ImRect(window->DC.CursorPos, window->DC.CursorPos + frame_size);
+		ImRect total_bb = ImRect(frame_bb.Min, frame_bb.Min + total_size);
+	}
+
+
 
 	ImColor color = theme_colour;
 
