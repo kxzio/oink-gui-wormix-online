@@ -28,12 +28,12 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 	const ImGuiID id = window->GetID(label);
 	IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
 
-	const float w = 186 * dpi_scale;
+	const float const_element_width = 178 * dpi_scale;
 
 	const float arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight( );
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
-	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f * dpi_scale));
-	const ImRect total_bb(bb.Min, bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(const_element_width, label_size.y + style.FramePadding.y * 2.0f * dpi_scale));
+	const ImRect total_bb(bb.Min, bb.Max + ImVec2(style.ItemInnerSpacing.x, 0.f));
 	ItemSize(total_bb, style.FramePadding.y);
 	if (!ItemAdd(total_bb, id, &bb))
 		return false;

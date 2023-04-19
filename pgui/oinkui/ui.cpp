@@ -363,6 +363,11 @@ void c_oink_ui::draw_menu( )
 				{
 					begin_child("Aimbot settings", 1);
 					{
+						static int slider_value_dpi_scale = 2;
+						if (combo_box("DPI Scale", &slider_value_dpi_scale, "50%\00075%\000100%\000125%\000150%\000175%\000200%", 6))
+						{
+						};
+
 					}
 					end_child( );
 
