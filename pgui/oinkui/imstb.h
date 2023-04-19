@@ -79,3 +79,14 @@ extern void CalcResizePosSizeFromAnyCorner(ImGuiWindow* window, const ImVec2& co
 extern ImRect GetResizeBorderRect(ImGuiWindow* window, int border_n, float perp_padding, float thickness);
 extern void ApplyWindowSettings(ImGuiWindow* window, ImGuiWindowSettings* settings);
 extern float CalcScrollEdgeSnap(float target, float snap_min, float snap_max, float snap_threshold, float center_ratio);
+extern ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags);
+extern void SetCurrentWindow(ImGuiWindow* window);
+extern ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format);
+
+namespace ImGui
+{
+	extern ImGuiWindow* FindBlockingModal(ImGuiWindow* window);
+	extern void	RenderWindowTitleBarContents(ImGuiWindow* window, const ImRect& title_bar_rect, const char* name, bool* p_open);
+	extern void	RenderWindowOuterBorders(ImGuiWindow* window);
+	extern bool UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& size_auto_fit, int* border_held, int resize_grip_count, ImU32 resize_grip_col[4], const ImRect& visibility_rect);
+};

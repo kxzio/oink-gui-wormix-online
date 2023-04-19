@@ -86,8 +86,8 @@ bool c_oink_ui::sub_button(const char* label, const ImVec2& size_arg, ImGuiButto
 
 	RenderNavHighlight(bb, id);
 
-	float alpha = g_ui.process_animation(label, 4, this_tab == opened_tab, 0.5, 15.f, e_animation_type::animation_dynamic);
-	float hovered_alpha = g_ui.process_animation(label, 5, hovered, 0.5, 15.f, e_animation_type::animation_dynamic);
+	float alpha = g_ui.process_animation(label, 4, this_tab == opened_tab, 0.5f, 15.f, e_animation_type::animation_dynamic);
+	float hovered_alpha = g_ui.process_animation(label, 5, hovered, 0.5f, 15.f, e_animation_type::animation_dynamic);
 
 	ImColor color = m_theme_colour_primary;
 

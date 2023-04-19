@@ -178,7 +178,7 @@ void c_oink_ui::multi_box(const char* title, bool selection[ ], const char* text
 		for (size_t i = 0u; i < size; ++i)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 10));
-				selectable(text[i], &selection[i], ImGuiSelectableFlags_DontClosePopups);
+			selectable(text[i], &selection[i], ImGuiSelectableFlags_DontClosePopups);
 			ImGui::PopStyleVar( );
 		};
 
