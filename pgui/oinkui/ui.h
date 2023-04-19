@@ -147,7 +147,7 @@ private:
 			buf[i].pos = ImRotate(buf[i].pos, s, c) - center;
 	};
 public:
-
+	float get_dpi_scaling( );
 	float process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	float process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed = 1.0f, e_animation_type type = e_animation_type::animation_static);
 	ImGuiID generate_unique_id(const char* label, unsigned int seed);
@@ -209,6 +209,8 @@ private:
 
 	bool color_picker(const char* sz, float* col, bool alpha_bar = true);
 	bool color_picker_button(const char* label, float* col, bool draw_on_same_line = false, bool alpha_bar = true);
+	bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, const float* ref_col, const float& dpi_scale);
+	bool color_edit4(const char* label, float col[4], ImGuiColorEditFlags flags, const float& dpi_scale);
 
 private:
 	std::array<const char*, 166u> m_key_names;

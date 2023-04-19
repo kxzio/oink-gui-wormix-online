@@ -5,7 +5,7 @@ using namespace ImGui;
 
 extern void ColorEditRestoreHS(const float* col, float* H, float* S, float* V);
 
-bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, const float* ref_col, const float& dpi_scale)
+bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, const float* ref_col, const float& dpi_scale)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindow* window = GetCurrentWindow( );
@@ -46,7 +46,7 @@ bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, c
 	float square_sz = GetFrameHeight( );
 	float bars_width = square_sz - 10 * dpi_scale; // Arbitrary smallish width of Hue/Alpha picking bars
 	float sv_picker_size = ImMax(bars_width * 1, width - (alpha_bar ? 2 : 1) * (bars_width + style.ItemInnerSpacing.x)); // Saturation/Value picking box
-	float bar0_pos_x = picker_pos.x + sv_picker_size + style.ItemInnerSpacing.x - 3;
+	float bar0_pos_x = picker_pos.x + sv_picker_size + style.ItemInnerSpacing.x + 3 * m_dpi_scaling;
 	float bar1_pos_x = bar0_pos_x + bars_width + style.ItemInnerSpacing.x;
 	float bars_triangles_half_sz = IM_FLOOR(bars_width * 0.20f);
 
@@ -141,8 +141,9 @@ bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, c
 	// Alpha bar logic
 	if (alpha_bar)
 	{
-		ImRect bar1_bb(bar1_pos_x - 171 * dpi_scale, picker_pos.y + 142 * dpi_scale, bar1_pos_x - 171 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + 142 * dpi_scale);
-		SetCursorScreenPos(ImVec2(bar1_pos_x - 171 * dpi_scale, picker_pos.y + 142 * dpi_scale));
+		int y_alpha_bar = 150;
+		ImRect bar1_bb(bar1_pos_x - 171 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale, bar1_pos_x - 171 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + y_alpha_bar * dpi_scale);
+		SetCursorScreenPos(ImVec2(bar1_pos_x - 171 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale));
 		InvisibleButton("alpha", ImVec2(sv_picker_size, bars_width));
 		if (IsItemActive( ))
 		{
@@ -351,21 +352,22 @@ bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, c
 	// Render alpha bar
 	if (alpha_bar)
 	{
-		ImRect bar2_bb(bar1_pos_x - 171 * dpi_scale, picker_pos.y + 142 * dpi_scale, bar1_pos_x - 171 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + 142 * dpi_scale);
-		ImVec2 pos(ImVec2(picker_pos.x, picker_pos.y + 142 * dpi_scale));
+		int y_alpha_bar = 150;
+		ImRect bar2_bb(bar1_pos_x - 171 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale, bar1_pos_x - 171 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + y_alpha_bar * dpi_scale);
+		ImVec2 pos(ImVec2(picker_pos.x, picker_pos.y + y_alpha_bar * dpi_scale));
 		ImVec2 size = ImVec2(sv_picker_size, bars_width);
 
 		float alpha = ImSaturate(col[3]);
-		ImRect bar1_bb(bar1_pos_x - 158 * dpi_scale, picker_pos.y + 142 * dpi_scale, bar1_pos_x - 158 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + 142 * dpi_scale);
+		ImRect bar1_bb(bar1_pos_x - 158 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale, bar1_pos_x - 158 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + y_alpha_bar * dpi_scale);
 		RenderColorRectWithAlphaCheckerboard(draw_list, pos, pos + size, 0, bar1_bb.GetHeight( ) / 2.0f, ImVec2(0.0f, 0.0f));
 		draw_list->AddRectFilledMultiColor(pos, pos + size, user_col32_striped_of_alpha & ~IM_COL32_A_MASK, user_col32_striped_of_alpha, user_col32_striped_of_alpha, user_col32_striped_of_alpha & ~IM_COL32_A_MASK);
 		float bar1_line_x = IM_ROUND(picker_pos.x + alpha * sv_picker_size);
 		RenderFrameBorder(pos, pos + size, 0.0f);
-		draw_list->AddLine(ImVec2(bar1_line_x, picker_pos.y + 142 * dpi_scale), ImVec2(bar1_line_x, picker_pos.y + 142 * dpi_scale + bars_width), ImColor(0, 0, 0, 255));
-		draw_list->AddLine(ImVec2(bar1_line_x - 1 * dpi_scale, picker_pos.y + 142 * dpi_scale), ImVec2(bar1_line_x - 1 * dpi_scale, picker_pos.y + 142 * dpi_scale + bars_width), ImColor(255, 255, 255, 255));
-		draw_list->AddLine(ImVec2(bar1_line_x + 1 * dpi_scale, picker_pos.y + 142 * dpi_scale), ImVec2(bar1_line_x + 1 * dpi_scale, picker_pos.y + 142 * dpi_scale + bars_width), ImColor(255, 255, 255, 255));
-		draw_list->AddLine(ImVec2(bar1_line_x + 2 * dpi_scale, picker_pos.y + 142 * dpi_scale), ImVec2(bar1_line_x + 2 * dpi_scale, picker_pos.y + 142 * dpi_scale + bars_width), ImColor(0, 0, 0, 150));
-		draw_list->AddLine(ImVec2(bar1_line_x - 2 * dpi_scale, picker_pos.y + 142 * dpi_scale), ImVec2(bar1_line_x - 2 * dpi_scale, picker_pos.y + 142 * dpi_scale + bars_width), ImColor(0, 0, 0, 150));
+		draw_list->AddLine(ImVec2(bar1_line_x, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(0, 0, 0, 255));
+		draw_list->AddLine(ImVec2(bar1_line_x - 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x - 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(255, 255, 255, 255));
+		draw_list->AddLine(ImVec2(bar1_line_x + 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x + 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(255, 255, 255, 255));
+		draw_list->AddLine(ImVec2(bar1_line_x + 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x + 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(0, 0, 0, 150));
+		draw_list->AddLine(ImVec2(bar1_line_x - 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x - 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(0, 0, 0, 150));
 	}
 
 	EndGroup( );
@@ -381,7 +383,7 @@ bool color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, c
 	return value_changed;
 }
 
-bool color_edit4(const char* label, float col[4], ImGuiColorEditFlags flags, const float& dpi_scale)
+bool c_oink_ui::color_edit4(const char* label, float col[4], ImGuiColorEditFlags flags, const float& dpi_scale)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
 	if (window->SkipItems)

@@ -972,7 +972,12 @@ bool c_oink_ui::temp_input_text(const ImRect& bb, ImGuiID id, const char* label,
 		ClearActiveID( );
 
 	g.CurrentWindow->DC.CursorPos = bb.Min;
-	bool value_changed = input_text_ex(label, NULL, buf, buf_size, bb.GetSize( ), flags | ImGuiInputTextFlags_MergedItem, NULL, NULL, m_theme_colour_primary, false);
+
+	const ImVec2 label_size = CalcTextSize(label, NULL, true);
+	const ImGuiStyle& style = g.Style;
+	ImVec2 size = ImVec2(186, label_size.y + style.FramePadding.y * 2.0f * m_dpi_scaling);
+
+	bool value_changed = input_text_ex(label, NULL, buf, buf_size, size, flags | ImGuiInputTextFlags_MergedItem, NULL, NULL, m_theme_colour_primary, m_dpi_scaling, false);
 	if (init)
 	{
 		// First frame we started displaying the InputText widget, we expect it to take the active id.

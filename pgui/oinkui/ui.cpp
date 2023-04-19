@@ -97,6 +97,7 @@ void c_oink_ui::fonts_create(bool invalidate)
 	m_fonts[e_font_id::font_default] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
 	m_fonts[e_font_id::font_middle] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
 
+
 	cfg.FontBuilderFlags &= ~ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 	cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_Bold;
 
@@ -151,6 +152,8 @@ void c_oink_ui::draw_menu( )
 	//menu code
 	if (begin("main window", &m_menu_opened, m_flags))
 	{
+
+
 		//style
 		auto& style = ImGui::GetStyle( );
 
@@ -461,6 +464,10 @@ void c_oink_ui::draw_menu( )
 	//close
 }
 
+float c_oink_ui::get_dpi_scaling( )
+{
+	return m_dpi_scaling;
+}
 void c_oink_ui::pre_draw_menu( )
 {
 	if (m_dpi_scaling != m_dpi_scaling_backup)
