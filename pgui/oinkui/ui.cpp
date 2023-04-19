@@ -152,12 +152,15 @@ void c_oink_ui::draw_menu( )
 	if (begin("main window", &m_menu_opened, m_flags))
 	{
 		//style
-		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarBg]          = ImColor(0, 0, 0, 0);
-		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarGrab]        = m_theme_colour_primary;
-		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarGrabHovered] = m_theme_colour_primary;
-		ImGui::GetStyle( ).Colors[ImGuiCol_ScrollbarGrabActive]  = m_theme_colour_primary;
-		ImGui::GetStyle( ).ScrollbarSize = 1.f;
-		ImGui::GetStyle( ).PopupBorderSize = 0.f;
+		auto& style = ImGui::GetStyle( );
+
+		style.Colors[ImGuiCol_ScrollbarBg] = m_theme_colour_primary;
+		style.Colors[ImGuiCol_ScrollbarGrab] = m_theme_colour_primary;
+		style.Colors[ImGuiCol_ScrollbarGrabHovered] = m_theme_colour_primary;
+		style.Colors[ImGuiCol_ScrollbarGrabActive] = m_theme_colour_primary;
+		style.ScrollbarSize = 1.f;
+		style.PopupBorderSize = 0.f;
+
 		//load vars
 		wnd_pos = ImGui::GetWindowPos( );
 		wnd_size = ImGui::GetWindowSize( );

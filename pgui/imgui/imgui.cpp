@@ -911,10 +911,10 @@ static const float WINDOWS_MOUSE_WHEEL_SCROLL_LOCK_TIMER = 2.00f;    // Lock scr
 // [SECTION] FORWARD DECLARATIONS
 //-------------------------------------------------------------------------
 
-static void             SetCurrentWindow(ImGuiWindow* window);
+extern void             SetCurrentWindow(ImGuiWindow* window);
 static void             FindHoveredWindow( );
-static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags);
-static ImVec2           CalcNextScrollFromScrollTargetAndClamp(ImGuiWindow* window);
+extern ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags);
+extern ImVec2           CalcNextScrollFromScrollTargetAndClamp(ImGuiWindow* window);
 
 static void             AddDrawListToDrawData(ImVector<ImDrawList*>* out_list, ImDrawList* draw_list);
 static void             AddWindowToSortBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, ImGuiWindow* window);
@@ -966,10 +966,10 @@ namespace ImGui
 	static void             UpdateKeyboardInputs( );
 	static void             UpdateMouseInputs( );
 	static void             UpdateMouseWheel( );
-	static bool             UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& size_auto_fit, int* border_held, int resize_grip_count, ImU32 resize_grip_col[4], const ImRect& visibility_rect);
-	static void             RenderWindowOuterBorders(ImGuiWindow* window);
+	extern bool					UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& size_auto_fit, int* border_held, int resize_grip_count, ImU32 resize_grip_col[4], const ImRect& visibility_rect);
+	extern void             RenderWindowOuterBorders(ImGuiWindow* window);
 	static void             RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar_rect, bool title_bar_is_highlight, int resize_grip_count, const ImU32 resize_grip_col[4], float resize_grip_draw_size);
-	static void             RenderWindowTitleBarContents(ImGuiWindow* window, const ImRect& title_bar_rect, const char* name, bool* p_open);
+	extern void             RenderWindowTitleBarContents(ImGuiWindow* window, const ImRect& title_bar_rect, const char* name, bool* p_open);
 	static void             RenderDimmedBackgroundBehindWindow(ImGuiWindow* window, ImU32 col);
 	static void             RenderDimmedBackgrounds( );
 	ImGuiWindow* FindBlockingModal(ImGuiWindow* window);
@@ -1227,9 +1227,9 @@ void ImGuiIO::AddInputCharacterUTF16(ImWchar16 c)
 		}
 
 		InputQueueSurrogate = 0;
-		}
-	AddInputCharacter((unsigned) cp);
 	}
+	AddInputCharacter((unsigned) cp);
+}
 
 void ImGuiIO::AddInputCharactersUTF8(const char* utf8_chars)
 {
@@ -5362,7 +5362,7 @@ void UpdateWindowInFocusOrderList(ImGuiWindow* window, bool just_created, ImGuiW
 	window->IsExplicitChild = new_is_explicit_child;
 }
 
-static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
+ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
 {
 	ImGuiContext& g = *GImGui;
 	//IMGUI_DEBUG_LOG("CreateNewWindow '%s', flags = 0x%08X\n", name, flags);
@@ -5614,7 +5614,7 @@ ImGuiID ImGui::GetWindowResizeBorderID(ImGuiWindow* window, ImGuiDir dir)
 
 // Handle resize for: Resize Grips, Borders, Gamepad
 // Return true when using auto-fit (double click on resize grip)
-static bool ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& size_auto_fit, int* border_held, int resize_grip_count, ImU32 resize_grip_col[4], const ImRect& visibility_rect)
+bool ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& size_auto_fit, int* border_held, int resize_grip_count, ImU32 resize_grip_col[4], const ImRect& visibility_rect)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiWindowFlags flags = window->Flags;
@@ -5755,7 +5755,7 @@ inline void ClampWindowRect(ImGuiWindow* window, const ImRect& visibility_rect)
 	window->Pos = ImClamp(window->Pos, visibility_rect.Min - size_for_clamping, visibility_rect.Max);
 }
 
-static void ImGui::RenderWindowOuterBorders(ImGuiWindow* window)
+void ImGui::RenderWindowOuterBorders(ImGuiWindow* window)
 {
 	ImGuiContext& g = *GImGui;
 	float rounding = window->WindowRounding;
@@ -6526,7 +6526,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 
 				window->DrawList->AddRect(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
 											  ImColor(50, 74, 168, 150));
-				
+
 			}
 			if (render_decorations_in_parent)
 				window->DrawList = parent_window->DrawList;
@@ -8795,7 +8795,7 @@ float CalcScrollEdgeSnap(float target, float snap_min, float snap_max, float sna
 	return target;
 }
 
-static ImVec2 CalcNextScrollFromScrollTargetAndClamp(ImGuiWindow* window)
+ImVec2 CalcNextScrollFromScrollTargetAndClamp(ImGuiWindow* window)
 {
 	ImVec2 scroll = window->Scroll;
 	if (window->ScrollTarget.x < FLT_MAX)
@@ -10466,7 +10466,7 @@ void ImGui::NavUpdateCreateMoveRequest( )
 	{
 		g.NavScoringNoClipRect = window->InnerRect;
 		g.NavScoringNoClipRect.TranslateY(scoring_rect_offset_y);
-}
+	}
 
 	// [DEBUG] Always send a request
 #if IMGUI_DEBUG_NAV_SCORING
@@ -12059,7 +12059,7 @@ static const char* GetClipboardTextFn_DefaultImpl(void*)
 	{
 		::CloseClipboard( );
 		return NULL;
-}
+	}
 	if (const WCHAR* wbuf_global = (const WCHAR*)::GlobalLock(wbuf_handle))
 	{
 		int buf_len = ::WideCharToMultiByte(CP_UTF8, 0, wbuf_global, -1, NULL, 0, NULL, NULL);
@@ -12205,7 +12205,8 @@ static void SetPlatformImeDataFn_DefaultImpl(ImGuiViewport* viewport, ImGuiPlatf
 #else
 
 static void SetPlatformImeDataFn_DefaultImpl(ImGuiViewport*, ImGuiPlatformImeData*)
-{}
+{
+}
 
 #endif
 
@@ -12583,7 +12584,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 		MetricsHelpMarker("Will call the IM_DEBUG_BREAK() macro to break in debugger.\nWarning: If you don't have a debugger attached, this will probably crash.");
 
 		TreePop( );
-		}
+	}
 
 	// Windows
 	if (TreeNode("Windows", "Windows (%d)", g.Windows.Size))
@@ -12840,7 +12841,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 #endif // #ifdef IMGUI_HAS_DOCK
 
 	End( );
-	}
+}
 
 // [DEBUG] Display contents of Columns
 void ImGui::DebugNodeColumns(ImGuiOldColumns* columns)
@@ -13221,7 +13222,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
 	if (window->RootWindow != window)
 	{
 		DebugNodeWindow(window->RootWindow, "RootWindow");
-}
+	}
 	if (window->ParentWindow != NULL)
 	{
 		DebugNodeWindow(window->ParentWindow, "ParentWindow");
@@ -13238,7 +13239,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
 	}
 	DebugNodeStorage(&window->StateStorage, "Storage");
 	TreePop( );
-	}
+}
 
 void ImGui::DebugNodeWindowSettings(ImGuiWindowSettings* settings)
 {
@@ -13491,38 +13492,54 @@ void ImGui::ShowStackToolWindow(bool* p_open)
 #else
 
 void ImGui::ShowMetricsWindow(bool*)
-{}
+{
+}
 void ImGui::ShowFontAtlas(ImFontAtlas*)
-{}
+{
+}
 void ImGui::DebugNodeColumns(ImGuiOldColumns*)
-{}
+{
+}
 void ImGui::DebugNodeDrawList(ImGuiWindow*, const ImDrawList*, const char*)
-{}
+{
+}
 void ImGui::DebugNodeDrawCmdShowMeshAndBoundingBox(ImDrawList*, const ImDrawList*, const ImDrawCmd*, bool, bool)
-{}
+{
+}
 void ImGui::DebugNodeFont(ImFont*)
-{}
+{
+}
 void ImGui::DebugNodeStorage(ImGuiStorage*, const char*)
-{}
+{
+}
 void ImGui::DebugNodeTabBar(ImGuiTabBar*, const char*)
-{}
+{
+}
 void ImGui::DebugNodeWindow(ImGuiWindow*, const char*)
-{}
+{
+}
 void ImGui::DebugNodeWindowSettings(ImGuiWindowSettings*)
-{}
+{
+}
 void ImGui::DebugNodeWindowsList(ImVector<ImGuiWindow*>*, const char*)
-{}
+{
+}
 void ImGui::DebugNodeViewport(ImGuiViewportP*)
-{}
+{
+}
 
 void ImGui::ShowStackToolWindow(bool*)
-{}
+{
+}
 void ImGui::DebugHookIdInfo(ImGuiID, ImGuiDataType, const void*, const void*)
-{}
+{
+}
 void ImGui::UpdateDebugToolItemPicker( )
-{}
+{
+}
 void ImGui::UpdateDebugToolStackQueries( )
-{}
+{
+}
 
 #endif // #ifndef IMGUI_DISABLE_METRICS_WINDOW
 

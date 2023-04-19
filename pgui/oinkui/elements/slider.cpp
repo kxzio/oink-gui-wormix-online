@@ -2,8 +2,6 @@
 
 using namespace ImGui;
 
-extern ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format);
-
 bool c_oink_ui::temp_input_scalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format, const void* p_clamp_min, const void* p_clamp_max)
 {
 	char fmt_buf[32];
@@ -91,7 +89,7 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	if (temp_input_is_active)
 	{
 		// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set
-		const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0;
+		const bool is_clamp_input = (flags & ImGuiSliderFlags_AlwaysClamp) != 0 && (p_min == NULL || p_max == NULL || DataTypeCompare(data_type, p_min, p_max) < 0);
 		return temp_input_scalar(input_bb, id, label, data_type, p_data, format, is_clamp_input ? p_min : NULL, is_clamp_input ? p_max : NULL);
 	}
 

@@ -177,7 +177,7 @@ bool selectable_ex(const char* label, bool selected, ImGuiSelectableFlags flags,
 	//selected
 	if (alpha_selected > 0.0f)
 	{
-		PushStyleColor(ImGuiCol_Text, ImVec4(c1));
+		PushStyleColor(ImGuiCol_Text, c1.Value);
 		RenderTextClipped(text_min, text_max, label, NULL, &label_size, style.SelectableTextAlign, &bb);
 		PopStyleColor( );
 	};
