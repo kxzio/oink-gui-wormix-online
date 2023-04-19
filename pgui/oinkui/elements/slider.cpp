@@ -53,7 +53,7 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
 	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, 9 * m_dpi_scaling));
-	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 3.0f * m_dpi_scaling));
+	const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(style.ItemInnerSpacing.x, 3.0f * m_dpi_scaling));
 
 	const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
 	ItemSize(total_bb, style.FramePadding.y);
