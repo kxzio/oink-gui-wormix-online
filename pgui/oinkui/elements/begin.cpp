@@ -121,7 +121,7 @@ bool scrollbar_ex(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS64* p_s
 	// Render
 	const ImU32 bg_col = GetColorU32(ImGuiCol_ScrollbarBg);
 	const ImColor grab_col = g_ui.m_theme_colour_primary;
-	window->DrawList->AddRectFilled(bb_frame.Min, bb_frame.Max, bg_col, window->WindowRounding, flags);
+	
 	ImRect grab_rect;
 	if (axis == ImGuiAxis_X)
 		grab_rect = ImRect(ImLerp(bb.Min.x, bb.Max.x, grab_v_norm), bb.Min.y, ImLerp(bb.Min.x, bb.Max.x, grab_v_norm) + grab_h_pixels, bb.Max.y);
@@ -749,10 +749,12 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 				if (window->DrawList->CmdBuffer.back( ).ElemCount == 0 && parent_is_empty && !previous_child_overlapping)
 					render_decorations_in_parent = true;
 
+				ImColor back = m_theme_colour_primary;
+				back.Value.w = 0.005;
 				window->DrawList->AddRectFilled(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
-													ImColor(0, 0, 0));
+													back);
 
-				window->DrawList->AddRect(window->Pos + ImVec2(0, 0), window->Pos + ImVec2(window->Size.x, window->Size.y),
+				window->DrawList->AddRect(window->Pos + ImVec2(-1, -1), window->Pos + ImVec2(window->Size.x + 1, window->Size.y + 1),
 											  ImColor(m_theme_colour_primary));
 
 			}
