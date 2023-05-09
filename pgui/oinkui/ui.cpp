@@ -158,6 +158,7 @@ void c_oink_ui::draw_menu( )
 		auto& style = ImGui::GetStyle( );
 
 		style.Colors[ImGuiCol_ScrollbarBg] = m_theme_colour_primary;
+		style.Colors[ImGuiCol_Border] = m_theme_colour_primary;
 		style.Colors[ImGuiCol_ScrollbarGrab] = m_theme_colour_primary;
 		style.Colors[ImGuiCol_ScrollbarGrabHovered] = m_theme_colour_primary;
 		style.Colors[ImGuiCol_ScrollbarGrabActive] = m_theme_colour_primary;
@@ -321,8 +322,7 @@ void c_oink_ui::draw_menu( )
 						};
 
 						static s_keybind key;
-						static bool dt;
-						checkbox("Double tap", &dt);
+						checkbox("Double tap", &key.m_active);
 						hotkey("Double tap key", &key);
 
 						static char config_name[32];

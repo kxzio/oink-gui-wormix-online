@@ -90,7 +90,9 @@ struct s_bg_pig_data
 struct s_keybind
 {
 	uint8_t m_keycode;
-	uint8_t m_activation_mode;
+	uint8_t m_activation_mode = 1;
+	bool    m_active;
+	bool    m_popup_open;
 };
 
 class c_oink_ui
