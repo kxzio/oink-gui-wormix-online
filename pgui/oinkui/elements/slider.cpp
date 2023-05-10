@@ -49,7 +49,7 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	ImGuiContext& g = *GImGui;
 	const ImGuiStyle& style = g.Style;
 	const ImGuiID id = window->GetID(label);
-	const float w = 186 * m_dpi_scaling;
+	const float w = 184 * m_dpi_scaling;
 
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);
 	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, 9 * m_dpi_scaling));

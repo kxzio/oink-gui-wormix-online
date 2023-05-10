@@ -994,6 +994,84 @@ bool c_oink_ui::create_child(const char* str_id, const ImVec2& size_arg, bool bo
 	ImGuiWindow* window = GetCurrentWindow( );
 	return begin_child_ex(str_id, window->GetID(str_id), size_arg, border, extra_flags);
 }
+void c_oink_ui::separator_ex(ImGuiSeparatorFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow( );
+	if (window->SkipItems)
+		return;
+
+	ImGuiContext& g = *GImGui;
+	IM_ASSERT(ImIsPowerOfTwo(flags & (ImGuiSeparatorFlags_Horizontal | ImGuiSeparatorFlags_Vertical)));   // Check that only 1 option is selected
+
+	float thickness_draw = 1.0f;
+	float thickness_layout = 0.0f;
+	if (flags & ImGuiSeparatorFlags_Vertical)
+	{
+		// Vertical separator, for menu bars (use current line height). Not exposed because it is misleading and it doesn't have an effect on regular layout.
+		float y1 = window->DC.CursorPos.y;
+		float y2 = window->DC.CursorPos.y + window->DC.CurrLineSize.y;
+		const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + thickness_draw, y2));
+		ItemSize(ImVec2(thickness_layout, 0.0f));
+		if (!ItemAdd(bb, 0))
+			return;
+
+		// Draw
+		window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y), ImVec2(bb.Min.x, bb.Max.y), GetColorU32(ImGuiCol_Separator));
+		if (g.LogEnabled)
+			LogText(" |");
+	}
+	else if (flags & ImGuiSeparatorFlags_Horizontal)
+	{
+		// Horizontal Separator
+		float x1 = window->Pos.x;
+		float x2 = window->Pos.x + window->Size.x + 2;
+
+		// FIXME-WORKRECT: old hack (#205) until we decide of consistent behavior with WorkRect/Indent and Separator
+
+		// FIXME-WORKRECT: In theory we should simply be using WorkRect.Min.x/Max.x everywhere but it isn't aesthetically what we want,
+		// need to introduce a variant of WorkRect for that purpose. (#4787)
+		if (ImGuiTable* table = g.CurrentTable)
+		{
+			x1 = table->Columns[table->CurrentColumn].MinX;
+			x2 = table->Columns[table->CurrentColumn].MaxX;
+		}
+
+		ImGuiOldColumns* columns = (flags & ImGuiSeparatorFlags_SpanAllColumns) ? window->DC.CurrentColumns : NULL;
+		if (columns)
+			PushColumnsBackground( );
+
+		// We don't provide our width to the layout so that it doesn't get feed back into AutoFit
+		// FIXME: This prevents ->CursorMaxPos based bounding box evaluation from working (e.g. TableEndCell)
+		const ImRect bb(ImVec2(x1 + 12 * m_dpi_scaling, window->DC.CursorPos.y), ImVec2(x2 - 12 * m_dpi_scaling, window->DC.CursorPos.y + thickness_draw));
+		ItemSize(ImVec2(0.0f, thickness_layout));
+		const bool item_visible = ItemAdd(bb, 0);
+		if (item_visible)
+		{
+			// Draw
+			window->DrawList->AddLine(bb.Min, ImVec2(bb.Max.x, bb.Min.y), GetColorU32(ImGuiCol_Separator));
+			if (g.LogEnabled)
+				LogRenderedText(&bb.Min, "--------------------------------\n");
+		}
+		if (columns)
+		{
+			PopColumnsBackground( );
+			columns->LineMinY = window->DC.CursorPos.y;
+		}
+	}
+}
+
+void c_oink_ui::separator( )
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	if (window->SkipItems)
+		return;
+
+	// Those flags should eventually be overridable by the user
+	ImGuiSeparatorFlags flags = (window->DC.LayoutType == ImGuiLayoutType_Horizontal) ? ImGuiSeparatorFlags_Vertical : ImGuiSeparatorFlags_Horizontal;
+	flags |= ImGuiSeparatorFlags_SpanAllColumns; // NB: this only applies to legacy Columns() api as they relied on Separator() a lot.
+	separator_ex(flags);
+}
 
 bool c_oink_ui::begin_child(const char* label, int number_of_child)
 {
@@ -1011,7 +1089,7 @@ bool c_oink_ui::begin_child(const char* label, int number_of_child)
 		text_colored(label, m_theme_colour_secondary);
 
 		ImGui::PushStyleColor(ImGuiCol_Separator, m_theme_colour_primary.Value);
-		ImGui::Separator( );
+		separator( );
 		ImGui::PopStyleColor( );
 
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) + 2.f * m_dpi_scaling);
