@@ -28,7 +28,7 @@ bool begin_combo(const char* label, const char* preview_value, ImGuiComboFlags f
 	const ImGuiID id = window->GetID(label);
 	IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
 
-	const float const_element_width = 186 * dpi_scale;
+	const float const_element_width = 184 * dpi_scale;
 
 	const float arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight( );
 	const ImVec2 label_size = CalcTextSize(label, NULL, true);

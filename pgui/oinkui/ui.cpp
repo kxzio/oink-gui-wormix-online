@@ -296,9 +296,9 @@ void c_oink_ui::draw_menu( )
 						static float col[4];
 						color_picker("Test colorpicker", col);
 
-						button("Save", ImVec2(186, 30));
+						button("Save", ImVec2(184, 30));
 
-						button("Load", ImVec2(186, 30));
+						button("Load", ImVec2(184, 30));
 
 						static bool plesp;
 						checkbox("Player ESP", &plesp);
@@ -439,10 +439,10 @@ void c_oink_ui::draw_menu( )
 					begin_child("Extra settings", 3);
 					{
 
-						static int slider_value_dpi_scale = 2;
-						if (combo_box("DPI Scale", &slider_value_dpi_scale, "50%\00075%\000100%\000125%\000150%\000175%\000200%", 6))
+						static int slider_value_dpi_scale = 1;
+						if (combo_box("DPI Scale", &slider_value_dpi_scale, "75%\000100%\000125%\000150%\000175%\000200%", 6))
 						{
-							constexpr float scale_factors[ ] = { 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
+							constexpr float scale_factors[ ] = {  0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
 							m_dpi_scaling_backup = scale_factors[slider_value_dpi_scale];
 						};
 

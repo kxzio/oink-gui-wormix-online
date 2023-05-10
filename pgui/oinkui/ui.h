@@ -203,6 +203,8 @@ private:
 	bool begin(const char* name, bool* p_open = nullptr, ImGuiWindowFlags flags = ImGuiWindowFlags_None);
 	void end( );
 
+	void separator_ex(ImGuiSeparatorFlags flags);
+	void separator( );
 	bool input_text(const char* label, char* buf, size_t buf_size, ImGuiInputTextFlags flags = NULL, ImGuiInputTextCallback callback = NULL, void* user_data = NULL);
 	bool temp_input_text(const ImRect& bb, ImGuiID id, const char* label, char* buf, int buf_size, ImGuiInputTextFlags flags);
 	bool temp_input_scalar(const ImRect& bb, ImGuiID id, const char* label, ImGuiDataType data_type, void* p_data, const char* format, const void* p_clamp_min, const void* p_clamp_max);

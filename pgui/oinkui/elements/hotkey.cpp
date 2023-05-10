@@ -6,7 +6,7 @@ bool c_oink_ui::hotkey(const char* label, s_keybind* keybind, const ImVec2& size
 {
 	ImGui::SameLine( );
 	ImGui::SetCursorPosX(140 * m_dpi_scaling);
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) - 2 * m_dpi_scaling);
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY( ) - 1 * m_dpi_scaling);
 
 	ImGuiWindow* window = ImGui::GetCurrentWindow( );
 	if (!window || window->SkipItems)
@@ -20,7 +20,7 @@ bool c_oink_ui::hotkey(const char* label, s_keybind* keybind, const ImVec2& size
 	const ImVec2 stored_cursor_pos = window->DC.CursorPos;
 	const ImGuiID id			   = window->GetID(label);
 	const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
-	ImVec2 size = ImVec2(58, 20);
+	ImVec2 size = ImVec2(58 * m_dpi_scaling, 20 * m_dpi_scaling);
 
 	//bb
 	const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + size);
@@ -120,7 +120,7 @@ bool c_oink_ui::hotkey(const char* label, s_keybind* keybind, const ImVec2& size
 		constexpr int m_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar ;
 
 		ImGui::SetNextWindowPos(ImVec2(stored_cursor_pos.x + 10 * m_dpi_scaling, stored_cursor_pos.y + 10 * m_dpi_scaling));
-		ImGui::SetNextWindowSize(ImVec2(75, 82));
+		ImGui::SetNextWindowSize(ImVec2(75 * m_dpi_scaling, 82 * m_dpi_scaling));
 
 
 		ImGui::Begin("bind_settings", NULL, m_flags);
@@ -159,7 +159,7 @@ bool c_oink_ui::hotkey(const char* label, s_keybind* keybind, const ImVec2& size
 	ImVec2 render_pos = frame_bb.Min + style.FramePadding;
 
 	ImGui::PushClipRect(frame_bb.Min, frame_bb.Max, false);
-	ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding + ImVec2(animation_bind_select, 0), frame_bb.Max - style.FramePadding + ImVec2(animation_bind_select, 0), buf_display, NULL, NULL);
+	ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding + ImVec2(animation_bind_select * m_dpi_scaling, 0), frame_bb.Max - style.FramePadding + ImVec2(animation_bind_select, 0), buf_display, NULL, NULL);
 	ImGui::PopClipRect( );
 \
 	if (keybind->m_activation_mode == 1)
