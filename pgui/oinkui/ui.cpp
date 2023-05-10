@@ -488,7 +488,8 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 	bg_drawlist->AddRectFilledMultiColor(menu_pos, menu_pos + ImVec2(menu_size.x, 100.f * m_dpi_scaling), ImColor(25, 25, 25, 200), ImColor(25, 25, 25, 200), IM_COL32_BLACK_TRANS, IM_COL32_BLACK_TRANS);
 
 	{
-		const ImVec2 bb[2] = { menu_pos, menu_pos + ImVec2(menu_size.x, y_max * m_dpi_scaling) };
+		const ImVec2 real_bb[2] = { menu_pos, menu_pos + ImVec2(menu_size.x, y_max * m_dpi_scaling) };
+		const ImVec2 bb[2] = { ImVec2(0, 0), ImVec2(menu_size.x, y_max * m_dpi_scaling)};
 		const ImVec2 picture_size = ImVec2(35.f * m_dpi_scaling, 35.f * m_dpi_scaling);
 
 		static bool m_pigs_init = false;
@@ -507,7 +508,7 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 			};
 		};
 
-		bg_drawlist->PushClipRect(bb[0], bb[1]);
+		bg_drawlist->PushClipRect(real_bb[0], real_bb[1]);
 
 		for (auto& data : m_pigs_data)
 		{
@@ -552,8 +553,8 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 			rotate_start(bg_drawlist, rotation_index);
 
 			bg_drawlist->AddImage(m_textures[e_tex_id::tex_pig],
-								  position,
-								  position + picture_size,
+								  position + menu_pos,
+								  position + picture_size + menu_pos,
 								  ImVec2(0, 0),
 								  ImVec2(1, 1),
 								  color_sec_transparent);
