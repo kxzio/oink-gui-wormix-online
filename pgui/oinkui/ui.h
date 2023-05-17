@@ -98,8 +98,11 @@ struct pig_data_t
 
 struct keybind_t
 {
+	static constexpr uint16_t keybind_unbound = UINT16_MAX;
+	static constexpr uint16_t keybind_binding = -1;
+
 	keybind_t( ) :
-		m_keycode{ UINT16_MAX },
+		m_keycode{ keybind_unbound },
 		m_activation_mode{ e_keybind_mode::keybind_mode_always_on }
 	{
 	};
@@ -118,6 +121,10 @@ inline float get_random_number(float min, float max)
 class c_oink_ui
 {
 public:
+	c_oink_ui( )
+	{
+	};
+
 	c_oink_ui(IDirect3DDevice9* device) :
 		m_menu_opened{ false },
 		m_dpi_changed{ false },

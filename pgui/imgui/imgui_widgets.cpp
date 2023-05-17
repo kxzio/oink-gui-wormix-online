@@ -735,19 +735,7 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
 
 	return pressed;
 }
-enum anim_state
-{
-	_default,
-	_increase,
-	_discrease
-};
 
-class anim_data
-{
-public:
-	int state;
-	float data;
-};
 int ImGui::Checkbox(const char* label, bool* v)
 {
 	ImGuiWindow* window = GetCurrentWindow( );
