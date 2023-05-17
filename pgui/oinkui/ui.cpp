@@ -1,11 +1,5 @@
 #include "ui.h"
 
-float get_random_number(float min, float max)
-{
-	float random = min + static_cast <float> (rand( )) / (static_cast <float> (RAND_MAX / (max - min)));
-	return random;
-}
-
 std::string current_help_tip = "";
 
 void c_oink_ui::textures_create(IDirect3DDevice9* device)
@@ -97,7 +91,6 @@ void c_oink_ui::fonts_create(bool invalidate)
 	m_fonts[e_font_id::font_default] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
 	m_fonts[e_font_id::font_middle] = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Micross.ttf", 12.0f * m_dpi_scaling_backup, &cfg, glyph_ranges);
 
-
 	cfg.FontBuilderFlags &= ~ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 	cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_Bold;
 
@@ -114,12 +107,6 @@ void c_oink_ui::fonts_create(bool invalidate)
 	};
 }
 
-void c_oink_ui::terminate( )
-{
-	ZeroMemory(m_fonts, sizeof(m_fonts));
-	ZeroMemory(m_textures, sizeof(m_textures));
-};
-
 void c_oink_ui::draw_menu( )
 {
 	if (ImGui::IsKeyPressed(ImGuiKey_Insert))
@@ -128,9 +115,11 @@ void c_oink_ui::draw_menu( )
 	if (!m_menu_opened)
 		return;
 
+	// apply colors from previous frame
 	ImGui::ColorConvertHSVtoRGB(m_theme_hsv_backup[0], m_theme_hsv_backup[1], m_theme_hsv_backup[2], m_theme_colour_primary.Value.x, m_theme_colour_primary.Value.y, m_theme_colour_primary.Value.z);
 	ImGui::ColorConvertHSVtoRGB(m_theme_hsv_backup[0], m_theme_hsv_backup[1], m_theme_hsv_backup[2] * 0.6f, m_theme_colour_secondary.Value.x, m_theme_colour_secondary.Value.y, m_theme_colour_secondary.Value.z);
 
+	// apply scaling from previous frame
 	m_dpi_scaling = m_dpi_scaling_backup;
 
 	//get general drawlist
@@ -321,7 +310,7 @@ void c_oink_ui::draw_menu( )
 							button_ex("button4_test");
 						};
 
-						static s_keybind key;
+						static keybind_t key;
 						checkbox("Double tap", &key.m_active);
 						hotkey("Double tap key", &key);
 
@@ -442,8 +431,9 @@ void c_oink_ui::draw_menu( )
 						static int slider_value_dpi_scale = 1;
 						if (combo_box("DPI Scale", &slider_value_dpi_scale, "75%\000100%\000125%\000150%\000175%\000200%", 6))
 						{
-							constexpr float scale_factors[ ] = {  0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
+							constexpr float scale_factors[ ] = { 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f };
 							m_dpi_scaling_backup = scale_factors[slider_value_dpi_scale];
+							m_dpi_changed = true;
 						};
 
 						text("ui hue");
@@ -464,14 +454,13 @@ void c_oink_ui::draw_menu( )
 	//close
 }
 
-float c_oink_ui::get_dpi_scaling( )
-{
-	return m_dpi_scaling;
-}
 void c_oink_ui::pre_draw_menu( )
 {
-	if (m_dpi_scaling != m_dpi_scaling_backup)
+	if (m_dpi_changed)
+	{
 		g_ui.fonts_create(true);
+		m_dpi_changed = false;
+	};
 };
 
 void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& menu_size, bool main)
@@ -489,24 +478,8 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 
 	{
 		const ImVec2 real_bb[2] = { menu_pos, menu_pos + ImVec2(menu_size.x, y_max * m_dpi_scaling) };
-		const ImVec2 bb[2] = { ImVec2(0, 0), ImVec2(menu_size.x, y_max * m_dpi_scaling)};
+		const ImVec2 bb[2] = { ImVec2(0, 0), ImVec2(menu_size.x, y_max * m_dpi_scaling) };
 		const ImVec2 picture_size = ImVec2(35.f * m_dpi_scaling, 35.f * m_dpi_scaling);
-
-		static bool m_pigs_init = false;
-
-		if (!m_pigs_init)
-		{
-			m_pigs_init = true;
-			for (size_t i = 0u; i < m_pigs_data.size( ); ++i)
-			{
-				m_pigs_data[i] = s_bg_pig_data(
-				ImVec2(get_random_number(bb[0].x, bb[1].x), get_random_number(bb[0].y, bb[1].y)),
-				get_random_number(0.f, 360.f),
-				get_random_number(-50.f, 50.f),
-				get_random_number(-50.f, 50.f),
-				i);
-			};
-		};
 
 		bg_drawlist->PushClipRect(real_bb[0], real_bb[1]);
 
@@ -619,178 +592,3 @@ void c_oink_ui::configure(ImDrawList* bg_drawlist, ImVec2& menu_pos, ImVec2& men
 
 	bg_drawlist->AddRect(menu_pos, menu_pos + menu_size, color_sec_transparent);
 }
-
-
-void c_oink_ui::initialize(IDirect3DDevice9* device)
-{
-	m_key_names = { "Unknown",
-		"Left mouse",
-		"Right mouse",
-		"Cancel",
-		"Middle mouse",
-		"X1 mouse",
-		"X2 mouse",
-		"Unknown",
-		"Back",
-		"Tab",
-		"Unknown",
-		"Unknown",
-		"Clear",
-		"Return",
-		"Unknown",
-		"Unknown",
-		"Shift",
-		"Ctrl",
-		"Menu",
-		"Pause",
-		"Capital",
-		"KANA",
-		"Unknown",
-		"VK_JUNJA",
-		"VK_FINAL",
-		"VK_KANJI",
-		"Unknown",
-		"Escape",
-		"Convert",
-		"NonConvert",
-		"Accept",
-		"VK_MODECHANGE",
-		"Space",
-		"Prior",
-		"Next",
-		"End",
-		"Home",
-		"Left",
-		"Up",
-		"Right",
-		"Down",
-		"Select",
-		"Print",
-		"Execute",
-		"Snapshot",
-		"Insert",
-		"Delete",
-		"Help",
-		"0",
-		"1",
-		"2",
-		"3",
-		"4",
-		"5",
-		"6",
-		"7",
-		"8",
-		"9",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"A",
-		"B",
-		"C",
-		"D",
-		"E",
-		"F",
-		"G",
-		"H",
-		"I",
-		"J",
-		"K",
-		"L",
-		"M",
-		"N",
-		"O",
-		"P",
-		"Q",
-		"R",
-		"S",
-		"T",
-		"U",
-		"V",
-		"W",
-		"X",
-		"Y",
-		"Z",
-		"Win left",
-		"Win right",
-		"Apps",
-		"Unknown",
-		"Sleep",
-		"Numpad 0",
-		"Numpad 1",
-		"Numpad 2",
-		"Numpad 3",
-		"Numpad 4",
-		"Numpad 5",
-		"Numpad 6",
-		"Numpad 7",
-		"Numpad 8",
-		"Numpad 9",
-		"Multiply",
-		"Add",
-		"Seperator",
-		"Subtract",
-		"Decimal",
-		"Devide",
-		"F1",
-		"F2",
-		"F3",
-		"F4",
-		"F5",
-		"F6",
-		"F7",
-		"F8",
-		"F9",
-		"F10",
-		"F11",
-		"F12",
-		"F13",
-		"F14",
-		"F15",
-		"F16",
-		"F17",
-		"F18",
-		"F19",
-		"F20",
-		"F21",
-		"F22",
-		"F23",
-		"F24",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Numlock",
-		"Scroll",
-		"VK_OEM_NEC_EQUAL",
-		"VK_OEM_FJ_MASSHOU",
-		"VK_OEM_FJ_TOUROKU",
-		"VK_OEM_FJ_LOYA",
-		"VK_OEM_FJ_ROYA",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Unknown",
-		"Shift left",
-		"Shift right",
-		"Ctrl left",
-		"Ctrl right",
-		"Left menu",
-		"Right menu"
-	};
-
-	g_ui.textures_create(device);
-	g_ui.fonts_create(false);
-};

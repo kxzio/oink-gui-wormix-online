@@ -121,7 +121,7 @@ bool scrollbar_ex(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS64* p_s
 	// Render
 	const ImU32 bg_col = GetColorU32(ImGuiCol_ScrollbarBg);
 	const ImColor grab_col = g_ui.m_theme_colour_primary;
-	
+
 	ImRect grab_rect;
 	if (axis == ImGuiAxis_X)
 		grab_rect = ImRect(ImLerp(bb.Min.x, bb.Max.x, grab_v_norm), bb.Min.y, ImLerp(bb.Min.x, bb.Max.x, grab_v_norm) + grab_h_pixels, bb.Max.y);
@@ -866,7 +866,8 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 				LogToClipboard();
 		*/
 
-		// We fill last item data based on Title Bar/Tab, in order for IsItemHovered() and IsItemActive() to be usable after Begin().
+		// We fill last item data based on Title Bar/Tab, in order for IsItemHovered() and 
+		// () to be usable after Begin().
 		// This is useful to allow creating context menus on title bar only, etc.
 		SetLastItemData(window->MoveId, g.CurrentItemFlags, IsMouseHoveringRect(title_bar_rect.Min, title_bar_rect.Max, false) ? ImGuiItemStatusFlags_HoveredRect : 0, title_bar_rect);
 
