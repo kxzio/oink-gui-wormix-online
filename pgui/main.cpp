@@ -100,7 +100,8 @@ int main( )
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 	UpdateWindow(hwnd);
 
-	g_ui.initialize(g_pd3dDevice);
+
+	c_oink_ui g_ui(g_pd3dDevice);
 
 	while (msg.message != WM_QUIT)
 	{
@@ -144,8 +145,6 @@ int main( )
 			ImGui_ImplDX9_CreateDeviceObjects( );
 		}
 	}
-
-	g_ui.terminate( );
 
 	ImGui_ImplDX9_Shutdown( );
 	ImGui_ImplWin32_Shutdown( );
