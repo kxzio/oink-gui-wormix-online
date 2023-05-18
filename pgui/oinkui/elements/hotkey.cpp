@@ -2,8 +2,6 @@
 
 using namespace ImGui;
 
-ImGuiID active_id_hotkey = 0;
-
 bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size_arg)
 {
 	same_line( );
@@ -33,7 +31,14 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 	if (!ItemAdd(total_bb, id))
 		return false;
 
-	if (active_id_hotkey == 0)
+	auto& mode = keybind->m_activation_mode;
+	auto& key = keybind->m_keycode;
+
+	constexpr auto rmb_popup_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+
+	bool rmb_popup_open = ImGui::IsPopupOpen(id, rmb_popup_flags);
+
+	if (!rmb_popup_open)
 	{
 		bool hovered, pressed_right, pressed_left;
 		pressed_left = ButtonBehavior(frame_bb, id, &hovered, nullptr, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnRelease);
@@ -45,104 +50,107 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 				pressed_right = ButtonBehavior(frame_bb, id, nullptr, nullptr, ImGuiButtonFlags_MouseButtonRight | ImGuiButtonFlags_PressedOnRelease);
 
 				if (pressed_right) // right opened
-					active_id_hotkey = id ^ 2;
+				{
+					ImGui::OpenPopupEx(id, rmb_popup_flags);
+					rmb_popup_open = true;
+				}
 			}
 			else // left opened
 			{
-				active_id_hotkey = id;
+				if (ImGui::IsKeyDown(ImGuiKey_ModCtrl))
+					key = keybind_t::keybind_unbound;
+				else
+					key = keybind_t::keybind_key_wait;
 			};
 		};
 	};
 
-	const ImGuiID id_rmb = id ^ 2;
-
-	if (active_id_hotkey == id)
+	if (key == keybind_t::keybind_key_wait)
 	{
-		for (uint16_t i = 0u; i < ImGuiKey_COUNT; ++i)
+		uint16_t i;
+
+		for (i = 0; i < ImGuiMouseButton_COUNT; ++i)
 		{
-			if (i < ImGuiMouseButton_COUNT)
+			if (ImGui::IsMouseDown(static_cast<ImGuiMouseButton>(i)))
 			{
-				if (ImGui::IsMouseDown(static_cast<ImGuiMouseButton>(i)))
-				{
-					keybind->m_keycode = i;
-
-					ImGui::ClearActiveID( );
-					active_id_hotkey = 0;
-					break;
-				};
-			}
-			else
-			{
-				if (ImGui::IsKeyDown(static_cast<ImGuiKey>(i)))
-				{
-					if (i != ImGuiKey_Escape)
-						keybind->m_keycode = i;
-					else if (i == ImGuiKey_Backspace) // unbind
-						keybind->m_keycode = keybind_t::keybind_unbound;
-
-					ImGui::ClearActiveID( );
-					active_id_hotkey = 0;
-					break;
-				};
+				key = i;
+				break;
 			};
 		};
-	};
 
-	if (active_id_hotkey == id_rmb)
+		for (i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; ++i)
+		{
+			if (ImGui::IsKeyDown(static_cast<ImGuiKey>(i)))
+			{
+				if (i != ImGuiKey_Escape)
+					key = i;
+
+				break;
+			};
+		};
+	}
+	else if (rmb_popup_open)
 	{
-		constexpr auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar;
+		ImVec2 sizes = ImVec2(85.f * m_dpi_scaling, 82.f * m_dpi_scaling);
+		ImVec2 pos = ImVec2(frame_bb.Min.x + ((frame_bb.Max.x - frame_bb.Min.x - sizes.x) * 0.5f), frame_bb.Max.y);
 
-		ImGui::SetNextWindowPos(ImVec2(stored_cursor_pos.x + 10.f * m_dpi_scaling, stored_cursor_pos.y + 10.f * m_dpi_scaling), ImGuiCond_Appearing);
-		ImGui::SetNextWindowSize(ImVec2(85.f * m_dpi_scaling, 82.f * m_dpi_scaling), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(sizes, ImGuiCond_Appearing);
+		ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
 
-		if (ImGui::Begin("bind_settings", NULL, flags))
+		if (ImGui::BeginPopupEx(id, rmb_popup_flags))
 		{
 			float avail = ImGui::GetContentRegionAvail( ).x;
 
-			if (sub_button("Toogle", ImVec2(avail, 0), 0, keybind_mode_toggle, keybind->m_activation_mode))
-				keybind->m_activation_mode = keybind_mode_toggle;
-			if (sub_button("On Press", ImVec2(avail, 0), 0, keybind_mode_onpress, keybind->m_activation_mode))
-				keybind->m_activation_mode = keybind_mode_onpress;
-			if (sub_button("Always", ImVec2(avail, 0), 0, keybind_mode_always_on, keybind->m_activation_mode))
-				keybind->m_activation_mode = keybind_mode_always_on;
-
-			if (!ImGui::IsWindowFocused( ))
+			if (button_ex("On Press", ImVec2(avail, 0.f)))
 			{
-				active_id_hotkey = 0;
-				ImGui::ClearActiveID( );
+				ImGui::CloseCurrentPopup( );
+				mode = keybind_mode_onpress;
 			}
-		}
-		ImGui::End( );
+
+			if (button_ex("On Toogle", ImVec2(avail, 0.f)))
+			{
+				ImGui::CloseCurrentPopup( );
+				mode = keybind_mode_toggle;
+			}
+
+			if (button_ex("Always", ImVec2(avail, 0.f)))
+			{
+				ImGui::CloseCurrentPopup( );
+				mode = keybind_mode_always_on;
+			}
+
+			ImGui::EndPopup( );
+		};
+
 	}
 
-	float animation_bind_select = g_ui.process_animation(label, 1, (active_id_hotkey == id || active_id_hotkey == id_rmb), 1.f, 13.f, e_animation_type::animation_dynamic);
+	float animation_bind_select = g_ui.process_animation(label, 1, (key == keybind_t::keybind_key_wait || rmb_popup_open), 1.f, 13.f, e_animation_type::animation_dynamic);
 
 	ImColor bg_new_colour = m_theme_colour_primary; bg_new_colour.Value.w = animation_bind_select;
 
 	window->DrawList->AddRectFilled(frame_bb.Min + ImVec2(1, 1), frame_bb.Max - ImVec2(1, 1), bg_new_colour, style.FrameRounding);
 	//outline
 
-	bg_new_colour.Value.w = 150.f / 255.f;
+	bg_new_colour.Value.w = 0.58f;
 	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, bg_new_colour, style.FrameRounding);
 
 	const char* sz_display = "None";
 
-	if (keybind->m_activation_mode == keybind_mode_always_on)
+	if (mode == keybind_mode_always_on)
 		sz_display = "Always";
-	else if (keybind->m_keycode != keybind_t::keybind_unbound)
+	else if (key != keybind_t::keybind_unbound)
 	{
-		if (keybind->m_keycode < ImGuiMouseButton_COUNT)
+		if (key < ImGuiMouseButton_COUNT)
 		{
-			sz_display = "Left Mouse";
-
-			switch (keybind->m_keycode)
+			switch (key)
 			{
-				case 0:
+				case ImGuiMouseButton_Left:
+					sz_display = "Left Mouse";
 					break;
-				case 1:
+				case ImGuiMouseButton_Right:
 					sz_display = "Right Mouse";
 					break;
-				case 2:
+				case ImGuiMouseButton_Middle:
 					sz_display = "Middle Mouse";
 					break;
 				case 3:
@@ -155,8 +163,18 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 					IM_ASSERT(0);
 			};
 		}
+		else if (key == keybind_t::keybind_key_wait)
+		{
+			char buf[4];
+			ZeroMemory(buf, sizeof(buf));
+
+			for (uint8_t i = 0; i <= ((uint8_t) (ImGui::GetTime( ) * 2.f) & 3); ++i)
+				buf[i] = '.';
+
+			sz_display = buf;
+		}
 		else
-			sz_display = ImGui::GetKeyName(keybind->m_keycode);
+			sz_display = ImGui::GetKeyName(key);
 	};
 
 	const ImRect clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + size.x, frame_bb.Min.y + size.y); // Not using frame_bb.Max because we have adjusted size
@@ -166,7 +184,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 	ImVec2 test_size = ImGui::CalcTextSize(sz_display);
 
-	float text_slide = animation_bind_select * ((frame_bb.Max.x - frame_bb.Min.x) * 0.5f - test_size.x); // center??
+	float text_slide = animation_bind_select * (((frame_bb.Max.x - frame_bb.Min.x) * 0.5f) - test_size.x * 0.5f); // center??
 
 	ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding + ImVec2(text_slide, 0.f), frame_bb.Max - style.FramePadding + ImVec2(text_slide, 0.f), sz_display, NULL, NULL);
 	ImGui::PopClipRect( );
