@@ -36,7 +36,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 	constexpr auto rmb_popup_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
-	bool rmb_popup_open = ImGui::IsPopupOpen(id, rmb_popup_flags);
+	bool rmb_popup_open = IsPopupOpen(id, rmb_popup_flags);
 
 	if (!rmb_popup_open)
 	{
@@ -51,13 +51,13 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 				if (pressed_right) // right opened
 				{
-					ImGui::OpenPopupEx(id, rmb_popup_flags);
+					OpenPopupEx(id, rmb_popup_flags);
 					rmb_popup_open = true;
 				}
 			}
 			else // left opened
 			{
-				if (ImGui::IsKeyDown(ImGuiKey_ModCtrl))
+				if (IsKeyDown(ImGuiKey_ModCtrl))
 					key = keybind_t::keybind_unbound;
 				else
 					key = keybind_t::keybind_key_wait;
@@ -71,7 +71,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 		for (i = 0; i < ImGuiMouseButton_COUNT; ++i)
 		{
-			if (ImGui::IsMouseDown(static_cast<ImGuiMouseButton>(i)))
+			if (IsMouseDown(static_cast<ImGuiMouseButton>(i)))
 			{
 				key = i;
 				break;
@@ -80,7 +80,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 		for (i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; ++i)
 		{
-			if (ImGui::IsKeyDown(static_cast<ImGuiKey>(i)))
+			if (IsKeyDown(static_cast<ImGuiKey>(i)))
 			{
 				if (i != ImGuiKey_Escape)
 					key = i;
@@ -94,45 +94,55 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		ImVec2 sizes = ImVec2(85.f * m_dpi_scaling, 82.f * m_dpi_scaling);
 		ImVec2 pos = ImVec2(frame_bb.Min.x + ((frame_bb.Max.x - frame_bb.Min.x - sizes.x) * 0.5f), frame_bb.Max.y);
 
-		ImGui::SetNextWindowSize(sizes, ImGuiCond_Appearing);
-		ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+		SetNextWindowSize(sizes, ImGuiCond_Appearing);
+		SetNextWindowPos(pos, ImGuiCond_Appearing);
 
-		if (ImGui::BeginPopupEx(id, rmb_popup_flags))
+		if (!IsPopupOpen(id, ImGuiPopupFlags_None))
+			g.NextWindowData.ClearFlags( );
+		else
 		{
-			float avail = ImGui::GetContentRegionAvail( ).x;
-
-			if (button_ex("On Press", ImVec2(avail, 0.f)))
+			if (begin("##rmb settings", 0, rmb_popup_flags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_Popup))
 			{
-				ImGui::CloseCurrentPopup( );
-				mode = keybind_mode_onpress;
-			}
+				float avail = GetContentRegionAvail( ).x;
 
-			if (button_ex("On Toogle", ImVec2(avail, 0.f)))
-			{
-				ImGui::CloseCurrentPopup( );
-				mode = keybind_mode_toggle;
-			}
+				if (button_ex("On Press", ImVec2(avail, 0.f)))
+				{
+					CloseCurrentPopup( );
+					mode = keybind_mode_onpress;
+				};
 
-			if (button_ex("Always", ImVec2(avail, 0.f)))
-			{
-				ImGui::CloseCurrentPopup( );
-				mode = keybind_mode_always_on;
-			}
+				if (button_ex("On Toogle", ImVec2(avail, 0.f)))
+				{
+					CloseCurrentPopup( );
+					mode = keybind_mode_toggle;
+				};
 
-			ImGui::EndPopup( );
+				if (button_ex("Always", ImVec2(avail, 0.f)))
+				{
+					CloseCurrentPopup( );
+					mode = keybind_mode_always_on;
+				};
+
+				if (!IsWindowFocused( ))
+					CloseCurrentPopup( );
+
+				EndPopup( );
+			};
 		};
-
 	}
 
 	float animation_bind_select = g_ui.process_animation(label, 1, (key == keybind_t::keybind_key_wait || rmb_popup_open), 1.f, 13.f, e_animation_type::animation_dynamic);
 
-	ImColor bg_new_colour = m_theme_colour_primary; bg_new_colour.Value.w = animation_bind_select;
-
-	window->DrawList->AddRectFilled(frame_bb.Min + ImVec2(1, 1), frame_bb.Max - ImVec2(1, 1), bg_new_colour, style.FrameRounding);
-	//outline
+	ImColor bg_new_colour = m_theme_colour_primary;
 
 	bg_new_colour.Value.w = 0.58f;
 	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, bg_new_colour, style.FrameRounding);
+
+	if (animation_bind_select > 0.f)
+	{
+		bg_new_colour.Value.w = animation_bind_select;
+		window->DrawList->AddRectFilled(frame_bb.Min + ImVec2(1, 1), frame_bb.Max - ImVec2(1, 1), bg_new_colour, style.FrameRounding);
+	};
 
 	const char* sz_display = "None";
 
@@ -165,34 +175,39 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		}
 		else if (key == keybind_t::keybind_key_wait)
 		{
-			char buf[4];
-			ZeroMemory(buf, sizeof(buf));
+			char buf[5] = { 0 };
 
-			for (uint8_t i = 0; i <= ((uint8_t) (ImGui::GetTime( ) * 2.f) & 3); ++i)
+			for (uint8_t i = 0; i < (sizeof(buf) - 1); ++i)
+				buf[i] = ' ';
+
+			uint8_t x = 1u + static_cast<uint8_t>(ImGui::GetTime( ) * 2.f) % (sizeof(buf) - 1u);
+
+			for (uint8_t i = 0; i < x; ++i)
 				buf[i] = '.';
 
 			sz_display = buf;
 		}
 		else
-			sz_display = ImGui::GetKeyName(key);
+			sz_display = GetKeyName(key);
 	};
 
 	const ImRect clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + size.x, frame_bb.Min.y + size.y); // Not using frame_bb.Max because we have adjusted size
 	ImVec2 render_pos = frame_bb.Min + style.FramePadding;
 
-	ImGui::PushClipRect(frame_bb.Min, frame_bb.Max, false);
+	ImVec2 test_size = CalcTextSize(sz_display);
 
-	ImVec2 test_size = ImGui::CalcTextSize(sz_display);
+	float text_slide = animation_bind_select * ((frame_bb.Max.x - frame_bb.Min.x) - test_size.x); // slide to center?
 
-	float text_slide = animation_bind_select * (((frame_bb.Max.x - frame_bb.Min.x) * 0.5f) - test_size.x * 0.5f); // center??
-
-	ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding + ImVec2(text_slide, 0.f), frame_bb.Max - style.FramePadding + ImVec2(text_slide, 0.f), sz_display, NULL, NULL);
-	ImGui::PopClipRect( );
+	PushClipRect(frame_bb.Min, frame_bb.Max, false);
+	{
+		RenderTextClipped(frame_bb.Min + style.FramePadding + ImVec2(text_slide, 0.f), frame_bb.Max - style.FramePadding + ImVec2(text_slide, 0.f), sz_display, NULL, NULL);
+	};
+	PopClipRect( );
 
 	// processing here is a bad idea
 	/*if (keybind->m_activation_mode == 1)
 	{
-		if (ImGui::IsKeyDown(keybind->m_keycode) && ImGui::IsKeyPressed(keybind->m_keycode))
+		if (IsKeyDown(keybind->m_keycode) && IsKeyPressed(keybind->m_keycode))
 		{
 			keybind->m_active = !keybind->m_active;
 			return true;
@@ -201,7 +216,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 	else
 		if (keybind->m_activation_mode == 2)
 		{
-			if (ImGui::IsKeyDown(keybind->m_keycode))
+			if (IsKeyDown(keybind->m_keycode))
 			{
 				keybind->m_active = true;
 				return true;
