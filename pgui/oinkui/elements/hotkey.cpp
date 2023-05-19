@@ -38,9 +38,11 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 	bool rmb_popup_open = IsPopupOpen(id, rmb_popup_flags);
 
+	bool hovered = false;
+
 	if (!rmb_popup_open)
 	{
-		bool hovered, pressed_right, pressed_left;
+		bool pressed_right, pressed_left;
 		pressed_left = ButtonBehavior(frame_bb, id, &hovered, nullptr, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnRelease);
 
 		if (hovered) // process only if hovered (logic)
@@ -82,9 +84,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		{
 			if (IsKeyDown(static_cast<ImGuiKey>(i)))
 			{
-				if (i != ImGuiKey_Escape)
-					key = i;
-
+				key = i;
 				break;
 			};
 		};
@@ -97,7 +97,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		SetNextWindowSize(sizes, ImGuiCond_Appearing);
 		SetNextWindowPos(pos, ImGuiCond_Appearing);
 
-		if (!IsPopupOpen(id, ImGuiPopupFlags_None))
+		if (!IsPopupOpen(id, rmb_popup_flags))
 			g.NextWindowData.ClearFlags( );
 		else
 		{
@@ -131,11 +131,14 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		};
 	}
 
-	float animation_bind_select = g_ui.process_animation(label, 1, (key == keybind_t::keybind_key_wait || rmb_popup_open), 1.f, 13.f, e_animation_type::animation_dynamic);
+	float animation_bind_select = process_animation(label, 1, (key == keybind_t::keybind_key_wait || rmb_popup_open), 1.f, 13.f, e_animation_type::animation_dynamic);
 
 	ImColor bg_new_colour = m_theme_colour_primary;
 
-	bg_new_colour.Value.w = 0.58f;
+
+	float animation_hovered = process_animation(label, 2, hovered, 0.22f, 15.f, animation_dynamic);
+
+	bg_new_colour.Value.w = 0.78f + animation_hovered;
 	window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, bg_new_colour, style.FrameRounding);
 
 	if (animation_bind_select > 0.f)
@@ -175,15 +178,12 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		}
 		else if (key == keybind_t::keybind_key_wait)
 		{
-			char buf[5] = { 0 };
-
-			for (uint8_t i = 0; i < (sizeof(buf) - 1); ++i)
-				buf[i] = ' ';
+			char buf[5];
+			ZeroMemory(buf, sizeof(buf));
 
 			uint8_t x = 1u + static_cast<uint8_t>(ImGui::GetTime( ) * 2.f) % (sizeof(buf) - 1u);
 
-			for (uint8_t i = 0; i < x; ++i)
-				buf[i] = '.';
+			FillMemory(buf, x, '.');
 
 			sz_display = buf;
 		}
@@ -196,7 +196,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 	ImVec2 test_size = CalcTextSize(sz_display);
 
-	float text_slide = animation_bind_select * ((frame_bb.Max.x - frame_bb.Min.x) - test_size.x); // slide to center?
+	float text_slide = animation_bind_select * abs((frame_bb.Max.x - frame_bb.Min.x) - test_size.x); // slide to center?
 
 	PushClipRect(frame_bb.Min, frame_bb.Max, false);
 	{
