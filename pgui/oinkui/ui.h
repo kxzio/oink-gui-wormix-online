@@ -103,7 +103,8 @@ struct keybind_t
 
 	keybind_t( ) :
 		m_keycode{ keybind_unbound },
-		m_activation_mode{ e_keybind_mode::keybind_mode_onpress }
+		m_activation_mode{ e_keybind_mode::keybind_mode_onpress },
+		m_active{ false }
 	{
 	};
 
