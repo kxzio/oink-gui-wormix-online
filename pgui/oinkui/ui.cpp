@@ -8,12 +8,12 @@ void c_oink_ui::textures_create(IDirect3DDevice9* device)
 	D3DXCreateTextureFromFileInMemoryEx(device, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_syb]);
 };
 
-float c_oink_ui::process_animation(const char* label, unsigned int seed, bool if_, float v_max, float percentage_speed, e_animation_type type)
+float c_oink_ui::process_animation(const char* label, unsigned int seed, bool condition, float max_value, float percentage_speed, e_animation_type type)
 {
-	return process_animation(generate_unique_id(label, seed), if_, v_max, percentage_speed, type);
+	return process_animation(generate_unique_id(label, seed), condition, max_value, percentage_speed, type);
 }
 
-float c_oink_ui::process_animation(ImGuiID id, bool if_, float v_max, float percentage_speed /* 1.0f = 100%, 1.25f = 125% */, e_animation_type type)
+float c_oink_ui::process_animation(ImGuiID id, bool condition, float max_value, float percentage_speed /* 1.0f = 100%, 1.25f = 125% */, e_animation_type type)
 {
 #ifdef _DEBUG
 	static ImGuiID old_id = 0;
@@ -25,22 +25,24 @@ float c_oink_ui::process_animation(ImGuiID id, bool if_, float v_max, float perc
 	const auto& io = ImGui::GetIO( );
 	float speed = io.DeltaTime * percentage_speed;
 
+	IM_ASSERT(speed > 0.0f);
+
 	switch (type)
 	{
 		case e_animation_type::animation_static:
-			animation += if_ ? speed : -speed;
+			animation += condition ? speed : -speed;
 			break;
 		case e_animation_type::animation_dynamic:
-			animation += if_ ? ImAbs(v_max - animation) * speed : animation * (speed * -1.f);
+			animation += condition ? ImAbs(max_value - animation) * speed : animation * (speed * -1.f);
 			break;
 		case e_animation_type::animation_interp:
-			animation = ImLerp(animation, v_max, speed);
+			animation = ImLerp(animation, max_value, speed);
 			break;
 	}
 
 	if (type != e_animation_type::animation_interp)
 	{
-		animation = ImMin(animation, v_max);
+		animation = ImMin(animation, max_value);
 
 		if (animation < std::numeric_limits<float>::epsilon( ))
 			animation = 0.f;
