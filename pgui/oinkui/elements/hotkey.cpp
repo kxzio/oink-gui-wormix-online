@@ -150,19 +150,19 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 			switch (key)
 			{
 				case ImGuiMouseButton_Left:
-					sz_display = "Left Mouse";
+					sz_display = "LMB";
 					break;
 				case ImGuiMouseButton_Right:
-					sz_display = "Right Mouse";
+					sz_display = "RMB";
 					break;
 				case ImGuiMouseButton_Middle:
-					sz_display = "Middle Mouse";
+					sz_display = "MMB";
 					break;
 				case 3:
-					sz_display = "X1 Button";
+					sz_display = "X1";
 					break;
 				case 4:
-					sz_display = "X2 Button";
+					sz_display = "X2";
 					break;
 				default:
 					IM_ASSERT(0);

@@ -1,5 +1,26 @@
 #include "ui.h"
 
+const char* GKeyNames[133] =
+{
+	"Tab", "Left", "Right", "Up", "Down", "Pg Up", "Pg Dn",
+	"Home", "End", "Insert", "Delete", "Back", "Space", "Enter", "Esc",
+	"L Ctrl", "L Shift", "L Alt", "L Super", "R Ctrl", "R Shift", "R Alt", "R Super", "Menu",
+	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H",
+	"I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+	"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
+	"'", ",", "-", ".", "/", ";", "=", "[",
+	"\\", "]", "~", "Caps", "ScrLk", "Num", "PrtScn",
+	"Pause", "Num 0", "Num 1", "Num 2", "Num 3", "Num 4", "Num 5", "Num 6",
+	"Num 7", "Num 8", "Num 9", "Num .", "Num /", "Num *",
+	"Num -", "Num +", "Num Enter", "Num =",
+	"Start", "GBack", "GUp", "GDown", "GLeft", "GRight",
+	"DPadUp", "DPadDn", "DPadLeft", "DPadRight",
+	"L1", "R1", "L2", "R2", "L3", "R3",
+	"LStckUp", "LStckDn", "LStckL", "LStickR",
+	"RStckUp", "RStckDn", "RStckL", "RStickR",
+	"Ctrl", "Shift", "Alt", "Super"
+};
+
 std::string current_help_tip = "";
 
 void c_oink_ui::textures_create(IDirect3DDevice9* device)
