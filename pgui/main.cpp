@@ -46,8 +46,6 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-c_oink_ui g_ui;
-
 int main( )
 {
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
@@ -101,7 +99,6 @@ int main( )
 	ZeroMemory(&msg, sizeof(msg));
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 	UpdateWindow(hwnd);
-
 
 	g_ui = c_oink_ui(g_pd3dDevice);
 

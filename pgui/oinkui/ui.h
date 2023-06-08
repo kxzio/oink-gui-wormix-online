@@ -285,4 +285,4 @@ public:
 	float m_theme_hsv_backup[3];
 };
 
-extern c_oink_ui g_ui;
+inline c_oink_ui g_ui;
