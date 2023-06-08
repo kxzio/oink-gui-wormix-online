@@ -164,7 +164,7 @@ void scrollbar(ImGuiAxis axis)
 	window->Scroll[axis] = (float) scroll;
 }
 
-void RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar_rect, bool title_bar_is_highlight, int resize_grip_count, const ImU32 resize_grip_col[4], float resize_grip_draw_size)
+void RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar_rect, bool title_bar_is_highlight, bool handle_borders_and_resize_grips, int resize_grip_count, const ImU32 resize_grip_col[4], float resize_grip_draw_size)
 {
 	ImGuiContext& g = *GImGui;
 	ImGuiStyle& style = g.Style;
@@ -175,13 +175,13 @@ void RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar_rect, 
 	window->SkipItems = false;
 
 	// Draw window + handle manual resize
-	// As we highlight the title bar when want_focus is set, multiple reappearing windows will have have their title bar highlighted on their reappearing frame.
+	// As we highlight the title bar when want_focus is set, multiple reappearing windows will have their title bar highlighted on their reappearing frame.
 	const float window_rounding = window->WindowRounding;
 	const float window_border_size = window->WindowBorderSize;
 	if (window->Collapsed)
 	{
 		// Title bar only
-		float backup_border_size = style.FrameBorderSize;
+		const float backup_border_size = style.FrameBorderSize;
 		g.Style.FrameBorderSize = window->WindowBorderSize;
 		ImU32 title_bar_col = GetColorU32((title_bar_is_highlight && !g.NavDisableHighlight) ? ImGuiCol_TitleBgActive : ImGuiCol_TitleBgCollapsed);
 		RenderFrame(title_bar_rect.Min, title_bar_rect.Max, title_bar_col, true, window_rounding);
@@ -229,21 +229,25 @@ void RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar_rect, 
 			scrollbar(ImGuiAxis_Y);
 
 		// Render resize grips (after their input handling so we don't have a frame of latency)
-		if (!(flags & ImGuiWindowFlags_NoResize))
+		if (handle_borders_and_resize_grips && !(flags & ImGuiWindowFlags_NoResize))
 		{
 			for (int resize_grip_n = 0; resize_grip_n < resize_grip_count; resize_grip_n++)
 			{
+				const ImU32 col = resize_grip_col[resize_grip_n];
+				if ((col & IM_COL32_A_MASK) == 0)
+					continue;
 				const ImGuiResizeGripDef& grip = resize_grip_def[resize_grip_n];
 				const ImVec2 corner = ImLerp(window->Pos, window->Pos + window->Size, grip.CornerPosN);
 				window->DrawList->PathLineTo(corner + grip.InnerDir * ((resize_grip_n & 1) ? ImVec2(window_border_size, resize_grip_draw_size) : ImVec2(resize_grip_draw_size, window_border_size)));
 				window->DrawList->PathLineTo(corner + grip.InnerDir * ((resize_grip_n & 1) ? ImVec2(resize_grip_draw_size, window_border_size) : ImVec2(window_border_size, resize_grip_draw_size)));
 				window->DrawList->PathArcToFast(ImVec2(corner.x + grip.InnerDir.x * (window_rounding + window_border_size), corner.y + grip.InnerDir.y * (window_rounding + window_border_size)), window_rounding, grip.AngleMin12, grip.AngleMax12);
-				window->DrawList->PathFillConvex(resize_grip_col[resize_grip_n]);
+				window->DrawList->PathFillConvex(col);
 			}
 		}
 
 		// Borders
-		RenderWindowOuterBorders(window);
+		if (handle_borders_and_resize_grips)
+			RenderWindowOuterBorders(window);
 	}
 }
 
@@ -260,8 +264,6 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 	const bool window_just_created = (window == NULL);
 	if (window_just_created)
 		window = CreateNewWindow(name, flags);
-	else
-		UpdateWindowInFocusOrderList(window, window_just_created, flags);
 
 	// Automatically disable manual moving/resizing when NoInputs is set
 	if ((flags & ImGuiWindowFlags_NoInputs) == ImGuiWindowFlags_NoInputs)
@@ -289,6 +291,7 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 	// Update Flags, LastFrameActive, BeginOrderXXX fields
 	if (first_begin_of_the_frame)
 	{
+		UpdateWindowInFocusOrderList(window, window_just_created, flags);
 		window->Flags = (ImGuiWindowFlags) flags;
 		window->LastFrameActive = current_frame;
 		window->LastTimeActive = (float) g.Time;
@@ -315,25 +318,31 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 	ImGuiWindowStackData window_stack_data;
 	window_stack_data.Window = window;
 	window_stack_data.ParentLastItemDataBackup = g.LastItemData;
-	window_stack_data.StackSizesOnBegin.SetToCurrentState( );
+	window_stack_data.StackSizesOnBegin.SetToContextState(&g);
 	g.CurrentWindowStack.push_back(window_stack_data);
-	g.CurrentWindow = NULL;
 	if (flags & ImGuiWindowFlags_ChildMenu)
 		g.BeginMenuCount++;
-
-	if (flags & ImGuiWindowFlags_Popup)
-	{
-		ImGuiPopupData& popup_ref = g.OpenPopupStack[g.BeginPopupStack.Size];
-		popup_ref.Window = window;
-		g.BeginPopupStack.push_back(popup_ref);
-		window->PopupId = popup_ref.PopupId;
-	}
 
 	// Update ->RootWindow and others pointers (before any possible call to FocusWindow)
 	if (first_begin_of_the_frame)
 	{
 		UpdateWindowParentAndRootLinks(window, flags, parent_window);
 		window->ParentWindowInBeginStack = parent_window_in_stack;
+	}
+
+	// Add to focus scope stack
+	PushFocusScope(window->ID);
+	window->NavRootFocusScopeId = g.CurrentFocusScopeId;
+	g.CurrentWindow = NULL;
+
+	// Add to popup stack
+	if (flags & ImGuiWindowFlags_Popup)
+	{
+		ImGuiPopupData& popup_ref = g.OpenPopupStack[g.BeginPopupStack.Size];
+		popup_ref.Window = window;
+		popup_ref.ParentNavLayer = parent_window_in_stack->DC.NavLayerCurrent;
+		g.BeginPopupStack.push_back(popup_ref);
+		window->PopupId = popup_ref.PopupId;
 	}
 
 	// Process SetNextWindow***() calls
@@ -466,6 +475,9 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		window->DC.MenuBarOffset.x = ImMax(ImMax(window->WindowPadding.x, style.ItemSpacing.x), g.NextWindowData.MenuBarOffsetMinVal.x);
 		window->DC.MenuBarOffset.y = g.NextWindowData.MenuBarOffsetMinVal.y;
 
+		bool use_current_size_for_scrollbar_x = window_just_created;
+		bool use_current_size_for_scrollbar_y = window_just_created;
+
 		// Collapse window by double-clicking on title bar
 		// At this point we don't have a clipping rectangle setup yet, so we can use the title bar area for hit detection and drawing
 		if (!(flags & ImGuiWindowFlags_NoTitleBar) && !(flags & ImGuiWindowFlags_NoCollapse))
@@ -477,6 +489,8 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 			if (window->WantCollapseToggle)
 			{
 				window->Collapsed = !window->Collapsed;
+				if (!window->Collapsed)
+					use_current_size_for_scrollbar_y = true;
 				MarkIniSettingsDirty(window);
 			}
 		}
@@ -488,10 +502,17 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 
 		// SIZE
 
+		// Outer Decoration Sizes
+		// (we need to clear ScrollbarSize immediatly as CalcWindowAutoFitSize() needs it and can be called from other locations).
+		const ImVec2 scrollbar_sizes_from_last_frame = window->ScrollbarSizes;
+		window->DecoOuterSizeX1 = 0.0f;
+		window->DecoOuterSizeX2 = 0.0f;
+		window->DecoOuterSizeY1 = window->TitleBarHeight( ) + window->MenuBarHeight( );
+		window->DecoOuterSizeY2 = 0.0f;
+		window->ScrollbarSizes = ImVec2(0.0f, 0.0f);
+
 		// Calculate auto-fit size, handle automatic resize
 		const ImVec2 size_auto_fit = CalcWindowAutoFitSize(window, window->ContentSizeIdeal);
-		bool use_current_size_for_scrollbar_x = window_just_created;
-		bool use_current_size_for_scrollbar_y = window_just_created;
 		if ((flags & ImGuiWindowFlags_AlwaysAutoResize) && !window->Collapsed)
 		{
 			// Using SetNextWindowSize() overrides ImGuiWindowFlags_AlwaysAutoResize, so it can be used on tooltips/popups, etc.
@@ -527,9 +548,6 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		// Apply minimum/maximum window size constraints and final size
 		window->SizeFull = CalcWindowSizeAfterConstraint(window, window->SizeFull);
 		window->Size = window->Collapsed && !(flags & ImGuiWindowFlags_ChildWindow) ? window->TitleBarRect( ).GetSize( ) : window->SizeFull;
-
-		// Decoration size
-		const float decoration_up_height = window->TitleBarHeight( ) + window->MenuBarHeight( );
 
 		// POSITION
 
@@ -570,9 +588,9 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 
 		// Clamp position/size so window stays visible within its viewport or monitor
 		// Ignore zero-sized display explicitly to avoid losing positions if a window manager reports zero-sized window when initializing or minimizing.
-		if (!window_pos_set_by_api && !(flags & ImGuiWindowFlags_ChildWindow) && window->AutoFitFramesX <= 0 && window->AutoFitFramesY <= 0)
+		if (!window_pos_set_by_api && !(flags & ImGuiWindowFlags_ChildWindow))
 			if (viewport_rect.GetWidth( ) > 0.0f && viewport_rect.GetHeight( ) > 0.0f)
-				ClampWindowRect(window, visibility_rect);
+				ClampWindowPos(window, visibility_rect);
 		window->Pos = ImFloor(window->Pos);
 
 		// Lock window rounding for the frame (so that altering them doesn't cause inconsistencies)
@@ -591,31 +609,15 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 				want_focus = true;
 			else if ((flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Tooltip)) == 0)
 				want_focus = true;
-
-			ImGuiWindow* modal = GetTopMostPopupModal( );
-			if (modal != NULL && !IsWindowWithinBeginStackOf(window, modal))
-			{
-				// Avoid focusing a window that is created outside of active modal. This will prevent active modal from being closed.
-				// Since window is not focused it would reappear at the same display position like the last time it was visible.
-				// In case of completely new windows it would go to the top (over current modal), but input to such window would still be blocked by modal.
-				// Position window behind a modal that is not a begin-parent of this window.
-				want_focus = false;
-				if (window == window->RootWindow)
-				{
-					ImGuiWindow* blocking_modal = FindBlockingModal(window);
-					IM_ASSERT(blocking_modal != NULL);
-					BringWindowToDisplayBehind(window, blocking_modal);
-				}
-			}
 		}
 
-		// [Test Engine] Register whole window in the item system
+		// [Test Engine] Register whole window in the item system (before submitting further decorations)
 #ifdef IMGUI_ENABLE_TEST_ENGINE
 		if (g.TestEngineHookItems)
 		{
 			IM_ASSERT(window->IDStack.Size == 1);
-			window->IDStack.Size = 0;
-			IMGUI_TEST_ENGINE_ITEM_ADD(window->Rect( ), window->ID);
+			window->IDStack.Size = 0; // As window->IDStack[0] == window->ID here, make sure TestEngine doesn't erroneously see window as parent of itself.
+			IMGUI_TEST_ENGINE_ITEM_ADD(window->ID, window->Rect( ), NULL);
 			IMGUI_TEST_ENGINE_ITEM_INFO(window->ID, window->Name, (g.HoveredWindow == window) ? ImGuiItemStatusFlags_HoveredRect : 0);
 			window->IDStack.Size = 1;
 		}
@@ -637,9 +639,10 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		if (!window->Collapsed)
 		{
 			// When reading the current size we need to read it after size constraints have been applied.
-			// When we use InnerRect here we are intentionally reading last frame size, same for ScrollbarSizes values before we set them again.
-			ImVec2 avail_size_from_current_frame = ImVec2(window->SizeFull.x, window->SizeFull.y - decoration_up_height);
-			ImVec2 avail_size_from_last_frame = window->InnerRect.GetSize( ) + window->ScrollbarSizes;
+			// Intentionally use previous frame values for InnerRect and ScrollbarSizes.
+			// And when we use window->DecorationUp here it doesn't have ScrollbarSizes.y applied yet.
+			ImVec2 avail_size_from_current_frame = ImVec2(window->SizeFull.x, window->SizeFull.y - (window->DecoOuterSizeY1 + window->DecoOuterSizeY2));
+			ImVec2 avail_size_from_last_frame = window->InnerRect.GetSize( ) + scrollbar_sizes_from_last_frame;
 			ImVec2 needed_size_from_last_frame = window_just_created ? ImVec2(0, 0) : window->ContentSize + window->WindowPadding * 2.0f;
 			float size_x_for_scrollbars = use_current_size_for_scrollbar_x ? avail_size_from_current_frame.x : avail_size_from_last_frame.x;
 			float size_y_for_scrollbars = use_current_size_for_scrollbar_y ? avail_size_from_current_frame.y : avail_size_from_last_frame.y;
@@ -649,10 +652,14 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 			if (window->ScrollbarX && !window->ScrollbarY)
 				window->ScrollbarY = (needed_size_from_last_frame.y > size_y_for_scrollbars) && !(flags & ImGuiWindowFlags_NoScrollbar);
 			window->ScrollbarSizes = ImVec2(window->ScrollbarY ? style.ScrollbarSize : 0.0f, window->ScrollbarX ? style.ScrollbarSize : 0.0f);
+
+			// Amend the partially filled window->DecorationXXX values.
+			window->DecoOuterSizeX2 += window->ScrollbarSizes.x;
+			window->DecoOuterSizeY2 += window->ScrollbarSizes.y;
 		}
 
 		// UPDATE RECTANGLES (1- THOSE NOT AFFECTED BY SCROLLING)
-		// Update various regions. Variables they depends on should be set above in this function.
+		// Update various regions. Variables they depend on should be set above in this function.
 		// We set this up after processing the resize grip so that our rectangles doesn't lag by a frame.
 
 		// Outer rectangle
@@ -672,10 +679,10 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		// - ScrollToRectEx()
 		// - NavUpdatePageUpPageDown()
 		// - Scrollbar()
-		window->InnerRect.Min.x = window->Pos.x;
-		window->InnerRect.Min.y = window->Pos.y + decoration_up_height;
-		window->InnerRect.Max.x = window->Pos.x + window->Size.x - window->ScrollbarSizes.x;
-		window->InnerRect.Max.y = window->Pos.y + window->Size.y - window->ScrollbarSizes.y;
+		window->InnerRect.Min.x = window->Pos.x + window->DecoOuterSizeX1;
+		window->InnerRect.Min.y = window->Pos.y + window->DecoOuterSizeY1;
+		window->InnerRect.Max.x = window->Pos.x + window->Size.x - window->DecoOuterSizeX2;
+		window->InnerRect.Max.y = window->Pos.y + window->Size.y - window->DecoOuterSizeY2;
 
 		// Inner clipping rectangle.
 		// Will extend a little bit outside the normal work region.
@@ -706,26 +713,9 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		window->ScrollMax.y = ImMax(0.0f, window->ContentSize.y + window->WindowPadding.y * 2.0f - window->InnerRect.GetHeight( ));
 
 		// Apply scrolling
-		ImVec2 needed_scroll = CalcNextScrollFromScrollTargetAndClamp(window);
-
-		window->ScrollTarget = ImVec2(window->ScrollTarget.x, window->ScrollTarget.y + g.NextWindowData.ScrollVal.y);
-
-		float animation_scoll = g_ui.process_animation("scrollbar_animation", 0u, true, needed_scroll.y, 13.f, e_animation_type::animation_interp);
-
-		const bool allow_scrollbar_y = !(flags & ImGuiWindowFlags_NoScrollbar);
-
-		if (!(allow_scrollbar_y &&
-			ImGui::IsMouseDown(ImGuiMouseButton_Left) &&
-			ImGui::IsMouseHoveringRect(window->Pos + ImVec2(window->Size.x - style.ScrollbarSize, 0), window->Pos + window->Size)))
-		{
-			window->Scroll.x = needed_scroll.x;
-			window->Scroll.y = animation_scoll;
-		}
-		else
-		{
-			window->Scroll = needed_scroll;
-			window->ScrollTarget = ImVec2(FLT_MAX, FLT_MAX);
-		}
+		window->Scroll = CalcNextScrollFromScrollTargetAndClamp(window);
+		window->ScrollTarget = ImVec2(FLT_MAX, FLT_MAX);
+		window->DecoInnerSizeX1 = window->DecoInnerSizeY1 = 0.0f;
 
 		// DRAWING
 
@@ -745,8 +735,8 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 				// - We disable this when the parent window has zero vertices, which is a common pattern leading to laying out multiple overlapping childs
 				ImGuiWindow* previous_child = parent_window->DC.ChildWindows.Size >= 2 ? parent_window->DC.ChildWindows[parent_window->DC.ChildWindows.Size - 2] : NULL;
 				bool previous_child_overlapping = previous_child ? previous_child->Rect( ).Overlaps(window->Rect( )) : false;
-				bool parent_is_empty = parent_window->DrawList->VtxBuffer.Size > 0;
-				if (window->DrawList->CmdBuffer.back( ).ElemCount == 0 && parent_is_empty && !previous_child_overlapping)
+				bool parent_is_empty = (parent_window->DrawList->VtxBuffer.Size == 0);
+				if (window->DrawList->CmdBuffer.back( ).ElemCount == 0 && !parent_is_empty && !previous_child_overlapping)
 					render_decorations_in_parent = true;
 
 				ImColor back = m_theme_colour_primary;
@@ -761,11 +751,11 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 			if (render_decorations_in_parent)
 				window->DrawList = parent_window->DrawList;
 
-
 			// Handle title bar, scrollbar, resize grips and resize borders
 			const ImGuiWindow* window_to_highlight = g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow;
 			const bool title_bar_is_highlight = want_focus || (window_to_highlight && window->RootWindowForTitleBarHighlight == window_to_highlight->RootWindowForTitleBarHighlight);
-			RenderWindowDecorations(window, title_bar_rect, title_bar_is_highlight, resize_grip_count, resize_grip_col, resize_grip_draw_size);
+			const bool handle_borders_and_resize_grips = true; // This exists to facilitate merge with 'docking' branch.
+			RenderWindowDecorations(window, title_bar_rect, title_bar_is_highlight, handle_borders_and_resize_grips, resize_grip_count, resize_grip_col, resize_grip_draw_size);
 
 			if (render_decorations_in_parent)
 				window->DrawList = &window->DrawListInst;
@@ -779,8 +769,9 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		// - TreeNode(), CollapsingHeader() for right-most edge
 		// - BeginTabBar() for right-most edge
 		const bool allow_scrollbar_x = !(flags & ImGuiWindowFlags_NoScrollbar) && (flags & ImGuiWindowFlags_HorizontalScrollbar);
-		const float work_rect_size_x = (window->ContentSizeExplicit.x != 0.0f ? window->ContentSizeExplicit.x : ImMax(allow_scrollbar_x ? window->ContentSize.x : 0.0f, window->Size.x - window->WindowPadding.x * 2.0f - window->ScrollbarSizes.x));
-		const float work_rect_size_y = (window->ContentSizeExplicit.y != 0.0f ? window->ContentSizeExplicit.y : ImMax(allow_scrollbar_y ? window->ContentSize.y : 0.0f, window->Size.y - window->WindowPadding.y * 2.0f - decoration_up_height - window->ScrollbarSizes.y));
+		const bool allow_scrollbar_y = !(flags & ImGuiWindowFlags_NoScrollbar);
+		const float work_rect_size_x = (window->ContentSizeExplicit.x != 0.0f ? window->ContentSizeExplicit.x : ImMax(allow_scrollbar_x ? window->ContentSize.x : 0.0f, window->Size.x - window->WindowPadding.x * 2.0f - (window->DecoOuterSizeX1 + window->DecoOuterSizeX2)));
+		const float work_rect_size_y = (window->ContentSizeExplicit.y != 0.0f ? window->ContentSizeExplicit.y : ImMax(allow_scrollbar_y ? window->ContentSize.y : 0.0f, window->Size.y - window->WindowPadding.y * 2.0f - (window->DecoOuterSizeY1 + window->DecoOuterSizeY2)));
 		window->WorkRect.Min.x = ImFloor(window->InnerRect.Min.x - window->Scroll.x + ImMax(window->WindowPadding.x, window->WindowBorderSize));
 		window->WorkRect.Min.y = ImFloor(window->InnerRect.Min.y - window->Scroll.y + ImMax(window->WindowPadding.y, window->WindowBorderSize));
 		window->WorkRect.Max.x = window->WorkRect.Min.x + work_rect_size_x;
@@ -791,21 +782,21 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		// FIXME-OBSOLETE: window->ContentRegionRect.Max is currently very misleading / partly faulty, but some BeginChild() patterns relies on it.
 		// Used by:
 		// - Mouse wheel scrolling + many other things
-		window->ContentRegionRect.Min.x = window->Pos.x - window->Scroll.x + window->WindowPadding.x;
-		window->ContentRegionRect.Min.y = window->Pos.y - window->Scroll.y + window->WindowPadding.y + decoration_up_height;
-		window->ContentRegionRect.Max.x = window->ContentRegionRect.Min.x + (window->ContentSizeExplicit.x != 0.0f ? window->ContentSizeExplicit.x : (window->Size.x - window->WindowPadding.x * 2.0f - window->ScrollbarSizes.x));
-		window->ContentRegionRect.Max.y = window->ContentRegionRect.Min.y + (window->ContentSizeExplicit.y != 0.0f ? window->ContentSizeExplicit.y : (window->Size.y - window->WindowPadding.y * 2.0f - decoration_up_height - window->ScrollbarSizes.y));
+		window->ContentRegionRect.Min.x = window->Pos.x - window->Scroll.x + window->WindowPadding.x + window->DecoOuterSizeX1;
+		window->ContentRegionRect.Min.y = window->Pos.y - window->Scroll.y + window->WindowPadding.y + window->DecoOuterSizeY1;
+		window->ContentRegionRect.Max.x = window->ContentRegionRect.Min.x + (window->ContentSizeExplicit.x != 0.0f ? window->ContentSizeExplicit.x : (window->Size.x - window->WindowPadding.x * 2.0f - (window->DecoOuterSizeX1 + window->DecoOuterSizeX2)));
+		window->ContentRegionRect.Max.y = window->ContentRegionRect.Min.y + (window->ContentSizeExplicit.y != 0.0f ? window->ContentSizeExplicit.y : (window->Size.y - window->WindowPadding.y * 2.0f - (window->DecoOuterSizeY1 + window->DecoOuterSizeY2)));
 
 		// Setup drawing context
 		// (NB: That term "drawing context / DC" lost its meaning a long time ago. Initially was meant to hold transient data only. Nowadays difference between window-> and window->DC-> is dubious.)
-		window->DC.Indent.x = 0.0f + window->WindowPadding.x - window->Scroll.x;
+		window->DC.Indent.x = window->DecoOuterSizeX1 + window->WindowPadding.x - window->Scroll.x;
 		window->DC.GroupOffset.x = 0.0f;
 		window->DC.ColumnsOffset.x = 0.0f;
 
 		// Record the loss of precision of CursorStartPos which can happen due to really large scrolling amount.
 		// This is used by clipper to compensate and fix the most common use case of large scroll area. Easy and cheap, next best thing compared to switching everything to double or ImU64.
-		double start_pos_highp_x = (double) window->Pos.x + window->WindowPadding.x - (double) window->Scroll.x + window->DC.ColumnsOffset.x;
-		double start_pos_highp_y = (double) window->Pos.y + window->WindowPadding.y - (double) window->Scroll.y + decoration_up_height;
+		double start_pos_highp_x = (double) window->Pos.x + window->WindowPadding.x - (double) window->Scroll.x + window->DecoOuterSizeX1 + window->DC.ColumnsOffset.x;
+		double start_pos_highp_y = (double) window->Pos.y + window->WindowPadding.y - (double) window->Scroll.y + window->DecoOuterSizeY1;
 		window->DC.CursorStartPos = ImVec2((float) start_pos_highp_x, (float) start_pos_highp_y);
 		window->DC.CursorStartPosLossyness = ImVec2((float) (start_pos_highp_x - window->DC.CursorStartPos.x), (float) (start_pos_highp_y - window->DC.CursorStartPos.y));
 		window->DC.CursorPos = window->DC.CursorStartPos;
@@ -814,13 +805,14 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		window->DC.IdealMaxPos = window->DC.CursorStartPos;
 		window->DC.CurrLineSize = window->DC.PrevLineSize = ImVec2(0.0f, 0.0f);
 		window->DC.CurrLineTextBaseOffset = window->DC.PrevLineTextBaseOffset = 0.0f;
-		window->DC.IsSameLine = false;
+		window->DC.IsSameLine = window->DC.IsSetPos = false;
 
 		window->DC.NavLayerCurrent = ImGuiNavLayer_Main;
 		window->DC.NavLayersActiveMask = window->DC.NavLayersActiveMaskNext;
 		window->DC.NavLayersActiveMaskNext = 0x00;
+		window->DC.NavIsScrollPushableX = true;
 		window->DC.NavHideHighlightOneFrame = false;
-		window->DC.NavHasScroll = (window->ScrollMax.y > 0.0f);
+		window->DC.NavWindowHasScrollY = (window->ScrollMax.y > 0.0f);
 
 		window->DC.MenuBarAppending = false;
 		window->DC.MenuColumns.Update(style.ItemSpacing.x, window_just_activated_by_user);
@@ -843,11 +835,13 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 			window->AutoFitFramesY--;
 
 		// Apply focus (we need to call FocusWindow() AFTER setting DC.CursorStartPos so our initial navigation reference rectangle can start around there)
+		// We ImGuiFocusRequestFlags_UnlessBelowModal to:
+		// - Avoid focusing a window that is created outside of a modal. This will prevent active modal from being closed.
+		// - Position window behind the modal that is not a begin-parent of this window.
 		if (want_focus)
-		{
-			FocusWindow(window);
+			FocusWindow(window, ImGuiFocusRequestFlags_UnlessBelowModal);
+		if (want_focus && window == g.NavWindow)
 			NavInitWindow(window, false); // <-- this is in the way for us to be able to defer and sort reappearing FocusWindow() calls
-		}
 
 		// Title bar
 		if (!(flags & ImGuiWindowFlags_NoTitleBar))
@@ -880,9 +874,6 @@ bool c_oink_ui::begin_window(const char* name, bool* p_open, ImGuiWindowFlags fl
 		// Append
 		SetCurrentWindow(window);
 	}
-
-	// Pull/inherit current state
-	window->DC.NavFocusScopeIdCurrent = (flags & ImGuiWindowFlags_ChildWindow) ? parent_window->DC.NavFocusScopeIdCurrent : window->GetID("#FOCUSSCOPE"); // Inherit from parent only // -V595
 
 	PushClipRect(window->InnerClipRect.Min, window->InnerClipRect.Max, true);
 
@@ -959,15 +950,16 @@ bool c_oink_ui::begin_child_ex(const char* name, ImGuiID id, const ImVec2& size_
 	SetNextWindowSize(size);
 
 	// Build up name. If you need to append to a same child from multiple location in the ID stack, use BeginChild(ImGuiID id) with a stable value.
+	const char* temp_window_name;
 	if (name)
-		ImFormatString(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), "%s/%s_%08X", parent_window->Name, name, id);
+		ImFormatStringToTempBuffer(&temp_window_name, NULL, "%s/%s_%08X", parent_window->Name, name, id);
 	else
-		ImFormatString(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), "%s/%08X", parent_window->Name, id);
+		ImFormatStringToTempBuffer(&temp_window_name, NULL, "%s/%08X", parent_window->Name, id);
 
 	const float backup_border_size = g.Style.ChildBorderSize;
 	if (!border)
 		g.Style.ChildBorderSize = 0.0f;
-	bool ret = begin_window(name, NULL, flags);
+	bool ret = begin_window(temp_window_name, NULL, flags);
 	g.Style.ChildBorderSize = backup_border_size;
 
 	ImGuiWindow* child_window = g.CurrentWindow;
@@ -980,12 +972,15 @@ bool c_oink_ui::begin_child_ex(const char* name, ImGuiID id, const ImVec2& size_
 		parent_window->DC.CursorPos = child_window->Pos;
 
 	// Process navigation-in immediately so NavInit can run on first frame
-	if (g.NavActivateId == id && !(flags & ImGuiWindowFlags_NavFlattened) && (child_window->DC.NavLayersActiveMask != 0 || child_window->DC.NavHasScroll))
+	const ImGuiID temp_id_for_activation = (id + 1);
+	if (g.ActiveId == temp_id_for_activation)
+		ClearActiveID( );
+	if (g.NavActivateId == id && !(flags & ImGuiWindowFlags_NavFlattened) && (child_window->DC.NavLayersActiveMask != 0 || child_window->DC.NavWindowHasScrollY))
 	{
 		FocusWindow(child_window);
 		NavInitWindow(child_window, false);
-		SetActiveID(id + 1, child_window); // Steal ActiveId with another arbitrary id so that key-press won't activate child item
-		g.ActiveIdSource = ImGuiInputSource_Nav;
+		SetActiveID(temp_id_for_activation, child_window); // Steal ActiveId with another arbitrary id so that key-press won't activate child item
+		g.ActiveIdSource = g.NavInputSource;
 	}
 	return ret;
 }

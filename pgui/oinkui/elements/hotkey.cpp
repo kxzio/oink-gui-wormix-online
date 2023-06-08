@@ -49,7 +49,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 	if (!rmb_popup_open)
 	{
 		bool pressed_right, pressed_left;
-		pressed_left = ButtonBehavior(total_bb, id, &hovered, nullptr, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnRelease);
+		pressed_left = ButtonBehavior(total_bb, id, &hovered, nullptr, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_PressedOnClickRelease);
 
 		if (hovered) // process only if hovered (logic)
 		{
@@ -63,7 +63,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 					rmb_popup_open = true;
 				}
 			}
-			else // left opened
+			else if (mode != keybind_mode_always_on) // left opened
 			{
 				if (IsKeyDown(ImGuiKey_ModCtrl))
 					key = keybind_t::keybind_unbound;
@@ -77,20 +77,16 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 	{
 		uint16_t i;
 
-		for (i = 0; i < ImGuiMouseButton_COUNT; ++i)
-		{
-			if (IsMouseDown(static_cast<ImGuiMouseButton>(i)))
-			{
-				key = i;
-				break;
-			};
-		};
-
 		for (i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; ++i)
 		{
-			if (IsKeyDown(static_cast<ImGuiKey>(i)))
+			ImGuiKey imkey = static_cast<ImGuiKey>(i);
+
+			auto keydata = GetKeyData(&g, imkey);
+
+			if (keydata->Down && keydata->DownDuration > 0.08f)
 			{
 				key = i;
+				ClearActiveID( );
 				break;
 			};
 		};
@@ -113,24 +109,30 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 
 				if (button_ex("On Press", ImVec2(avail, 0.f)))
 				{
+					ClearActiveID( );
 					CloseCurrentPopup( );
 					mode = keybind_mode_onpress;
 				};
 
 				if (button_ex("On Toogle", ImVec2(avail, 0.f)))
 				{
+					ClearActiveID( );
 					CloseCurrentPopup( );
 					mode = keybind_mode_toggle;
 				};
 
 				if (button_ex("Always", ImVec2(avail, 0.f)))
 				{
+					ClearActiveID( );
 					CloseCurrentPopup( );
 					mode = keybind_mode_always_on;
 				};
 
 				if (!IsWindowFocused( ))
+				{
+					ClearActiveID( );
 					CloseCurrentPopup( );
+				};
 
 				EndPopup( );
 			};
@@ -145,30 +147,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		sz_display = "Always";
 	else if (key != keybind_t::keybind_unbound)
 	{
-		if (key < ImGuiMouseButton_COUNT)
-		{
-			switch (key)
-			{
-				case ImGuiMouseButton_Left:
-					sz_display = "LMB";
-					break;
-				case ImGuiMouseButton_Right:
-					sz_display = "RMB";
-					break;
-				case ImGuiMouseButton_Middle:
-					sz_display = "MMB";
-					break;
-				case 3:
-					sz_display = "X1";
-					break;
-				case 4:
-					sz_display = "X2";
-					break;
-				default:
-					IM_ASSERT(0);
-			};
-		}
-		else if (key == keybind_t::keybind_key_wait)
+		if (key == keybind_t::keybind_key_wait)
 		{
 			char buf[5];
 			ZeroMemory(buf, sizeof(buf));
@@ -182,7 +161,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 			//sz_display = "...";
 		}
 		else
-			sz_display = GetKeyName(key);
+			sz_display = GetKeyName(static_cast<ImGuiKey>(key));
 	};
 
 	ImVec2 text_size = CalcTextSize(sz_display);

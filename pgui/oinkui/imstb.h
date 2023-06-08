@@ -63,7 +63,6 @@ namespace ImStb
 extern float CalcMaxPopupHeightFromItemCount(int items_count);
 extern bool Items_ArrayGetter(void* data, int idx, const char** out_text);
 extern const char* PatchFormatStringFloatToInt(const char* fmt);
-extern ImVec2 InputTextCalcTextSizeW(const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL, ImVec2* out_offset = NULL, bool stop_on_new_line = false);
 extern int InputTextCalcTextLenAndLineCount(const char* text_begin, const char** out_text_end);
 extern bool InputTextFilterCharacter(unsigned int* p_char, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data, ImGuiInputSource input_source);
 extern bool Items_SingleStringGetter(void* data, int idx, const char** out_text);
@@ -72,7 +71,7 @@ extern void SetWindowConditionAllowFlags(ImGuiWindow* window, ImGuiCond flags, b
 extern void CalcWindowContentSizes(ImGuiWindow* window, ImVec2* content_size_current, ImVec2* content_size_ideal);
 extern ImVec2 CalcWindowAutoFitSize(ImGuiWindow* window, const ImVec2& size_contents);
 extern ImVec2 CalcWindowSizeAfterConstraint(ImGuiWindow* window, const ImVec2& size_desired);
-extern inline void ClampWindowRect(ImGuiWindow* window, const ImRect& visibility_rect);
+extern inline void ClampWindowPos(ImGuiWindow* window, const ImRect& visibility_rect);
 extern ImVec2 CalcNextScrollFromScrollTargetAndClamp(ImGuiWindow* window);
 extern ImGuiCol GetWindowBgColorIdx(ImGuiWindow* window);
 extern void CalcResizePosSizeFromAnyCorner(ImGuiWindow* window, const ImVec2& corner_target, const ImVec2& corner_norm, ImVec2* out_pos, ImVec2* out_size);
@@ -82,6 +81,7 @@ extern float CalcScrollEdgeSnap(float target, float snap_min, float snap_max, fl
 extern ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags);
 extern void SetCurrentWindow(ImGuiWindow* window);
 extern ImGuiInputTextFlags InputScalar_DefaultCharsFilter(ImGuiDataType data_type, const char* format);
+extern ImVec2 InputTextCalcTextSizeW(ImGuiContext* ctx, const ImWchar* text_begin, const ImWchar* text_end, const ImWchar** remaining = NULL, ImVec2* out_offset = NULL, bool stop_on_new_line = false);
 
 namespace ImGui
 {
