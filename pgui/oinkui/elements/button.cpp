@@ -33,7 +33,7 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	RenderNavHighlight(bb, id);
 
 	float alpha = g_ui.process_animation(label, 1, g.LastActiveId == id && g.LastActiveIdTimer < 0.15f, 0.5f, 15.f, e_animation_type::animation_dynamic);
-	float hovered_alpha = g_ui.process_animation(label, 2, hovered, 0.5f, 15.f, e_animation_type::animation_dynamic);
+	float hovered_alpha = g_ui.process_animation(label, 2, hovered, 0.22f, 15.f, e_animation_type::animation_dynamic);
 
 	//background
 
@@ -48,7 +48,7 @@ bool button_ex(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags
 	window->DrawList->AddRect(bb.Min, bb.Max, color, style.FrameRounding);
 
 	//SetWindowFontScale(window->FontWindowScale + (text_size / 1000.f));
-	window->DrawList->AddText(bb.Min + bb.GetSize( ) / 2 - label_size / 2, ImColor(1.f, 1.f, 1.f, 0.7f + hovered_alpha), label);
+	window->DrawList->AddText(bb.Min + bb.GetSize( ) * 0.5f - label_size * 0.5f, ImColor(1.f, 1.f, 1.f, 0.7f + hovered_alpha), label);
 
 	// Automatically close popups
 	if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))

@@ -97,7 +97,7 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 	}
 	else if (rmb_popup_open)
 	{
-		ImVec2 sizes = ImVec2(85.f * m_dpi_scaling, 82.f * m_dpi_scaling);
+		ImVec2 sizes = ImVec2(85.f * m_dpi_scaling, 0.f);
 		ImVec2 pos = ImVec2(total_bb.Min.x + ((total_bb.Max.x - total_bb.Min.x - sizes.x) * 0.5f), total_bb.Max.y);
 
 		SetNextWindowSize(sizes, ImGuiCond_Appearing);
@@ -107,9 +107,9 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 			g.NextWindowData.ClearFlags( );
 		else
 		{
-			if (begin("##rmb settings", 0, rmb_popup_flags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_Popup))
+			if (begin("##rmb settings", nullptr, rmb_popup_flags | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_Popup))
 			{
-				float avail = GetContentRegionAvail( ).x;
+				float avail = GetContentRegionAvail( ).x / m_dpi_scaling;
 
 				if (button_ex("On Press", ImVec2(avail, 0.f)))
 				{
@@ -170,14 +170,16 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 		}
 		else if (key == keybind_t::keybind_key_wait)
 		{
-			/*char buf[5];
+			char buf[5];
 			ZeroMemory(buf, sizeof(buf));
 
-			uint8_t x = 1u + static_cast<uint8_t>(ImGui::GetTime( ) * 2.f) % (sizeof(buf) - 1u);
+			uint8_t x = 1u + static_cast<uint8_t>(GetTime( ) * 2.f) % (sizeof(buf) - 1u);
 
-			FillMemory(buf, x, '.');*/
+			FillMemory(buf, x, '.');
 
-			sz_display = "...";
+
+			sz_display = buf;
+			//sz_display = "...";
 		}
 		else
 			sz_display = GetKeyName(key);
@@ -190,28 +192,27 @@ bool c_oink_ui::hotkey(const char* label, keybind_t* keybind, const ImVec2& size
 	const bool is_hotkey_active = (key == keybind_t::keybind_key_wait || rmb_popup_open);
 
 	float animation_bind_select = process_animation(label, 1, is_hotkey_active, 1.f, 13.f, e_animation_type::animation_dynamic);
-	float animation_hovered = process_animation(label, 2, hovered, 0.22f, 15.f, animation_dynamic);
+	float animation_hovered = process_animation(label, 2, hovered, 0.22f, 15.f, e_animation_type::animation_dynamic);
 
 	float center_offset = (frame_width - text_size.x) * 0.5f; // center the text
 	float text_slide = center_offset + animation_bind_select;
-
-	if (is_hotkey_active)
-		text_slide += ImSin(GetTime( ) * 4.f) * 8.f; // amp
-
-	text_slide = ImClamp(text_slide, 0.f, frame_width - (text_size.x + style.FramePadding.x * 2.f));
 
 	bg_new_colour.Value.w = 0.78f + animation_hovered;
 	window->DrawList->AddRect(total_bb.Min, total_bb.Max, bg_new_colour, style.FrameRounding);
 
 	if (animation_bind_select > 0.f)
 	{
+		float animation_offset = ImSin(GetTime( ) * 4.f) * (8.f * m_dpi_scaling);
+		text_slide += animation_offset * animation_bind_select;
+		text_slide = ImClamp(text_slide, 0.f, frame_width - style.FramePadding.x * 2.f);
+
 		bg_new_colour.Value.w = animation_bind_select;
 		window->DrawList->AddRectFilled(total_bb.Min + ImVec2(1, 1), total_bb.Max - ImVec2(1, 1), bg_new_colour, style.FrameRounding);
 	};
 
 	PushClipRect(total_bb.Min, total_bb.Max, false);
 	{
-		RenderTextClipped(total_bb.Min + ImVec2(text_slide, style.FramePadding.y), total_bb.Max - ImVec2(text_slide, 0.f), sz_display, NULL, &text_size, ImVec2(0, 0), &total_bb);
+		RenderTextClipped(total_bb.Min + ImVec2(text_slide, 0.f), total_bb.Max - ImVec2(text_slide, 0.f), sz_display, NULL, &text_size, ImVec2(0.f, style.ButtonTextAlign.y), &total_bb);
 	};
 	PopClipRect( );
 
