@@ -63,8 +63,6 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	// Default format string when passing NULL
 	if (format == NULL)
 		format = DataTypeGetInfo(data_type)->PrintFmt;
-	else if (data_type == ImGuiDataType_S32 && strcmp(format, "%d") != 0) // (FIXME-LEGACY: Patch old "%.0f" format string to use "%d", read function more details.)
-		format = PatchFormatStringFloatToInt(format);
 
 	const ImRect input_bb(frame_bb.Min, frame_bb.Max + ImVec2(w, label_size.y + style.FramePadding.y * 10.0f * m_dpi_scaling));
 
@@ -73,19 +71,34 @@ bool c_oink_ui::slider_scalar(const char* label, ImGuiDataType data_type, void* 
 	bool temp_input_is_active = temp_input_allowed && TempInputIsActive(id);
 	if (!temp_input_is_active)
 	{
+		// Tabbing or CTRL-clicking on Drag turns it into an InputText
 		const bool input_requested_by_tabbing = temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
-		const bool clicked = (hovered && g.IO.MouseClicked[0]);
-		if (input_requested_by_tabbing || clicked || g.NavActivateId == id || g.NavActivateInputId == id)
+		const bool clicked = hovered && IsMouseClicked(0, id);
+		const bool double_clicked = (hovered && g.IO.MouseClickedCount[0] == 2 && TestKeyOwner(ImGuiKey_MouseLeft, id));
+		const bool make_active = (input_requested_by_tabbing || clicked || double_clicked || g.NavActivateId == id);
+		if (make_active && (clicked || double_clicked))
+			SetKeyOwner(ImGuiKey_MouseLeft, id);
+		if (make_active && temp_input_allowed)
+			if (input_requested_by_tabbing || (clicked && g.IO.KeyCtrl) || double_clicked || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
+				temp_input_is_active = true;
+
+		// (Optional) simple click (without moving) turns Drag into an InputText
+		if (g.IO.ConfigDragClickToInputText && temp_input_allowed && !temp_input_is_active)
+			if (g.ActiveId == id && hovered && g.IO.MouseReleased[0] && !IsMouseDragPastThreshold(0, g.IO.MouseDragThreshold * 0.5f))
+			{
+				g.NavActivateId = id;
+				g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
+				temp_input_is_active = true;
+			}
+
+		if (make_active && !temp_input_is_active)
 		{
 			SetActiveID(id, window);
 			SetFocusID(id, window);
 			FocusWindow(window);
-			g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
-			if (temp_input_allowed && (input_requested_by_tabbing || (clicked && g.IO.KeyCtrl) || g.NavActivateInputId == id))
-				temp_input_is_active = true;
+			g.ActiveIdUsingNavDirMask = (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
 		}
 	}
-
 	if (temp_input_is_active)
 	{
 		// Only clamp CTRL+Click input when ImGuiSliderFlags_AlwaysClamp is set

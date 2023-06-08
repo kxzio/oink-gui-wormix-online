@@ -4,6 +4,7 @@
 using namespace ImGui;
 
 extern void ColorEditRestoreHS(const float* col, float* H, float* S, float* V);
+extern void ColorEditRestoreH(const float* col, float* H);
 
 bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFlags flags, const float* ref_col, const float& dpi_scale)
 {
@@ -20,6 +21,9 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 	g.NextItemData.ClearFlags( );
 
 	PushID(label);
+	const bool set_current_color_edit_id = (g.ColorEditCurrentID == 0);
+	if (set_current_color_edit_id)
+		g.ColorEditCurrentID = window->IDStack.back( );
 	BeginGroup( );
 
 	if (!(flags & ImGuiColorEditFlags_NoSidePreview))
@@ -41,12 +45,12 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 
 	// Setup
 	int components = (flags & ImGuiColorEditFlags_NoAlpha) ? 3 : 4;
-	bool alpha_bar = !(flags & ImGuiColorEditFlags_NoAlpha);
-	ImVec2 picker_pos = window->DC.CursorPos;
+	bool alpha_bar = (flags & ImGuiColorEditFlags_AlphaBar) && !(flags & ImGuiColorEditFlags_NoAlpha);
+	ImVec2 picker_pos = window->DC.CursorPos + ImVec2(1.f, 0.f);
 	float square_sz = GetFrameHeight( );
-	float bars_width = square_sz - 10 * dpi_scale; // Arbitrary smallish width of Hue/Alpha picking bars
+	float bars_width = square_sz; // Arbitrary smallish width of Hue/Alpha picking bars
 	float sv_picker_size = ImMax(bars_width * 1, width - (alpha_bar ? 2 : 1) * (bars_width + style.ItemInnerSpacing.x)); // Saturation/Value picking box
-	float bar0_pos_x = picker_pos.x + sv_picker_size + style.ItemInnerSpacing.x + 3 * m_dpi_scaling;
+	float bar0_pos_x = picker_pos.x + sv_picker_size + style.ItemInnerSpacing.x;
 	float bar1_pos_x = bar0_pos_x + bars_width + style.ItemInnerSpacing.x;
 	float bars_triangles_half_sz = IM_FLOOR(bars_width * 0.20f);
 
@@ -68,7 +72,7 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 	float R = col[0], G = col[1], B = col[2];
 	if (flags & ImGuiColorEditFlags_InputRGB)
 	{
-		// Hue is lost when converting from greyscale rgb (saturation=0). Restore it.
+		// Hue is lost when converting from grayscale rgb (saturation=0). Restore it.
 		ColorConvertRGBtoHSV(R, G, B, H, S, V);
 		ColorEditRestoreHS(col, &H, &S, &V);
 	}
@@ -121,12 +125,11 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 		{
 			S = ImSaturate((io.MousePos.x - picker_pos.x) / (sv_picker_size - 1));
 			V = 1.0f - ImSaturate((io.MousePos.y - picker_pos.y) / (sv_picker_size - 1));
-
-			// Greatly reduces hue jitter and reset to 0 when hue == 255 and color is rapidly modified using SV square.
-			if (g.ColorEditLastColor == ColorConvertFloat4ToU32(ImVec4(col[0], col[1], col[2], 0)))
-				H = g.ColorEditLastHue;
+			ColorEditRestoreH(col, &H); // Greatly reduces hue jitter and reset to 0 when hue == 255 and color is rapidly modified using SV square.
 			value_changed = value_changed_sv = true;
 		}
+		if (!(flags & ImGuiColorEditFlags_NoOptions))
+			OpenPopupOnItemClick("context", ImGuiPopupFlags_MouseButtonRight);
 
 		// Hue bar logic
 		SetCursorScreenPos(ImVec2(bar0_pos_x, picker_pos.y));
@@ -138,13 +141,13 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 		}
 	}
 
+	ImVec2 size = ImVec2(sv_picker_size, bars_width);
+	ImVec2 alpha_cursor_pos = GetCursorPos( );
+
 	// Alpha bar logic
 	if (alpha_bar)
 	{
-		int y_alpha_bar = 150;
-		ImRect bar1_bb(bar1_pos_x - 171 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale, bar1_pos_x - 171 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + y_alpha_bar * dpi_scale);
-		SetCursorScreenPos(ImVec2(bar1_pos_x - 171 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale));
-		InvisibleButton("alpha", ImVec2(sv_picker_size, bars_width));
+		Button("alpha", size);
 		if (IsItemActive( ))
 		{
 			col[3] = ImSaturate((io.MousePos.x - picker_pos.x) / (sv_picker_size - 1));
@@ -210,9 +213,10 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 		if (flags & ImGuiColorEditFlags_InputRGB)
 		{
 			ColorConvertHSVtoRGB(H, S, V, col[0], col[1], col[2]);
-			g.ColorEditLastHue = H;
-			g.ColorEditLastSat = S;
-			g.ColorEditLastColor = ColorConvertFloat4ToU32(*reinterpret_cast<ImVec4*>(col));
+			g.ColorEditSavedHue = H;
+			g.ColorEditSavedSat = S;
+			g.ColorEditSavedID = g.ColorEditCurrentID;
+			g.ColorEditSavedColor = ColorConvertFloat4ToU32(*reinterpret_cast<ImVec4*>(col));
 		}
 		else if (flags & ImGuiColorEditFlags_InputHSV)
 		{
@@ -332,11 +336,11 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 		float bar0_line_y = IM_ROUND(picker_pos.y + H * sv_picker_size);
 		RenderFrameBorder(ImVec2(bar0_pos_x, picker_pos.y), ImVec2(bar0_pos_x + bars_width, picker_pos.y + sv_picker_size), 0.0f);
 
-		draw_list->AddLine(ImVec2(bar0_pos_x, bar0_line_y), ImVec2(bar0_pos_x + bars_width, bar0_line_y), ImColor(0, 0, 0, 255));
-		draw_list->AddLine(ImVec2(bar0_pos_x, bar0_line_y - 1), ImVec2(bar0_pos_x + bars_width, bar0_line_y - 1), ImColor(255, 255, 255, 255));
-		draw_list->AddLine(ImVec2(bar0_pos_x, bar0_line_y + 1), ImVec2(bar0_pos_x + bars_width, bar0_line_y + 1), ImColor(255, 255, 255, 255));
-		draw_list->AddLine(ImVec2(bar0_pos_x, bar0_line_y + 2), ImVec2(bar0_pos_x + bars_width, bar0_line_y + 2), ImColor(0, 0, 0, 150));
-		draw_list->AddLine(ImVec2(bar0_pos_x, bar0_line_y - 2), ImVec2(bar0_pos_x + bars_width, bar0_line_y - 2), ImColor(0, 0, 0, 150));
+		draw_list->AddLine(ImVec2(bar0_pos_x - 1, bar0_line_y), ImVec2(bar0_pos_x + bars_width, bar0_line_y), ImColor(0, 0, 0, 255));
+		draw_list->AddLine(ImVec2(bar0_pos_x - 1, bar0_line_y - 1), ImVec2(bar0_pos_x + bars_width, bar0_line_y - 1), ImColor(255, 255, 255, 255));
+		draw_list->AddLine(ImVec2(bar0_pos_x - 1, bar0_line_y + 1), ImVec2(bar0_pos_x + bars_width, bar0_line_y + 1), ImColor(255, 255, 255, 255));
+		draw_list->AddLine(ImVec2(bar0_pos_x - 1, bar0_line_y + 2), ImVec2(bar0_pos_x + bars_width, bar0_line_y + 2), ImColor(0, 0, 0, 150));
+		draw_list->AddLine(ImVec2(bar0_pos_x - 1, bar0_line_y - 2), ImVec2(bar0_pos_x + bars_width, bar0_line_y - 2), ImColor(0, 0, 0, 150));
 	}
 
 	// Render cursor/preview circle (clamp S/V within 0..1 range because floating points colors may lead HSV values to be out of range)
@@ -352,22 +356,7 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 	// Render alpha bar
 	if (alpha_bar)
 	{
-		int y_alpha_bar = 150;
-		ImRect bar2_bb(bar1_pos_x - 171 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale, bar1_pos_x - 171 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + y_alpha_bar * dpi_scale);
-		ImVec2 pos(ImVec2(picker_pos.x, picker_pos.y + y_alpha_bar * dpi_scale));
-		ImVec2 size = ImVec2(sv_picker_size, bars_width);
 
-		float alpha = ImSaturate(col[3]);
-		ImRect bar1_bb(bar1_pos_x - 158 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale, bar1_pos_x - 158 * dpi_scale + sv_picker_size, picker_pos.y + bars_width + y_alpha_bar * dpi_scale);
-		RenderColorRectWithAlphaCheckerboard(draw_list, pos, pos + size, 0, bar1_bb.GetHeight( ) / 2.0f, ImVec2(0.0f, 0.0f));
-		draw_list->AddRectFilledMultiColor(pos, pos + size, user_col32_striped_of_alpha & ~IM_COL32_A_MASK, user_col32_striped_of_alpha, user_col32_striped_of_alpha, user_col32_striped_of_alpha & ~IM_COL32_A_MASK);
-		float bar1_line_x = IM_ROUND(picker_pos.x + alpha * sv_picker_size);
-		RenderFrameBorder(pos, pos + size, 0.0f);
-		draw_list->AddLine(ImVec2(bar1_line_x, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(0, 0, 0, 255));
-		draw_list->AddLine(ImVec2(bar1_line_x - 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x - 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(255, 255, 255, 255));
-		draw_list->AddLine(ImVec2(bar1_line_x + 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x + 1 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(255, 255, 255, 255));
-		draw_list->AddLine(ImVec2(bar1_line_x + 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x + 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(0, 0, 0, 150));
-		draw_list->AddLine(ImVec2(bar1_line_x - 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale), ImVec2(bar1_line_x - 2 * dpi_scale, picker_pos.y + y_alpha_bar * dpi_scale + bars_width), ImColor(0, 0, 0, 150));
 	}
 
 	EndGroup( );
@@ -400,6 +389,10 @@ bool c_oink_ui::color_edit4(const char* label, float col[4], ImGuiColorEditFlags
 
 	BeginGroup( );
 	PushID(label);
+
+	const bool set_current_color_edit_id = (g.ColorEditCurrentID == 0);
+	if (set_current_color_edit_id)
+		g.ColorEditCurrentID = window->IDStack.back( );
 
 	// If we're not showing any slider there's no point in doing any HSV conversions
 	const ImGuiColorEditFlags flags_untouched = flags;
@@ -532,7 +525,7 @@ bool c_oink_ui::color_edit4(const char* label, float col[4], ImGuiColorEditFlags
 		{
 			picker_active_window = g.CurrentWindow;
 			ImGuiColorEditFlags picker_flags_to_forward = ImGuiColorEditFlags_DataTypeMask_ | ImGuiColorEditFlags_PickerMask_ | ImGuiColorEditFlags_InputMask_ | ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_AlphaBar;
-			ImGuiColorEditFlags picker_flags = (flags_untouched & picker_flags_to_forward) | ImGuiColorEditFlags_DisplayMask_ | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaPreviewHalf;
+			ImGuiColorEditFlags picker_flags = (flags_untouched & picker_flags_to_forward) | ImGuiColorEditFlags_DisplayMask_ | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_AlphaPreviewHalf | ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoOptions;
 			SetNextItemWidth(square_sz * 12.0f); // Use 256 + bar sizes?
 			PushStyleColor(ImGuiCol_PopupBg, ImVec4(ImColor(51, 53, 61, 150)));
 			value_changed |= color_picker4("##picker", col, picker_flags, &g.ColorPickerRef.x, dpi_scale);
@@ -555,10 +548,11 @@ bool c_oink_ui::color_edit4(const char* label, float col[4], ImGuiColorEditFlags
 				f[n] = i[n] / 255.0f;
 		if ((flags & ImGuiColorEditFlags_DisplayHSV) && (flags & ImGuiColorEditFlags_InputRGB))
 		{
-			g.ColorEditLastHue = f[0];
-			g.ColorEditLastSat = f[1];
+			g.ColorEditSavedHue = f[0];
+			g.ColorEditSavedSat = f[1];
 			ColorConvertHSVtoRGB(f[0], f[1], f[2], f[0], f[1], f[2]);
-			g.ColorEditLastColor = ColorConvertFloat4ToU32(ImVec4(f[0], f[1], f[2], 0));
+			g.ColorEditSavedID = g.ColorEditCurrentID;
+			g.ColorEditSavedColor = ColorConvertFloat4ToU32(*reinterpret_cast<ImVec4*>(f));
 		}
 		if ((flags & ImGuiColorEditFlags_DisplayRGB) && (flags & ImGuiColorEditFlags_InputHSV))
 			ColorConvertRGBtoHSV(f[0], f[1], f[2], f[0], f[1], f[2]);
@@ -599,7 +593,7 @@ bool c_oink_ui::color_edit4(const char* label, float col[4], ImGuiColorEditFlags
 	if (picker_active_window && g.ActiveId != 0 && g.ActiveIdWindow == picker_active_window)
 		g.LastItemData.ID = g.ActiveId;
 
-	if (value_changed)
+	if (value_changed && g.LastItemData.ID != 0) // In case of ID collision, the second EndGroup() won't catch g.ActiveId
 		MarkItemEdited(g.LastItemData.ID);
 
 	return value_changed;
@@ -607,27 +601,27 @@ bool c_oink_ui::color_edit4(const char* label, float col[4], ImGuiColorEditFlags
 
 bool c_oink_ui::color_picker(const char* sz, float* col, bool alpha_bar)
 {
-	auto flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
+	auto flags = ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
 
 	text(sz);
 	same_line( );
 	set_cursor_pos_x(180.f);
 
 	if (!alpha_bar)
-		flags |= ImGuiColorEditFlags_NoAlpha;
+		flags &= ~ImGuiColorEditFlags_AlphaPreviewHalf;
 
 	return color_edit4(sz, col, flags, m_dpi_scaling);
 }
 
 bool c_oink_ui::color_picker_button(const char* label, float* col, bool draw_on_same_line, bool alpha_bar)
 {
-	auto flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
+	auto flags = ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoBorder;
 
 	same_line( );
 	set_cursor_pos_x(draw_on_same_line ? 160.f : 180.f);
 
 	if (!alpha_bar)
-		flags |= ImGuiColorEditFlags_NoAlpha;
+		flags &= ~ImGuiColorEditFlags_AlphaPreviewHalf;
 
 	return color_edit4(label, col, flags, m_dpi_scaling);
 }

@@ -12,10 +12,7 @@
 #include "../imgui/imgui_impl_win32.h"
 #include "../imgui/imstb_textedit.h"
 
-#include "../imgui/pig.h"
-#include "../imgui/pigstars.h"
-#include "../imgui/syb.h"
-#include "../imgui/stars.h"
+#include "pig_image.h"
 
 #include <string>
 #include <vector>
@@ -62,7 +59,6 @@ enum e_keybind_mode : uint8_t
 enum e_tex_id : uint8_t
 {
 	tex_pig = 0u,
-	tex_syb,
 	tex_max
 };
 

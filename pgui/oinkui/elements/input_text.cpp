@@ -133,7 +133,7 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 	ImGuiInputTextState* state = GetInputTextState(id);
 
 	const bool input_requested_by_tabbing = (item_status_flags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
-	const bool input_requested_by_nav = (g.ActiveId != id) && ((g.NavActivateInputId == id) || (g.NavActivateId == id && g.NavInputSource == ImGuiInputSource_Keyboard));
+	const bool input_requested_by_nav = (g.ActiveId != id) && ((g.NavActivateId == id) && ((g.NavActivateFlags & ImGuiActivateFlags_PreferInput) || (g.NavInputSource == ImGuiInputSource_Keyboard)));
 
 	const bool user_clicked = hovered && io.MouseClicked[0];
 	const bool user_scroll_finish = is_multiline && state != NULL && g.ActiveId == 0 && g.ActiveIdPreviousFrame == GetWindowScrollbarID(draw_window, ImGuiAxis_Y);
@@ -196,31 +196,35 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 			state->Stb.insert_mode = 1; // stb field name is indeed incorrect (see #2863)
 	}
 
+	const bool is_osx = io.ConfigMacOSXBehaviors;
 	if (g.ActiveId != id && init_make_active)
 	{
 		IM_ASSERT(state && state->ID == id);
 		SetActiveID(id, window);
 		SetFocusID(id, window);
 		FocusWindow(window);
-
-		// Declare our inputs
-		IM_ASSERT(ImGuiNavInput_COUNT < 32);
+	}
+	if (g.ActiveId == id)
+	{
+		// Declare some inputs, the other are registered and polled via Shortcut() routing system.
+		if (user_clicked)
+			SetKeyOwner(ImGuiKey_MouseLeft, id);
 		g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
 		if (is_multiline || (flags & ImGuiInputTextFlags_CallbackHistory))
 			g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Up) | (1 << ImGuiDir_Down);
-		g.ActiveIdUsingNavInputMask |= (1 << ImGuiNavInput_Cancel);
-		SetActiveIdUsingKey(ImGuiKey_Home);
-		SetActiveIdUsingKey(ImGuiKey_End);
+		SetKeyOwner(ImGuiKey_Home, id);
+		SetKeyOwner(ImGuiKey_End, id);
 		if (is_multiline)
 		{
-			SetActiveIdUsingKey(ImGuiKey_PageUp);
-			SetActiveIdUsingKey(ImGuiKey_PageDown);
+			SetKeyOwner(ImGuiKey_PageUp, id);
+			SetKeyOwner(ImGuiKey_PageDown, id);
 		}
+		if (is_osx)
+			SetKeyOwner(ImGuiMod_Alt, id);
 		if (flags & (ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_AllowTabInput)) // Disable keyboard tabbing out as we will use the \t character.
-		{
-			SetActiveIdUsingKey(ImGuiKey_Tab);
-		}
+			SetShortcutRouting(ImGuiKey_Tab, id);
 	}
+
 
 	// We have an edge case if ActiveId was set through another widget (e.g. widget being swapped), clear id immediately (don't wait until the end of the function)
 	if (g.ActiveId == id && state == NULL)
@@ -231,10 +235,11 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 		clear_active_id = true;
 
 	// Lock the decision of whether we are going to take the path displaying the cursor or selection
-	const bool render_cursor = (g.ActiveId == id) || (state && user_scroll_active);
+	bool render_cursor = (g.ActiveId == id) || (state && user_scroll_active);
 	bool render_selection = state && (state->HasSelection( ) || select_all) && (RENDER_SELECTION_WHEN_INACTIVE || render_cursor);
 	bool value_changed = false;
 	bool enter_pressed = false;
+	bool validated = false;
 
 	// When read-only we always use the live data passed to the function
 	// FIXME-OPT: Because our selection/cursor code currently needs the wide text we need to convert it when active, which is not ideal :(
@@ -377,7 +382,7 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 	}
 
 	// Process other shortcuts/key-presses
-	bool cancel_edit = false;
+	bool revert_edit = false;
 	if (g.ActiveId == id && !g.ActiveIdIsJustActivated && !clear_active_id)
 	{
 		IM_ASSERT(state != NULL);
@@ -386,25 +391,26 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 		state->Stb.row_count_per_page = row_count_per_page;
 
 		const int k_mask = (io.KeyShift ? STB_TEXTEDIT_K_SHIFT : 0);
-		const bool is_osx = io.ConfigMacOSXBehaviors;
-		const bool is_osx_shift_shortcut = is_osx && (io.KeyMods == (ImGuiModFlags_Super | ImGuiModFlags_Shift));
 		const bool is_wordmove_key_down = is_osx ? io.KeyAlt : io.KeyCtrl;                     // OS X style: Text editing cursor movement using Alt instead of Ctrl
 		const bool is_startend_key_down = is_osx && io.KeySuper && !io.KeyCtrl && !io.KeyAlt;  // OS X style: Line/Text Start and End using Cmd+Arrows instead of Home/End
-		const bool is_ctrl_key_only = (io.KeyMods == ImGuiModFlags_Ctrl);
-		const bool is_shift_key_only = (io.KeyMods == ImGuiModFlags_Shift);
-		const bool is_shortcut_key = g.IO.ConfigMacOSXBehaviors ? (io.KeyMods == ImGuiModFlags_Super) : (io.KeyMods == ImGuiModFlags_Ctrl);
 
-		const bool is_cut = ((is_shortcut_key && IsKeyPressed(ImGuiKey_X)) || (is_shift_key_only && IsKeyPressed(ImGuiKey_Delete))) && !is_readonly && !is_password && (!is_multiline || state->HasSelection( ));
-		const bool is_copy = ((is_shortcut_key && IsKeyPressed(ImGuiKey_C)) || (is_ctrl_key_only && IsKeyPressed(ImGuiKey_Insert))) && !is_password && (!is_multiline || state->HasSelection( ));
-		const bool is_paste = ((is_shortcut_key && IsKeyPressed(ImGuiKey_V)) || (is_shift_key_only && IsKeyPressed(ImGuiKey_Insert))) && !is_readonly;
-		const bool is_undo = ((is_shortcut_key && IsKeyPressed(ImGuiKey_Z)) && !is_readonly && is_undoable);
-		const bool is_redo = ((is_shortcut_key && IsKeyPressed(ImGuiKey_Y)) || (is_osx_shift_shortcut && IsKeyPressed(ImGuiKey_Z))) && !is_readonly && is_undoable;
+		// Using Shortcut() with ImGuiInputFlags_RouteFocused (default policy) to allow routing operations for other code (e.g. calling window trying to use CTRL+A and CTRL+B: formet would be handled by InputText)
+		// Otherwise we could simply assume that we own the keys as we are active.
+		const ImGuiInputFlags f_repeat = ImGuiInputFlags_Repeat;
+		const bool is_cut = (Shortcut(ImGuiMod_Shortcut | ImGuiKey_X, id, f_repeat) || Shortcut(ImGuiMod_Shift | ImGuiKey_Delete, id, f_repeat)) && !is_readonly && !is_password && (!is_multiline || state->HasSelection( ));
+		const bool is_copy = (Shortcut(ImGuiMod_Shortcut | ImGuiKey_C, id) || Shortcut(ImGuiMod_Ctrl | ImGuiKey_Insert, id)) && !is_password && (!is_multiline || state->HasSelection( ));
+		const bool is_paste = (Shortcut(ImGuiMod_Shortcut | ImGuiKey_V, id, f_repeat) || Shortcut(ImGuiMod_Shift | ImGuiKey_Insert, id, f_repeat)) && !is_readonly;
+		const bool is_undo = (Shortcut(ImGuiMod_Shortcut | ImGuiKey_Z, id, f_repeat)) && !is_readonly && is_undoable;
+		const bool is_redo = (Shortcut(ImGuiMod_Shortcut | ImGuiKey_Y, id, f_repeat) || (is_osx && Shortcut(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_Z, id, f_repeat))) && !is_readonly && is_undoable;
+		const bool is_select_all = Shortcut(ImGuiMod_Shortcut | ImGuiKey_A, id);
 
 		// We allow validate/cancel with Nav source (gamepad) to makes it easier to undo an accidental NavInput press with no keyboard wired, but otherwise it isn't very useful.
-		const bool is_validate_enter = IsKeyPressed(ImGuiKey_Enter) || IsKeyPressed(ImGuiKey_KeypadEnter);
-		const bool is_validate_nav = (IsNavInputTest(ImGuiNavInput_Activate, ImGuiNavReadMode_Pressed) && !IsKeyPressed(ImGuiKey_Space)) || IsNavInputTest(ImGuiNavInput_Input, ImGuiNavReadMode_Pressed);
-		const bool is_cancel = IsKeyPressed(ImGuiKey_Escape) || IsNavInputTest(ImGuiNavInput_Cancel, ImGuiNavReadMode_Pressed);
+		const bool nav_gamepad_active = (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) != 0 && (io.BackendFlags & ImGuiBackendFlags_HasGamepad) != 0;
+		const bool is_enter_pressed = IsKeyPressed(ImGuiKey_Enter, true) || IsKeyPressed(ImGuiKey_KeypadEnter, true);
+		const bool is_gamepad_validate = nav_gamepad_active && (IsKeyPressed(ImGuiKey_NavGamepadActivate, false) || IsKeyPressed(ImGuiKey_NavGamepadInput, false));
+		const bool is_cancel = Shortcut(ImGuiKey_Escape, id, f_repeat) || (nav_gamepad_active && Shortcut(ImGuiKey_NavGamepadCancel, id, f_repeat));
 
+		// FIXME: Should use more Shortcut() and reduce IsKeyPressed()+SetKeyOwner(), but requires modifiers combination to be taken account of.
 		if (IsKeyPressed(ImGuiKey_LeftArrow))
 		{
 			state->OnKeyPressed((is_startend_key_down ? STB_TEXTEDIT_K_LINESTART : is_wordmove_key_down ? STB_TEXTEDIT_K_WORDLEFT : STB_TEXTEDIT_K_LEFT) | k_mask);
@@ -439,6 +445,12 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 		}
 		else if (IsKeyPressed(ImGuiKey_Delete) && !is_readonly && !is_cut)
 		{
+			if (!state->HasSelection( ))
+			{
+				// OSX doesn't seem to have Super+Delete to delete until end-of-line, so we don't emulate that (as opposed to Super+Backspace)
+				if (is_wordmove_key_down)
+					state->OnKeyPressed(STB_TEXTEDIT_K_WORDRIGHT | STB_TEXTEDIT_K_SHIFT);
+			}
 			state->OnKeyPressed(STB_TEXTEDIT_K_DELETE | k_mask);
 		}
 		else if (IsKeyPressed(ImGuiKey_Backspace) && !is_readonly)
@@ -452,12 +464,17 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 			}
 			state->OnKeyPressed(STB_TEXTEDIT_K_BACKSPACE | k_mask);
 		}
-		else if (is_validate_enter)
+		else if (is_enter_pressed || is_gamepad_validate)
 		{
+			// Determine if we turn Enter into a \n character
 			bool ctrl_enter_for_new_line = (flags & ImGuiInputTextFlags_CtrlEnterForNewLine) != 0;
-			if (!is_multiline || (ctrl_enter_for_new_line && !io.KeyCtrl) || (!ctrl_enter_for_new_line && io.KeyCtrl))
+			if (!is_multiline || is_gamepad_validate || (ctrl_enter_for_new_line && !io.KeyCtrl) || (!ctrl_enter_for_new_line && io.KeyCtrl))
 			{
-				enter_pressed = clear_active_id = true;
+				validated = true;
+				if (io.ConfigInputTextEnterKeepActive && !is_multiline)
+					state->SelectAll( ); // No need to scroll
+				else
+					clear_active_id = true;
 			}
 			else if (!is_readonly)
 			{
@@ -466,21 +483,32 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 					state->OnKeyPressed((int) c);
 			}
 		}
-		else if (is_validate_nav)
-		{
-			IM_ASSERT(!is_validate_enter);
-			enter_pressed = clear_active_id = true;
-		}
 		else if (is_cancel)
 		{
-			clear_active_id = cancel_edit = true;
+			if (flags & ImGuiInputTextFlags_EscapeClearsAll)
+			{
+				if (state->CurLenA > 0)
+				{
+					revert_edit = true;
+				}
+				else
+				{
+					render_cursor = render_selection = false;
+					clear_active_id = true;
+				}
+			}
+			else
+			{
+				clear_active_id = revert_edit = true;
+				render_cursor = render_selection = false;
+			}
 		}
 		else if (is_undo || is_redo)
 		{
 			state->OnKeyPressed(is_undo ? STB_TEXTEDIT_K_UNDO : STB_TEXTEDIT_K_REDO);
 			state->ClearSelection( );
 		}
-		else if (is_shortcut_key && IsKeyPressed(ImGuiKey_A))
+		else if (is_select_all)
 		{
 			state->SelectAll( );
 			state->CursorFollow = true;
@@ -514,12 +542,10 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 				const int clipboard_len = (int) strlen(clipboard);
 				ImWchar* clipboard_filtered = (ImWchar*) IM_ALLOC((clipboard_len + 1) * sizeof(ImWchar));
 				int clipboard_filtered_len = 0;
-				for (const char* s = clipboard; *s; )
+				for (const char* s = clipboard; *s != 0; )
 				{
 					unsigned int c;
 					s += ImTextCharFromUtf8(&c, s, NULL);
-					if (c == 0)
-						break;
 					if (!InputTextFilterCharacter(&c, flags, callback, callback_user_data, ImGuiInputSource_Clipboard))
 						continue;
 					clipboard_filtered[clipboard_filtered_len++] = (ImWchar) c;
@@ -537,14 +563,13 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 		// Update render selection flag after events have been handled, so selection highlight can be displayed during the same frame.
 		render_selection |= state->HasSelection( ) && (RENDER_SELECTION_WHEN_INACTIVE || render_cursor);
 	}
-
 	// Process callbacks and apply result back to user's buffer.
 	const char* apply_new_text = NULL;
 	int apply_new_text_length = 0;
 	if (g.ActiveId == id)
 	{
 		IM_ASSERT(state != NULL);
-		if (cancel_edit)
+		if (revert_edit)
 		{
 			// Restore initial value. Only return true if restoring to the initial value changes the current buffer contents.
 			if (!is_readonly && strcmp(buf, state->InitialTextA.Data) != 0)
@@ -565,7 +590,7 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 		// When using 'ImGuiInputTextFlags_EnterReturnsTrue' as a special case we reapply the live buffer back to the input buffer before clearing ActiveId, even though strictly speaking it wasn't modified on this frame.
 		// If we didn't do that, code like InputInt() with ImGuiInputTextFlags_EnterReturnsTrue would fail.
 		// This also allows the user to use InputText() with ImGuiInputTextFlags_EnterReturnsTrue without maintaining any user-side storage (please note that if you use this property along ImGuiInputTextFlags_CallbackResize you can end up with your temporary string object unnecessarily allocating once a frame, either store your string data, either if you don't then don't use ImGuiInputTextFlags_CallbackResize).
-		bool apply_edit_back_to_user_buffer = !cancel_edit || (enter_pressed && (flags & ImGuiInputTextFlags_EnterReturnsTrue) != 0);
+		bool apply_edit_back_to_user_buffer = !revert_edit || (enter_pressed && (flags & ImGuiInputTextFlags_EnterReturnsTrue) != 0);
 		if (apply_edit_back_to_user_buffer)
 		{
 			// Apply new value immediately - copy modified buffer back
@@ -793,11 +818,11 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 				searches_result_line_no[1] = line_count;
 
 			// Calculate 2d position by finding the beginning of the line and measuring distance
-			cursor_offset.x = InputTextCalcTextSizeW(ImStrbolW(searches_input_ptr[0], text_begin), searches_input_ptr[0]).x;
+			cursor_offset.x = InputTextCalcTextSizeW(&g, ImStrbolW(searches_input_ptr[0], text_begin), searches_input_ptr[0]).x;
 			cursor_offset.y = searches_result_line_no[0] * g.FontSize;
 			if (searches_result_line_no[1] >= 0)
 			{
-				select_start_offset.x = InputTextCalcTextSizeW(ImStrbolW(searches_input_ptr[1], text_begin), searches_input_ptr[1]).x;
+				select_start_offset.x = InputTextCalcTextSizeW(&g, ImStrbolW(searches_input_ptr[1], text_begin), searches_input_ptr[1]).x;
 				select_start_offset.y = searches_result_line_no[1] * g.FontSize;
 			}
 
@@ -866,7 +891,7 @@ bool input_text_ex(const char* label, const char* hint, char* buf, int buf_size,
 				}
 				else
 				{
-					ImVec2 rect_size = InputTextCalcTextSizeW(p, text_selected_end, &p, NULL, true);
+					ImVec2 rect_size = InputTextCalcTextSizeW(&g, p, text_selected_end, &p, NULL, true);
 					if (rect_size.x <= 0.0f) rect_size.x = IM_FLOOR(g.Font->GetCharAdvance((ImWchar) ' ') * 0.50f); // So we can see selected empty lines
 					ImRect rect(rect_pos + ImVec2(0.0f, bg_offy_up - g.FontSize), rect_pos + ImVec2(rect_size.x, bg_offy_dn));
 					rect.ClipWith(clip_rect);

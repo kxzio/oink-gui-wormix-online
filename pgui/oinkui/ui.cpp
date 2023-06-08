@@ -1,6 +1,6 @@
 #include "ui.h"
 
-const char* GKeyNames[133] =
+const char* GKeyNames[ ] =
 {
 	"Tab", "Left", "Right", "Up", "Down", "Pg Up", "Pg Dn",
 	"Home", "End", "Insert", "Delete", "Back", "Space", "Enter", "Esc",
@@ -9,24 +9,24 @@ const char* GKeyNames[133] =
 	"I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
 	"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
 	"'", ",", "-", ".", "/", ";", "=", "[",
-	"\\", "]", "~", "Caps", "ScrLk", "Num", "PrtScn",
+	"\\", "]", "~", "Caps", "ScrLck", "Num", "PrtScr",
 	"Pause", "Num 0", "Num 1", "Num 2", "Num 3", "Num 4", "Num 5", "Num 6",
 	"Num 7", "Num 8", "Num 9", "Num .", "Num /", "Num *",
 	"Num -", "Num +", "Num Enter", "Num =",
-	"Start", "GBack", "GUp", "GDown", "GLeft", "GRight",
-	"DPadUp", "DPadDn", "DPadLeft", "DPadRight",
+	"Start", "Back",
+	"FaceLeft", "FaceRight", "FaceUp", "FaceDown",
+	"DPadLeft", "DPadRight", "DPadUp", "DPadDown",
 	"L1", "R1", "L2", "R2", "L3", "R3",
-	"LStckUp", "LStckDn", "LStckL", "LStickR",
-	"RStckUp", "RStckDn", "RStckL", "RStickR",
-	"Ctrl", "Shift", "Alt", "Super"
+	"LS Left", "LS Right", "LS Up", "LS Down",
+	"RS Left", "RS Right", "RS Up", "RS Down",
+	"LMB", "RMB", "MMB", "X1", "X2", "X Wheel", "Y Wheel",
+	"Mod Ctrl", "Mod Shift", "Mod Alt", "Mod Super"
 };
-
 std::string current_help_tip = "";
 
 void c_oink_ui::textures_create(IDirect3DDevice9* device)
 {
 	D3DXCreateTextureFromFileInMemoryEx(device, pig, sizeof(pig), 100, 100, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_pig]);
-	D3DXCreateTextureFromFileInMemoryEx(device, syb, sizeof(syb), 2000, 2000, D3DX_DEFAULT, D3DUSAGE_DYNAMIC, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, NULL, NULL, &m_textures[tex_syb]);
 };
 
 float c_oink_ui::process_animation(const char* label, unsigned int seed, bool condition, float max_value, float percentage_speed, e_animation_type type)
@@ -106,6 +106,7 @@ void c_oink_ui::fonts_create(bool invalidate)
 	io.Fonts->Clear( );
 
 	ImFontConfig cfg = ImFontConfig( );
+	cfg.FontDataOwnedByAtlas = false;
 
 	cfg.FontBuilderFlags |= ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
@@ -164,8 +165,6 @@ void c_oink_ui::draw_menu( )
 	//menu code
 	if (begin("main window", &m_menu_opened, m_flags))
 	{
-
-
 		//style
 		auto& style = ImGui::GetStyle( );
 
