@@ -142,12 +142,11 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 	}
 
 	ImVec2 size = ImVec2(sv_picker_size, bars_width);
-	ImVec2 alpha_cursor_pos = GetCursorPos( );
-
+	ImVec2 alpha_cursor_pos = GetCursorPos( ) + window->Pos;
 	// Alpha bar logic
 	if (alpha_bar)
 	{
-		Button("alpha", size);
+		InvisibleButton("alpha", size);
 		if (IsItemActive( ))
 		{
 			col[3] = ImSaturate((io.MousePos.x - picker_pos.x) / (sv_picker_size - 1));
@@ -354,9 +353,20 @@ bool c_oink_ui::color_picker4(const char* label, float col[4], ImGuiColorEditFla
 	draw_list->AddRect(sv_cursor_pos - ImVec2(sv_cursor_rad + 1, sv_cursor_rad + 1), sv_cursor_pos + ImVec2(sv_cursor_rad + 1, sv_cursor_rad + 1), col_white);
 
 	// Render alpha bar
+	// Render alpha bar
 	if (alpha_bar)
 	{
-
+		float alpha = ImSaturate(col[3]);
+		ImRect bar1_bb(alpha_cursor_pos.x, alpha_cursor_pos.y, alpha_cursor_pos.x + size.x, alpha_cursor_pos.y + size.y);
+		RenderColorRectWithAlphaCheckerboard(draw_list, alpha_cursor_pos, alpha_cursor_pos + size, 0, bar1_bb.GetHeight( ) / 2.0f, ImVec2(0.0f, 0.0f));
+		draw_list->AddRectFilledMultiColor(alpha_cursor_pos, alpha_cursor_pos + size, user_col32_striped_of_alpha & ~IM_COL32_A_MASK, user_col32_striped_of_alpha, user_col32_striped_of_alpha, user_col32_striped_of_alpha & ~IM_COL32_A_MASK);
+		float bar1_line_x = IM_ROUND(picker_pos.x + alpha * sv_picker_size);
+		RenderFrameBorder(alpha_cursor_pos, alpha_cursor_pos + size, 0.0f);
+		draw_list->AddLine(ImVec2(bar1_line_x, alpha_cursor_pos.y), ImVec2(bar1_line_x, alpha_cursor_pos.y + bars_width), ImColor(0, 0, 0, 255));
+		draw_list->AddLine(ImVec2(bar1_line_x - 1 * dpi_scale, alpha_cursor_pos.y), ImVec2(bar1_line_x - 1 * dpi_scale, alpha_cursor_pos.y + bars_width), ImColor(255, 255, 255, 255));
+		draw_list->AddLine(ImVec2(bar1_line_x + 1 * dpi_scale, alpha_cursor_pos.y), ImVec2(bar1_line_x + 1 * dpi_scale, alpha_cursor_pos.y + bars_width), ImColor(255, 255, 255, 255));
+		draw_list->AddLine(ImVec2(bar1_line_x + 2 * dpi_scale, alpha_cursor_pos.y), ImVec2(bar1_line_x + 2 * dpi_scale, alpha_cursor_pos.y + bars_width), ImColor(0, 0, 0, 150));
+		draw_list->AddLine(ImVec2(bar1_line_x - 2 * dpi_scale, alpha_cursor_pos.y), ImVec2(bar1_line_x - 2 * dpi_scale, alpha_cursor_pos.y + bars_width), ImColor(0, 0, 0, 150));
 	}
 
 	EndGroup( );
